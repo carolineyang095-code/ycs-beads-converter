@@ -1,24 +1,24 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Upload, Download, Grid3x3, Maximize2, Paintbrush, Eraser,
-  Pipette, ShoppingCart, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
-  SlidersHorizontal, Layers
+  Upload, Download, Paintbrush, Eraser,
+  Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
+  SlidersHorizontal, Layers, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import ImageUploadSection from '@/components/ImageUploadSection';
-import ColorStatistics from '@/components/ColorStatistics';
 import ShopifyIntegration from '@/components/ShopifyIntegration';
+import NoiseColorRemoval from '@/components/NoiseColorRemoval';
 import {
   loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
-  exportGridAsPNG, exportStatsAsCSV, getTotalBeadCount, calculateGridDimensions,
-  getAspectRatioString, getPixelAt, setPixelAt, exportGridWithCodesPNG,
+  exportGridAsPNG, exportStatsAsCSV, calculateGridDimensions,
+  getAspectRatioString, getPixelAt, setPixelAt,
   PixelGridCell, ProcessedImage
 } from '@/lib/imageProcessing';
+import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
@@ -43,6 +43,11 @@ export default function Home() {
   const [showBackground, setShowBackground] = useState(true);
   const [pixelSize, setPixelSize] = useState(12);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
+
+  // Noise color removal state
+  const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
+  // Store the processed state before any noise removal for restore
+  const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -79,6 +84,8 @@ export default function Home() {
       const resized = resizeImageToGrid(canvas, gridW, gridH);
       const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded);
       setProcessed(result);
+      setBaseProcessed(result);
+      setRemovedColors(new Map());
       if (canvasRef.current) {
         drawPixelGrid(canvasRef.current, gridW, gridH, result.pixels, pixelSize, true, highlightCode, result.backgroundIndices, showBackground);
       }
@@ -100,6 +107,7 @@ export default function Home() {
     setError(null);
     setExcludedCodes(new Set());
     setHighlightCode(null);
+    setRemovedColors(new Map());
     try {
       setIsProcessing(true);
       const canvas = await loadImage(file);
@@ -142,7 +150,7 @@ export default function Home() {
     }
   };
 
-  // Handle color exclusion
+  // Handle color exclusion (right-click in stats)
   const handleExcludeColor = (code: string) => {
     const newExcluded = new Set(excludedCodes);
     if (newExcluded.has(code)) {
@@ -154,6 +162,73 @@ export default function Home() {
     if (sourceImage && dims) {
       processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded);
     }
+  };
+
+  // === NOISE COLOR REMOVAL ===
+  const handleRemoveNoiseColor = (code: string, replacementCode: string) => {
+    if (!processed) return;
+
+    const newPixels = processed.pixels.map((pixel) => {
+      if (pixel.code === code && !pixel.isBackground) {
+        const replacement = colorIndexRef.current.get(replacementCode);
+        if (replacement) {
+          return {
+            ...pixel,
+            code: replacement.code,
+            hex: replacement.hex,
+            rgb: replacement.rgb,
+          };
+        }
+      }
+      return pixel;
+    });
+
+    // Recalculate stats
+    const newStats = new Map<string, number>();
+    newPixels.forEach((p, i) => {
+      if (!processed.backgroundIndices.has(i)) {
+        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
+      }
+    });
+
+    const newRemoved = new Map(removedColors);
+    newRemoved.set(code, replacementCode);
+    setRemovedColors(newRemoved);
+
+    setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
+  };
+
+  const handleRestoreColor = (code: string) => {
+    if (!baseProcessed || !processed) return;
+
+    // Restore pixels that were originally this code
+    const newPixels = processed.pixels.map((pixel, i) => {
+      const basePixel = baseProcessed.pixels[i];
+      if (basePixel && basePixel.code === code) {
+        return { ...basePixel };
+      }
+      return pixel;
+    });
+
+    // Recalculate stats
+    const newStats = new Map<string, number>();
+    newPixels.forEach((p, i) => {
+      if (!processed.backgroundIndices.has(i)) {
+        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
+      }
+    });
+
+    const newRemoved = new Map(removedColors);
+    newRemoved.delete(code);
+    setRemovedColors(newRemoved);
+
+    setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
+  };
+
+  const handleRestoreAll = () => {
+    if (!baseProcessed) return;
+    setProcessed({ ...baseProcessed });
+    setRemovedColors(new Map());
   };
 
   // Handle highlight color click
@@ -194,22 +269,19 @@ export default function Home() {
         const color = colorIndexRef.current.get(pixel.code);
         if (color) {
           setSelectedColor(color);
-          toast(`Picked color: ${color.code}`);
+          toast(`取色: ${color.code}`);
         }
       }
     } else if (activeTool === 'brush' && selectedColor) {
       const newPixels = setPixelAt(processed.pixels, processed.gridWidth, x, y, selectedColor);
-      // Recalculate stats
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
         if (!processed.backgroundIndices.has(i)) {
           newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
         }
       });
-      const updated = { ...processed, pixels: newPixels, colorStats: newStats };
-      setProcessed(updated);
+      setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     } else if (activeTool === 'eraser') {
-      // Set to background color (white)
       const whiteColor: ColorData = { code: 'BG', name: 'Background', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 } };
       const bgColor = palette.find(c => c.hex === '#FFFFFF') || whiteColor;
       const newPixels = setPixelAt(processed.pixels, processed.gridWidth, x, y, bgColor);
@@ -219,8 +291,7 @@ export default function Home() {
           newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
         }
       });
-      const updated = { ...processed, pixels: newPixels, colorStats: newStats };
-      setProcessed(updated);
+      setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     }
   };
 
@@ -237,6 +308,7 @@ export default function Home() {
       setHighlightCode(null);
       setMergeThreshold(1);
       setEnableBgRemoval(false);
+      setRemovedColors(new Map());
       processImage(sourceImage, dims.width, dims.height, 1, false, new Set());
     }
   };
@@ -249,9 +321,19 @@ export default function Home() {
     exportGridAsPNG(exportCanvas, `perler-${dims.width}x${dims.height}.png`);
   };
 
-  const handleExportCodedPNG = () => {
+  const handleExportPatternPNG = () => {
     if (!processed || !dims) return;
-    exportGridWithCodesPNG(dims.width, dims.height, processed.pixels, processed.backgroundIndices, `perler-coded-${dims.width}x${dims.height}.png`);
+    exportFullPatternPNG(
+      dims.width,
+      dims.height,
+      processed.pixels,
+      processed.colorStats,
+      colorIndexRef.current,
+      processed.backgroundIndices,
+      `perler-pattern-${dims.width}x${dims.height}.png`,
+      { title: '拼豆图纸' }
+    );
+    toast.success('图纸已导出');
   };
 
   const handleExportCSV = () => {
@@ -259,22 +341,28 @@ export default function Home() {
     exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`);
   };
 
+  // Calculate totals for display
+  const totalBeads = processed ? Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0) : 0;
+  const totalColors = processed ? processed.colorStats.size : 0;
+
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Perler Bead Pattern Converter</h1>
-          <p className="text-xs text-muted-foreground">Artkal 221 Color Mapping</p>
+          <h1 className="text-xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+            拼豆图纸转换器
+          </h1>
+          <p className="text-xs text-muted-foreground">Artkal 221 色板 · 像素图纸生成</p>
         </div>
         <div className="flex items-center gap-2">
           {processed && (
             <>
               <Button onClick={handleExportPNG} size="sm" variant="outline" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> PNG
+                <Download className="w-3 h-3" /> 预览图
               </Button>
-              <Button onClick={handleExportCodedPNG} size="sm" variant="outline" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> Coded PNG
+              <Button onClick={handleExportPatternPNG} size="sm" variant="default" className="text-xs gap-1">
+                <Download className="w-3 h-3" /> 导出图纸
               </Button>
               <Button onClick={handleExportCSV} size="sm" variant="outline" className="text-xs gap-1">
                 <Download className="w-3 h-3" /> CSV
@@ -287,7 +375,7 @@ export default function Home() {
       {error && (
         <div className="mx-4 mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex-shrink-0">
           {error}
-          <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-2 underline">关闭</button>
         </div>
       )}
 
@@ -306,7 +394,7 @@ export default function Home() {
                       <Paintbrush className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Brush Tool</TooltipContent>
+                  <TooltipContent>画笔</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -314,7 +402,7 @@ export default function Home() {
                       <Eraser className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Eraser Tool</TooltipContent>
+                  <TooltipContent>橡皮擦</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -322,7 +410,7 @@ export default function Home() {
                       <Pipette className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Eyedropper Tool</TooltipContent>
+                  <TooltipContent>取色器</TooltipContent>
                 </Tooltip>
               </div>
 
@@ -349,7 +437,7 @@ export default function Home() {
                       {showBackground ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>{showBackground ? 'Hide' : 'Show'} Background</TooltipContent>
+                  <TooltipContent>{showBackground ? '隐藏' : '显示'}背景</TooltipContent>
                 </Tooltip>
               </div>
 
@@ -360,7 +448,7 @@ export default function Home() {
                     <RotateCcw className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Reset All</TooltipContent>
+                <TooltipContent>重置</TooltipContent>
               </Tooltip>
 
               {/* Pixel info on hover */}
@@ -369,7 +457,7 @@ export default function Home() {
                   <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: hoveredPixel.pixel.hex }} />
                   <span className="font-mono">{hoveredPixel.pixel.code}</span>
                   <span className="font-mono">{hoveredPixel.pixel.hex}</span>
-                  <span>({hoveredPixel.x}, {hoveredPixel.y})</span>
+                  <span>({hoveredPixel.x + 1}, {hoveredPixel.y + 1})</span>
                 </div>
               )}
             </div>
@@ -393,8 +481,8 @@ export default function Home() {
               <div className="flex-1 flex items-center justify-center h-full">
                 <div className="text-center text-muted-foreground">
                   <Upload className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium">Upload an image to get started</p>
-                  <p className="text-sm mt-1">Supports JPG, PNG, WebP</p>
+                  <p className="text-lg font-medium">上传图片开始转换</p>
+                  <p className="text-sm mt-1">支持 JPG, PNG, WebP</p>
                 </div>
               </div>
             )}
@@ -403,8 +491,8 @@ export default function Home() {
           {/* Status bar */}
           {dims && processed && (
             <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-gray-50 flex-shrink-0">
-              <span>Grid: {dims.width} × {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
-              <span>Total: {getTotalBeadCount(dims.width, dims.height)} beads | Colors: {processed.colorStats.size} | Non-BG: {Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0)}</span>
+              <span>网格: {dims.width} × {dims.height} | 比例: {getAspectRatioString(dims.width, dims.height)}</span>
+              <span>总计: {totalBeads.toLocaleString()} 颗 | 颜色: {totalColors} 种</span>
             </div>
           )}
         </div>
@@ -414,7 +502,7 @@ export default function Home() {
           {/* Upload */}
           <div className="p-4 border-b border-border">
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5" /> Upload Image
+              <Upload className="w-3.5 h-3.5" /> 上传图片
             </h3>
             <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
           </div>
@@ -423,13 +511,13 @@ export default function Home() {
           {sourceImage && (
             <div className="p-4 border-b border-border space-y-4">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <SlidersHorizontal className="w-3.5 h-3.5" /> Parameters
+                <SlidersHorizontal className="w-3.5 h-3.5" /> 处理参数
               </h3>
 
               {/* Grid Size Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Horizontal Grid</label>
+                  <label className="text-xs font-medium text-foreground">横轴切割数量</label>
                   <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
                 </div>
                 <Slider
@@ -442,7 +530,7 @@ export default function Home() {
                 />
                 {dims && (
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    Output: {dims.width}×{dims.height}
+                    输出: {dims.width}×{dims.height}
                   </p>
                 )}
               </div>
@@ -450,7 +538,7 @@ export default function Home() {
               {/* Merge Threshold Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Color Merge</label>
+                  <label className="text-xs font-medium text-foreground">颜色合并阈值</label>
                   <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
                 </div>
                 <Slider
@@ -462,15 +550,33 @@ export default function Home() {
                   className="w-full"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Regions smaller than {mergeThreshold} px are merged
+                  小于 {mergeThreshold} 像素的区域将被合并
                 </p>
               </div>
 
               {/* Background Removal */}
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-foreground">Background Removal</label>
+                <label className="text-xs font-medium text-foreground">去除背景</label>
                 <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
               </div>
+            </div>
+          )}
+
+          {/* Noise Color Removal */}
+          {processed && (
+            <div className="p-4 border-b border-border">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
+                <Sparkles className="w-3.5 h-3.5" /> 去除杂色
+              </h3>
+              <NoiseColorRemoval
+                colorStats={processed.colorStats}
+                palette={colorIndexRef.current}
+                threshold={10}
+                onRemoveColor={handleRemoveNoiseColor}
+                onRestoreColor={handleRestoreColor}
+                onRestoreAll={handleRestoreAll}
+                removedColors={removedColors}
+              />
             </div>
           )}
 
@@ -478,18 +584,17 @@ export default function Home() {
           {processed && (
             <div className="p-4 border-b border-border">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Layers className="w-3.5 h-3.5" /> Colors ({processed.colorStats.size})
+                <Layers className="w-3.5 h-3.5" /> 颜色统计 ({totalColors})
               </h3>
               <p className="text-[10px] text-muted-foreground mb-2">
-                Click to highlight · Right-click to exclude
+                点击高亮 · 右键排除
               </p>
               <div className="space-y-0.5 max-h-72 overflow-y-auto">
                 {Array.from(processed.colorStats.entries())
                   .sort((a, b) => b[1] - a[1])
                   .map(([code, count]) => {
                     const color = colorIndexRef.current.get(code);
-                    const total = Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0);
-                    const pct = ((count / total) * 100).toFixed(1);
+                    const pct = totalBeads > 0 ? ((count / totalBeads) * 100).toFixed(1) : '0';
                     const isExcluded = excludedCodes.has(code);
                     const isHighlighted = highlightCode === code;
 
@@ -507,9 +612,9 @@ export default function Home() {
                         )}
                         <span className="font-mono font-medium flex-shrink-0 w-8">{code}</span>
                         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color?.hex || '#999' }} />
+                          <div className="h-full rounded-full" style={{ width: `${Math.max(2, parseFloat(pct))}%`, backgroundColor: color?.hex || '#999' }} />
                         </div>
-                        <span className="text-muted-foreground flex-shrink-0 w-10 text-right">{count}</span>
+                        <span className="text-muted-foreground flex-shrink-0 w-10 text-right font-mono">{count}</span>
                         <span className="text-muted-foreground flex-shrink-0 w-10 text-right">{pct}%</span>
                       </div>
                     );
