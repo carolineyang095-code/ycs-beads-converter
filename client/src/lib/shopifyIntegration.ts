@@ -1,169 +1,94 @@
 /**
  * Shopify Integration Library
- * Handles shopping cart creation and product variant mapping
+ * 
+ * Business logic: There is ONE product with ONE variant (Fuse beads).
+ * - Quantity = total bead count (sum of all colors)
+ * - Breakdown attribute = "A3:10; A4:122; A5:22" format showing per-color counts
+ * 
+ * Shopify cart URL format:
+ *   /cart/add?id={variantId}&quantity={totalBeads}&properties[Breakdown]={breakdown}
  */
 
-export interface ShopifyVariantMapping {
-  [colorCode: string]: string; // colorCode -> variantId
-}
-
-export interface CartItem {
-  variantId: string;
-  quantity: number;
+export interface ShopifyConfig {
+  storeUrl: string;
+  variantId: string; // Single variant ID for the fuse beads product
 }
 
 /**
- * Default Shopify variant mapping
- * This should be configured based on your actual Shopify store
- * Format: color code -> variant ID
+ * Build the color breakdown string
+ * Format: "A01:10; A04:122; B05:22"
  */
-export const DEFAULT_VARIANT_MAPPING: ShopifyVariantMapping = {
-  // Example mappings - replace with your actual variant IDs
-  // 'A01': 'gid://shopify/ProductVariant/12345678901234',
-  // 'A02': 'gid://shopify/ProductVariant/12345678901235',
-};
+export function buildBreakdownString(colorStats: Map<string, number>): string {
+  const entries: string[] = [];
+  const sorted = Array.from(colorStats.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  for (const [code, count] of sorted) {
+    if (count > 0) {
+      entries.push(`${code}:${count}`);
+    }
+  }
+  return entries.join('; ');
+}
 
 /**
- * Build a Shopify cart URL with pre-filled items
- * Uses the Shopify Cart API format
+ * Calculate total bead count from color stats
+ */
+export function getTotalBeadCount(colorStats: Map<string, number>): number {
+  let total = 0;
+  colorStats.forEach((count) => {
+    total += count;
+  });
+  return total;
+}
+
+/**
+ * Build a Shopify cart URL with single product, total quantity, and breakdown attribute
+ * 
+ * Uses Shopify's /cart/add endpoint with line item properties:
+ *   /cart/add?id={variantId}&quantity={total}&properties[Breakdown]={breakdown}
  */
 export function buildShopifyCartUrl(
-  storeUrl: string,
-  colorStats: Map<string, number>,
-  variantMapping: ShopifyVariantMapping
+  config: ShopifyConfig,
+  colorStats: Map<string, number>
 ): string {
-  const cartItems: CartItem[] = [];
-
-  colorStats.forEach((count, colorCode) => {
-    const variantId = variantMapping[colorCode];
-    if (variantId) {
-      cartItems.push({
-        variantId,
-        quantity: count,
-      });
-    }
-  });
-
-  if (cartItems.length === 0) {
-    throw new Error('No valid product variants found for the selected colors');
+  const totalBeads = getTotalBeadCount(colorStats);
+  if (totalBeads === 0) {
+    throw new Error('No beads to add to cart');
   }
 
-  // Build the cart URL using Shopify's cart API
-  // Format: /cart/add?id=variant_id&quantity=qty&id=variant_id&quantity=qty
+  const breakdown = buildBreakdownString(colorStats);
+  
+  const baseUrl = config.storeUrl.endsWith('/') ? config.storeUrl : config.storeUrl + '/';
+  
+  // Build URL with line item properties
+  // Shopify supports properties[Key]=Value format for cart attributes
   const params = new URLSearchParams();
-  for (const item of cartItems) {
-    params.append('id', item.variantId);
-    params.append('quantity', item.quantity.toString());
-  }
+  params.append('id', config.variantId);
+  params.append('quantity', totalBeads.toString());
+  params.append('properties[Breakdown]', breakdown);
 
-  const baseUrl = storeUrl.endsWith('/') ? storeUrl : storeUrl + '/';
   return `${baseUrl}cart/add?${params.toString()}`;
 }
 
 /**
- * Alternative: Build a Shopify Storefront API cart creation payload
- * This is useful if you want to create a cart via API instead of URL redirect
+ * Load Shopify config from localStorage
  */
-export function buildStorefrontCartPayload(
-  colorStats: Map<string, number>,
-  variantMapping: ShopifyVariantMapping
-): Array<{ variantId: string; quantity: number }> {
-  const items: Array<{ variantId: string; quantity: number }> = [];
-
-  colorStats.forEach((count, colorCode) => {
-    const variantId = variantMapping[colorCode];
-    if (variantId) {
-      items.push({
-        variantId,
-        quantity: count,
-      });
-    }
-  });
-
-  return items;
-}
-
-/**
- * Redirect to Shopify cart with pre-filled items
- */
-export function redirectToShopifyCart(
-  storeUrl: string,
-  colorStats: Map<string, number>,
-  variantMapping: ShopifyVariantMapping
-): void {
+export function loadShopifyConfig(): ShopifyConfig | null {
   try {
-    const cartUrl = buildShopifyCartUrl(storeUrl, colorStats, variantMapping);
-    window.location.href = cartUrl;
-  } catch (error) {
-    console.error('Failed to create Shopify cart URL:', error);
-    throw error;
-  }
-}
-
-/**
- * Validate variant mapping configuration
- */
-export function validateVariantMapping(
-  colorStats: Map<string, number>,
-  variantMapping: ShopifyVariantMapping
-): {
-  valid: boolean;
-  missingColors: string[];
-  mappedColors: string[];
-} {
-  const missingColors: string[] = [];
-  const mappedColors: string[] = [];
-
-  colorStats.forEach((_count, colorCode) => {
-    if (variantMapping[colorCode]) {
-      mappedColors.push(colorCode);
-    } else {
-      missingColors.push(colorCode);
-    }
-  });
-
-  return {
-    valid: missingColors.length === 0,
-    missingColors,
-    mappedColors,
-  };
-}
-
-/**
- * Generate a configuration template for variant mapping
- */
-export function generateVariantMappingTemplate(
-  colorCodes: string[]
-): ShopifyVariantMapping {
-  const template: ShopifyVariantMapping = {};
-  for (const code of colorCodes) {
-    template[code] = ''; // Empty - to be filled by user
-  }
-  return template;
-}
-
-/**
- * Load variant mapping from localStorage
- */
-export function loadVariantMappingFromStorage(): ShopifyVariantMapping | null {
-  try {
-    const stored = localStorage.getItem('shopify_variant_mapping');
+    const stored = localStorage.getItem('shopify_config');
     return stored ? JSON.parse(stored) : null;
   } catch (error) {
-    console.error('Failed to load variant mapping from storage:', error);
+    console.error('Failed to load Shopify config from storage:', error);
     return null;
   }
 }
 
 /**
- * Save variant mapping to localStorage
+ * Save Shopify config to localStorage
  */
-export function saveVariantMappingToStorage(
-  mapping: ShopifyVariantMapping
-): void {
+export function saveShopifyConfig(config: ShopifyConfig): void {
   try {
-    localStorage.setItem('shopify_variant_mapping', JSON.stringify(mapping));
+    localStorage.setItem('shopify_config', JSON.stringify(config));
   } catch (error) {
-    console.error('Failed to save variant mapping to storage:', error);
+    console.error('Failed to save Shopify config to storage:', error);
   }
 }
