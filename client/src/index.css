@@ -43,15 +43,15 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
+  --primary: oklch(0.32 0.09 300);
+  --primary-foreground: oklch(0.98 0.01 300);
+  --sidebar-primary: oklch(0.58 0.15 295);
+  --sidebar-primary-foreground: oklch(0.98 0.01 300);
+  --chart-1: oklch(0.58 0.15 295);
+  --chart-2: oklch(0.48 0.12 298);
+  --chart-3: oklch(0.40 0.10 300);
+  --chart-4: oklch(0.32 0.09 300);
+  --chart-5: oklch(0.25 0.07 300);
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.235 0.015 65);
@@ -134,13 +134,13 @@
 }
 
 @layer base {
-  /* Typography System */
+  /* Typography System - Klee One */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Klee One', cursive, sans-serif;
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Klee One', cursive, sans-serif;
   }
 }
 

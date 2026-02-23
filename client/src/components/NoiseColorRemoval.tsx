@@ -1,21 +1,18 @@
 import { useState } from 'react';
-import { Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ColorData, euclideanDistance } from '@/lib/colorMapping';
 
 interface NoiseColorRemovalProps {
   colorStats: Map<string, number>;
   palette: Map<string, ColorData>;
-  threshold?: number; // default 10
+  threshold?: number;
   onRemoveColor: (code: string, replacementCode: string) => void;
   onRestoreColor: (code: string) => void;
   onRestoreAll: () => void;
-  removedColors: Map<string, string>; // removed code -> replacement code
+  removedColors: Map<string, string>;
 }
 
-/**
- * Find the closest color among the currently used colors (not from full palette)
- */
 function findClosestUsedColor(
   targetCode: string,
   colorStats: Map<string, number>,
@@ -52,18 +49,11 @@ export default function NoiseColorRemoval({
 }: NoiseColorRemovalProps) {
   const [showRemoved, setShowRemoved] = useState(false);
 
-  // Get total bead count
   const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
 
-  // Find noise colors (count < threshold), sorted by count ascending
   const noiseColors = Array.from(colorStats.entries())
     .filter(([_, count]) => count < threshold)
     .sort((a, b) => a[1] - b[1]);
-
-  // Non-noise colors sorted by count descending
-  const mainColors = Array.from(colorStats.entries())
-    .filter(([_, count]) => count >= threshold)
-    .sort((a, b) => b[1] - a[1]);
 
   const handleRemove = (code: string) => {
     const replacement = findClosestUsedColor(code, colorStats, palette);
@@ -75,13 +65,11 @@ export default function NoiseColorRemoval({
   return (
     <div className="space-y-3">
       <div className="text-center">
-        <h3 className="text-sm font-bold text-foreground">去除杂色</h3>
         <p className="text-[10px] text-muted-foreground mt-0.5">
-          点击颜色可排除。总计: {totalBeads.toLocaleString()} 颗
+          Click to remove. Total: {totalBeads.toLocaleString()} beads
         </p>
       </div>
 
-      {/* Noise colors list */}
       {noiseColors.length > 0 ? (
         <div className="space-y-1 max-h-48 overflow-y-auto">
           {noiseColors.map(([code, count]) => {
@@ -93,7 +81,7 @@ export default function NoiseColorRemoval({
                 key={code}
                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 cursor-pointer transition-colors group"
                 onClick={() => handleRemove(code)}
-                title={`点击将 ${code} 替换为 ${replacement || '?'}`}
+                title={`Click to replace ${code} with ${replacement || '?'}`}
               >
                 <div className="flex items-center gap-1.5 flex-1">
                   {color && (
@@ -104,7 +92,7 @@ export default function NoiseColorRemoval({
                   )}
                   <span className="text-xs font-mono font-semibold text-foreground">{code}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{count} 颗</span>
+                <span className="text-xs text-muted-foreground">{count} pcs</span>
                 {replacementColor && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="text-[10px] text-muted-foreground">→</span>
@@ -121,18 +109,17 @@ export default function NoiseColorRemoval({
         </div>
       ) : (
         <p className="text-[10px] text-center text-muted-foreground py-2">
-          没有少于 {threshold} 颗的杂色
+          No noise colors (fewer than {threshold} pcs)
         </p>
       )}
 
-      {/* Removed colors section */}
       {removedColors.size > 0 && (
         <div className="border-t border-border pt-2">
           <button
             onClick={() => setShowRemoved(!showRemoved)}
             className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-foreground hover:bg-gray-50 rounded-md transition-colors"
           >
-            <span>已排除的颜色 ({removedColors.size})</span>
+            <span>Excluded Colors ({removedColors.size})</span>
             {showRemoved ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
@@ -163,10 +150,11 @@ export default function NoiseColorRemoval({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-5 px-2 text-[10px] text-blue-600 border-blue-200 hover:bg-blue-50"
+                      className="h-5 px-2 text-[10px] border-purple-200 hover:bg-purple-50"
+                      style={{ color: '#9867DA' }}
                       onClick={() => onRestoreColor(code)}
                     >
-                      恢复
+                      Restore
                     </Button>
                   </div>
                 );
@@ -180,7 +168,7 @@ export default function NoiseColorRemoval({
             className="w-full mt-2 text-xs h-7"
             onClick={onRestoreAll}
           >
-            <RotateCcw className="w-3 h-3 mr-1" /> 一键恢复所有颜色
+            <RotateCcw className="w-3 h-3 mr-1" /> Restore All Colors
           </Button>
         </div>
       )}

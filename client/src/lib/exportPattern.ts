@@ -21,7 +21,7 @@ interface ExportOptions {
 }
 
 const DEFAULT_OPTIONS: Required<ExportOptions> = {
-  title: '拼豆图纸',
+  title: 'Bead Pattern',
   cellSize: 0,
   showGrid: true,
   showCodes: true,
@@ -47,7 +47,6 @@ function calculateSafeCellSize(
 ): number {
   let cellSize = preferredCellSize;
 
-  // Ensure total canvas dimensions stay within limits
   for (let attempt = 0; attempt < 20; attempt++) {
     const totalWidth = gridWidth * cellSize + coordMargin + 20;
     const totalHeight = headerHeight + coordMargin + gridHeight * cellSize + legendHeight + 20;
@@ -90,7 +89,7 @@ export function exportFullPatternPNG(
     const coordMargin = opts.showCoordinates ? 30 : 0;
     const headerHeight = 50;
 
-    // Calculate legend dimensions first (needed for safe cell size calc)
+    // Calculate legend dimensions
     const legendEntries = Array.from(colorStats.entries())
       .sort((a, b) => a[0].localeCompare(b[0]));
     const estimatedLegendCols = 4;
@@ -120,14 +119,14 @@ export function exportFullPatternPNG(
 
     // Safety check
     if (totalWidth > MAX_CANVAS_DIMENSION || totalHeight > MAX_CANVAS_DIMENSION) {
-      throw new Error(`图纸尺寸过大 (${totalWidth}×${totalHeight})，请减小网格尺寸后重试`);
+      throw new Error(`Pattern too large (${totalWidth}×${totalHeight}). Please reduce grid size.`);
     }
 
     const canvas = document.createElement('canvas');
     canvas.width = totalWidth;
     canvas.height = totalHeight;
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('无法创建画布');
+    if (!ctx) throw new Error('Failed to create canvas');
 
     // White background
     ctx.fillStyle = '#FFFFFF';
@@ -137,7 +136,7 @@ export function exportFullPatternPNG(
     const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
     const totalColors = colorStats.size;
 
-    ctx.fillStyle = '#2D3748';
+    ctx.fillStyle = '#452F60';
     ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -145,9 +144,9 @@ export function exportFullPatternPNG(
 
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillStyle = '#4A5568';
+    ctx.fillStyle = '#9867DA';
     ctx.fillText(
-      `${totalColors} 色 · ${totalBeads.toLocaleString()} 颗 · ${gridWidth}×${gridHeight}`,
+      `${totalColors} colors · ${totalBeads.toLocaleString()} beads · ${gridWidth}×${gridHeight}`,
       totalWidth - 20,
       headerHeight / 2
     );
@@ -214,7 +213,6 @@ export function exportFullPatternPNG(
 
     // === GRID LINES ===
     if (opts.showGrid) {
-      // Thin grid lines
       ctx.strokeStyle = '#CBD5E0';
       ctx.lineWidth = 0.5;
 
@@ -244,7 +242,7 @@ export function exportFullPatternPNG(
       ctx.stroke();
 
       // Border
-      ctx.strokeStyle = '#2D3748';
+      ctx.strokeStyle = '#452F60';
       ctx.lineWidth = 2;
       ctx.strokeRect(gridStartX, gridStartY, gridPixelWidth, gridPixelHeight);
     }
@@ -280,26 +278,26 @@ export function exportFullPatternPNG(
         }
 
         // Code
-        ctx.fillStyle = '#2D3748';
+        ctx.fillStyle = '#452F60';
         ctx.font = 'bold 11px monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText(code, lx + 24, ly + 9);
 
         // Count
-        ctx.fillStyle = '#718096';
+        ctx.fillStyle = '#9867DA';
         ctx.font = '11px sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText(`${count} 颗`, lx + colWidth - 10, ly + 9);
+        ctx.fillText(`${count} pcs`, lx + colWidth - 10, ly + 9);
       }
 
       // Total at bottom-right
-      ctx.fillStyle = '#2D3748';
+      ctx.fillStyle = '#452F60';
       ctx.font = 'bold 13px sans-serif';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'top';
       ctx.fillText(
-        `总计: ${totalBeads.toLocaleString()} 颗`,
+        `Total: ${totalBeads.toLocaleString()} beads`,
         totalWidth - 20,
         legendStartY + legendRows * legendRowHeight + 5
       );
@@ -308,7 +306,7 @@ export function exportFullPatternPNG(
     // Download using blob for better memory handling
     canvas.toBlob((blob) => {
       if (!blob) {
-        alert('导出失败：无法生成图片。请尝试减小网格尺寸。');
+        alert('Export failed: unable to generate image. Please try reducing grid size.');
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -318,13 +316,12 @@ export function exportFullPatternPNG(
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      // Clean up
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     }, 'image/png');
 
   } catch (error) {
-    const msg = error instanceof Error ? error.message : '未知错误';
-    alert(`导出图纸失败: ${msg}`);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    alert(`Export failed: ${msg}`);
     console.error('Export error:', error);
   }
 }

@@ -63,7 +63,7 @@ export default function Home() {
         setPalette(data);
         colorIndexRef.current = createColorIndex(data);
       } catch (err) {
-        setError(`加载色板失败: ${err instanceof Error ? err.message : '未知错误'}`);
+        setError(`Failed to load palette: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     };
     loadPalette();
@@ -80,14 +80,12 @@ export default function Home() {
   ) => {
     if (palette.length === 0) return;
 
-    // Cancel any pending processing
     if (processingTimeoutRef.current) {
       cancelAnimationFrame(processingTimeoutRef.current);
     }
 
     setIsProcessing(true);
 
-    // Use requestAnimationFrame to avoid blocking the UI
     processingTimeoutRef.current = requestAnimationFrame(() => {
       try {
         const resized = resizeImageToGrid(canvas, gridW, gridH);
@@ -96,7 +94,7 @@ export default function Home() {
         setBaseProcessed(result);
         setRemovedColors(new Map());
       } catch (err) {
-        setError(`处理错误: ${err instanceof Error ? err.message : '未知错误'}`);
+        setError(`Processing error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setIsProcessing(false);
       }
@@ -131,7 +129,7 @@ export default function Home() {
       setDims(d);
       processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set());
     } catch (err) {
-      setError(`加载图片失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
     }
   };
@@ -273,7 +271,7 @@ export default function Home() {
         const color = colorIndexRef.current.get(pixel.code);
         if (color) {
           setSelectedColor(color);
-          toast(`取色: ${color.code}`);
+          toast(`Picked: ${color.code}`);
         }
       }
     } else if (activeTool === 'brush' && selectedColor) {
@@ -324,9 +322,9 @@ export default function Home() {
       const exportCanvas = document.createElement('canvas');
       drawPixelGrid(exportCanvas, dims.width, dims.height, processed.pixels, 15, true, null, processed.backgroundIndices, showBackground);
       exportGridAsPNG(exportCanvas, `perler-${dims.width}x${dims.height}.png`);
-      toast.success('预览图已导出');
+      toast.success('Preview exported');
     } catch (err) {
-      toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -341,11 +339,11 @@ export default function Home() {
         colorIndexRef.current,
         processed.backgroundIndices,
         `perler-pattern-${dims.width}x${dims.height}.png`,
-        { title: '拼豆图纸' }
+        { title: 'Bead Pattern' }
       );
-      toast.success('图纸导出中...');
+      toast.success('Exporting pattern...');
     } catch (err) {
-      toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -353,9 +351,9 @@ export default function Home() {
     if (!processed || !dims) return;
     try {
       exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`);
-      toast.success('CSV 已导出');
+      toast.success('CSV exported');
     } catch (err) {
-      toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -368,19 +366,19 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
-            拼豆图纸转换器
+          <h1 className="text-xl font-semibold" style={{ color: '#452F60' }}>
+            Perler Bead Pattern Converter
           </h1>
-          <p className="text-xs text-muted-foreground">Artkal 221 色板 · 像素图纸生成</p>
+          <p className="text-xs" style={{ color: '#9867DA' }}>Artkal 221 Palette · Pixel Pattern Generator</p>
         </div>
         <div className="flex items-center gap-2">
           {processed && (
             <>
               <Button onClick={handleExportPNG} size="sm" variant="outline" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> 预览图
+                <Download className="w-3 h-3" /> Preview
               </Button>
               <Button onClick={handleExportPatternPNG} size="sm" variant="default" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> 导出图纸
+                <Download className="w-3 h-3" /> Export Pattern
               </Button>
               <Button onClick={handleExportCSV} size="sm" variant="outline" className="text-xs gap-1">
                 <Download className="w-3 h-3" /> CSV
@@ -393,7 +391,7 @@ export default function Home() {
       {error && (
         <div className="mx-4 mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex-shrink-0">
           {error}
-          <button onClick={() => setError(null)} className="ml-2 underline">关闭</button>
+          <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
         </div>
       )}
 
@@ -412,7 +410,7 @@ export default function Home() {
                       <Paintbrush className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>画笔</TooltipContent>
+                  <TooltipContent>Brush</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -420,7 +418,7 @@ export default function Home() {
                       <Eraser className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>橡皮擦</TooltipContent>
+                  <TooltipContent>Eraser</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -428,7 +426,7 @@ export default function Home() {
                       <Pipette className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>取色器</TooltipContent>
+                  <TooltipContent>Eyedropper</TooltipContent>
                 </Tooltip>
               </div>
 
@@ -455,7 +453,7 @@ export default function Home() {
                       {showBackground ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>{showBackground ? '隐藏' : '显示'}背景</TooltipContent>
+                  <TooltipContent>{showBackground ? 'Hide' : 'Show'} Background</TooltipContent>
                 </Tooltip>
               </div>
 
@@ -466,7 +464,7 @@ export default function Home() {
                     <RotateCcw className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>重置</TooltipContent>
+                <TooltipContent>Reset</TooltipContent>
               </Tooltip>
 
               {/* Pixel info on hover */}
@@ -487,7 +485,7 @@ export default function Home() {
               <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  处理中...
+                  Processing...
                 </div>
               </div>
             )}
@@ -507,8 +505,8 @@ export default function Home() {
               <div className="flex-1 flex items-center justify-center h-full">
                 <div className="text-center text-muted-foreground">
                   <Upload className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium">上传图片开始转换</p>
-                  <p className="text-sm mt-1">支持 JPG, PNG, WebP</p>
+                  <p className="text-lg font-medium">Upload an image to start</p>
+                  <p className="text-sm mt-1">Supports JPG, PNG, WebP</p>
                 </div>
               </div>
             )}
@@ -517,8 +515,8 @@ export default function Home() {
           {/* Status bar */}
           {dims && processed && (
             <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-gray-50 flex-shrink-0">
-              <span>网格: {dims.width} × {dims.height} | 比例: {getAspectRatioString(dims.width, dims.height)}</span>
-              <span>总计: {totalBeads.toLocaleString()} 颗 | 颜色: {totalColors} 种</span>
+              <span>Grid: {dims.width} x {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
+              <span>Total: {totalBeads.toLocaleString()} beads | Colors: {totalColors}</span>
             </div>
           )}
         </div>
@@ -528,7 +526,7 @@ export default function Home() {
           {/* Upload */}
           <div className="p-4 border-b border-border">
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5" /> 上传图片
+              <Upload className="w-3.5 h-3.5" /> Upload Image
             </h3>
             <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
           </div>
@@ -537,13 +535,13 @@ export default function Home() {
           {sourceImage && (
             <div className="p-4 border-b border-border space-y-4">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <SlidersHorizontal className="w-3.5 h-3.5" /> 处理参数
+                <SlidersHorizontal className="w-3.5 h-3.5" /> Parameters
               </h3>
 
               {/* Grid Size Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">横轴切割数量</label>
+                  <label className="text-xs font-medium text-foreground">Horizontal Grid Count</label>
                   <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
                 </div>
                 <Slider
@@ -556,7 +554,7 @@ export default function Home() {
                 />
                 {dims && (
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    输出: {dims.width}×{dims.height}
+                    Output: {dims.width} x {dims.height}
                   </p>
                 )}
               </div>
@@ -564,7 +562,7 @@ export default function Home() {
               {/* Merge Threshold Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">颜色合并阈值</label>
+                  <label className="text-xs font-medium text-foreground">Color Merge Threshold</label>
                   <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
                 </div>
                 <Slider
@@ -576,13 +574,13 @@ export default function Home() {
                   className="w-full"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  小于 {mergeThreshold} 像素的区域将被合并
+                  Regions smaller than {mergeThreshold}px will be merged
                 </p>
               </div>
 
               {/* Background Removal */}
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-foreground">去除背景</label>
+                <label className="text-xs font-medium text-foreground">Remove Background</label>
                 <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
               </div>
             </div>
@@ -592,7 +590,7 @@ export default function Home() {
           {processed && (
             <div className="p-4 border-b border-border">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> 去除杂色
+                <Sparkles className="w-3.5 h-3.5" /> Noise Removal
               </h3>
               <NoiseColorRemoval
                 colorStats={processed.colorStats}
@@ -610,10 +608,10 @@ export default function Home() {
           {processed && (
             <div className="p-4 border-b border-border">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Layers className="w-3.5 h-3.5" /> 颜色统计 ({totalColors})
+                <Layers className="w-3.5 h-3.5" /> Color Statistics ({totalColors})
               </h3>
               <p className="text-[10px] text-muted-foreground mb-2">
-                点击高亮 · 右键排除
+                Click to highlight · Right-click to exclude
               </p>
               <div className="space-y-0.5 max-h-72 overflow-y-auto">
                 {Array.from(processed.colorStats.entries())
@@ -628,7 +626,7 @@ export default function Home() {
                       <div
                         key={code}
                         className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-                          isHighlighted ? 'bg-blue-50 ring-1 ring-blue-300' : 'hover:bg-gray-50'
+                          isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-gray-50'
                         } ${isExcluded ? 'opacity-40 line-through' : ''}`}
                         onClick={() => handleHighlightColor(code)}
                         onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}

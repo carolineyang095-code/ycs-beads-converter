@@ -39,40 +39,40 @@ export default function ShopifyIntegration({
 
   const handleAddToCart = () => {
     if (!config.storeUrl) {
-      toast.error('请输入 Shopify 商店 URL');
+      toast.error('Please enter your Shopify store URL');
       return;
     }
     if (!config.variantId) {
-      toast.error('请输入产品 Variant ID');
+      toast.error('Please enter the product Variant ID');
       return;
     }
 
     try {
       const cartUrl = buildShopifyCartUrl(config, colorStats);
       window.open(cartUrl, '_blank');
-      toast.success('购物车已在新标签页打开');
+      toast.success('Cart opened in a new tab');
     } catch (error) {
-      toast.error(`失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      toast.error(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   return (
     <div className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-        <ShoppingCart className="w-3.5 h-3.5" /> 购物车
+        <ShoppingCart className="w-3.5 h-3.5" /> Shopping Cart
       </h3>
 
       {/* Total bead count summary */}
-      <div className="p-2.5 bg-blue-50 rounded-lg border border-blue-100">
+      <div className="p-2.5 rounded-lg border" style={{ backgroundColor: '#F5F0FA', borderColor: '#E8DCF5' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <Package className="w-4 h-4 text-blue-600" />
-            <span className="text-xs font-medium text-blue-900">Fuse Beads</span>
+            <Package className="w-4 h-4" style={{ color: '#9867DA' }} />
+            <span className="text-xs font-medium" style={{ color: '#452F60' }}>Fuse Beads</span>
           </div>
-          <span className="text-sm font-bold text-blue-700">{totalBeads.toLocaleString()} 颗</span>
+          <span className="text-sm font-bold" style={{ color: '#452F60' }}>{totalBeads.toLocaleString()} pcs</span>
         </div>
-        <div className="mt-1 text-[10px] text-blue-600">
-          {colorStats.size} 种颜色
+        <div className="mt-1 text-[10px]" style={{ color: '#9867DA' }}>
+          {colorStats.size} colors
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function ShopifyIntegration({
         className="w-full justify-start gap-1.5 text-xs h-7"
       >
         <Package className="w-3 h-3" />
-        {showBreakdown ? '收起' : '展开'}色号明细
+        {showBreakdown ? 'Collapse' : 'Expand'} Color Breakdown
       </Button>
 
       {showBreakdown && (
@@ -138,13 +138,13 @@ export default function ShopifyIntegration({
         className="w-full justify-start gap-1.5 text-xs h-7"
       >
         <Settings className="w-3 h-3" />
-        {showConfig ? '收起' : '展开'} Shopify 配置
+        {showConfig ? 'Collapse' : 'Expand'} Shopify Settings
       </Button>
 
       {showConfig && (
         <div className="space-y-2 p-2 bg-gray-50 rounded border border-border">
           <div>
-            <label className="text-[10px] text-muted-foreground block mb-0.5">商店 URL</label>
+            <label className="text-[10px] text-muted-foreground block mb-0.5">Store URL</label>
             <input
               type="url"
               value={config.storeUrl}
@@ -163,7 +163,7 @@ export default function ShopifyIntegration({
               className="w-full px-2 py-1 text-xs border border-input rounded bg-white text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <div className="text-[10px] text-muted-foreground mt-0.5">
-              Shopify 产品的 Variant ID（数字）
+              Shopify product Variant ID (numeric)
             </div>
           </div>
         </div>
@@ -176,7 +176,7 @@ export default function ShopifyIntegration({
         className="w-full text-xs gap-1.5"
         disabled={!config.storeUrl || !config.variantId}
       >
-        <ShoppingCart className="w-3.5 h-3.5" /> 加入购物车 ({totalBeads.toLocaleString()} 颗)
+        <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart ({totalBeads.toLocaleString()} pcs)
         <ExternalLink className="w-3 h-3" />
       </Button>
     </div>
