@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
-  SlidersHorizontal, Layers, Sparkles
+  SlidersHorizontal, Layers, Sparkles, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -46,12 +46,12 @@ export default function Home() {
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
-  // Store the processed state before any noise removal for restore
   const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
+  const processingTimeoutRef = useRef<number | null>(null);
 
   // Load palette
   useEffect(() => {
@@ -63,13 +63,13 @@ export default function Home() {
         setPalette(data);
         colorIndexRef.current = createColorIndex(data);
       } catch (err) {
-        setError(`Failed to load color palette: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setError(`加载色板失败: ${err instanceof Error ? err.message : '未知错误'}`);
       }
     };
     loadPalette();
   }, []);
 
-  // Process image
+  // Process image - debounced to prevent UI freeze
   const processImage = useCallback((
     canvas: HTMLCanvasElement,
     gridW: number,
@@ -79,27 +79,42 @@ export default function Home() {
     excluded: Set<string>
   ) => {
     if (palette.length === 0) return;
-    try {
-      setIsProcessing(true);
-      const resized = resizeImageToGrid(canvas, gridW, gridH);
-      const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded);
-      setProcessed(result);
-      setBaseProcessed(result);
-      setRemovedColors(new Map());
-      if (canvasRef.current) {
-        drawPixelGrid(canvasRef.current, gridW, gridH, result.pixels, pixelSize, true, highlightCode, result.backgroundIndices, showBackground);
-      }
-    } catch (err) {
-      setError(`Processing error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [palette, pixelSize, highlightCode, showBackground]);
 
-  // Redraw when visual settings change
+    // Cancel any pending processing
+    if (processingTimeoutRef.current) {
+      cancelAnimationFrame(processingTimeoutRef.current);
+    }
+
+    setIsProcessing(true);
+
+    // Use requestAnimationFrame to avoid blocking the UI
+    processingTimeoutRef.current = requestAnimationFrame(() => {
+      try {
+        const resized = resizeImageToGrid(canvas, gridW, gridH);
+        const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded);
+        setProcessed(result);
+        setBaseProcessed(result);
+        setRemovedColors(new Map());
+      } catch (err) {
+        setError(`处理错误: ${err instanceof Error ? err.message : '未知错误'}`);
+      } finally {
+        setIsProcessing(false);
+      }
+    });
+  }, [palette]);
+
+  // Redraw canvas when visual settings change
   useEffect(() => {
     if (!processed || !canvasRef.current) return;
-    drawPixelGrid(canvasRef.current, processed.gridWidth, processed.gridHeight, processed.pixels, pixelSize, true, highlightCode, processed.backgroundIndices, showBackground);
+    try {
+      drawPixelGrid(
+        canvasRef.current, processed.gridWidth, processed.gridHeight,
+        processed.pixels, pixelSize, true, highlightCode,
+        processed.backgroundIndices, showBackground
+      );
+    } catch (err) {
+      console.error('Draw error:', err);
+    }
   }, [processed, pixelSize, highlightCode, showBackground]);
 
   // Handle image upload
@@ -114,10 +129,9 @@ export default function Home() {
       setSourceImage(canvas);
       const d = calculateGridDimensions(canvas, gridSize);
       setDims(d);
-      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes);
+      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set());
     } catch (err) {
-      setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
+      setError(`加载图片失败: ${err instanceof Error ? err.message : '未知错误'}`);
       setIsProcessing(false);
     }
   };
@@ -172,18 +186,12 @@ export default function Home() {
       if (pixel.code === code && !pixel.isBackground) {
         const replacement = colorIndexRef.current.get(replacementCode);
         if (replacement) {
-          return {
-            ...pixel,
-            code: replacement.code,
-            hex: replacement.hex,
-            rgb: replacement.rgb,
-          };
+          return { ...pixel, code: replacement.code, hex: replacement.hex, rgb: replacement.rgb };
         }
       }
       return pixel;
     });
 
-    // Recalculate stats
     const newStats = new Map<string, number>();
     newPixels.forEach((p, i) => {
       if (!processed.backgroundIndices.has(i)) {
@@ -194,14 +202,12 @@ export default function Home() {
     const newRemoved = new Map(removedColors);
     newRemoved.set(code, replacementCode);
     setRemovedColors(newRemoved);
-
     setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
   };
 
   const handleRestoreColor = (code: string) => {
     if (!baseProcessed || !processed) return;
 
-    // Restore pixels that were originally this code
     const newPixels = processed.pixels.map((pixel, i) => {
       const basePixel = baseProcessed.pixels[i];
       if (basePixel && basePixel.code === code) {
@@ -210,7 +216,6 @@ export default function Home() {
       return pixel;
     });
 
-    // Recalculate stats
     const newStats = new Map<string, number>();
     newPixels.forEach((p, i) => {
       if (!processed.backgroundIndices.has(i)) {
@@ -221,7 +226,6 @@ export default function Home() {
     const newRemoved = new Map(removedColors);
     newRemoved.delete(code);
     setRemovedColors(newRemoved);
-
     setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
   };
 
@@ -316,32 +320,46 @@ export default function Home() {
   // Export handlers
   const handleExportPNG = () => {
     if (!processed || !dims) return;
-    const exportCanvas = document.createElement('canvas');
-    drawPixelGrid(exportCanvas, dims.width, dims.height, processed.pixels, 15, true, null, processed.backgroundIndices, showBackground);
-    exportGridAsPNG(exportCanvas, `perler-${dims.width}x${dims.height}.png`);
+    try {
+      const exportCanvas = document.createElement('canvas');
+      drawPixelGrid(exportCanvas, dims.width, dims.height, processed.pixels, 15, true, null, processed.backgroundIndices, showBackground);
+      exportGridAsPNG(exportCanvas, `perler-${dims.width}x${dims.height}.png`);
+      toast.success('预览图已导出');
+    } catch (err) {
+      toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`);
+    }
   };
 
   const handleExportPatternPNG = () => {
     if (!processed || !dims) return;
-    exportFullPatternPNG(
-      dims.width,
-      dims.height,
-      processed.pixels,
-      processed.colorStats,
-      colorIndexRef.current,
-      processed.backgroundIndices,
-      `perler-pattern-${dims.width}x${dims.height}.png`,
-      { title: '拼豆图纸' }
-    );
-    toast.success('图纸已导出');
+    try {
+      exportFullPatternPNG(
+        dims.width,
+        dims.height,
+        processed.pixels,
+        processed.colorStats,
+        colorIndexRef.current,
+        processed.backgroundIndices,
+        `perler-pattern-${dims.width}x${dims.height}.png`,
+        { title: '拼豆图纸' }
+      );
+      toast.success('图纸导出中...');
+    } catch (err) {
+      toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`);
+    }
   };
 
   const handleExportCSV = () => {
     if (!processed || !dims) return;
-    exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`);
+    try {
+      exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`);
+      toast.success('CSV 已导出');
+    } catch (err) {
+      toast.error(`导出失败: ${err instanceof Error ? err.message : '未知错误'}`);
+    }
   };
 
-  // Calculate totals for display
+  // Calculate totals
   const totalBeads = processed ? Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0) : 0;
   const totalColors = processed ? processed.colorStats.size : 0;
 
@@ -465,6 +483,14 @@ export default function Home() {
 
           {/* Canvas */}
           <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-4">
+            {isProcessing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  处理中...
+                </div>
+              </div>
+            )}
             {sourceImage && processed ? (
               <canvas
                 ref={canvasRef}
