@@ -53,6 +53,23 @@ export async function loadImage(file: File): Promise<HTMLCanvasElement> {
 }
 
 /**
+ * Calculate grid dimensions while preserving aspect ratio
+ * Given a horizontal grid size, calculates the vertical size based on image aspect ratio
+ */
+export function calculateGridDimensions(
+  sourceCanvas: HTMLCanvasElement,
+  horizontalGridSize: number
+): { width: number; height: number } {
+  const aspectRatio = sourceCanvas.height / sourceCanvas.width;
+  const verticalGridSize = Math.round(horizontalGridSize * aspectRatio);
+  
+  return {
+    width: horizontalGridSize,
+    height: Math.max(1, verticalGridSize),
+  };
+}
+
+/**
  * Resize image to target grid size using nearest neighbor algorithm
  * This preserves the pixel art style
  */
@@ -228,4 +245,16 @@ export function getTotalBeadCount(
   gridHeight: number
 ): number {
   return gridWidth * gridHeight;
+}
+
+/**
+ * Get aspect ratio display string
+ */
+export function getAspectRatioString(
+  gridWidth: number,
+  gridHeight: number
+): string {
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+  const divisor = gcd(gridWidth, gridHeight);
+  return `${gridWidth / divisor}:${gridHeight / divisor}`;
 }

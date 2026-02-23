@@ -2,7 +2,8 @@ import { RefObject } from 'react';
 
 interface CanvasPreviewProps {
   canvasRef: RefObject<HTMLCanvasElement | null>;
-  gridSize: number;
+  gridWidth: number;
+  gridHeight: number;
   isProcessing?: boolean;
 }
 
@@ -12,7 +13,8 @@ interface CanvasPreviewProps {
  */
 export default function CanvasPreview({
   canvasRef,
-  gridSize,
+  gridWidth,
+  gridHeight,
   isProcessing = false,
 }: CanvasPreviewProps) {
   return (
@@ -34,8 +36,8 @@ export default function CanvasPreview({
         )}
       </div>
       <div className="text-sm text-muted-foreground text-center">
-        <p>Grid: {gridSize} × {gridSize}</p>
-        <p>Total beads: {gridSize * gridSize}</p>
+        <p>Grid: {gridWidth} × {gridHeight}</p>
+        <p>Total beads: {gridWidth * gridHeight}</p>
       </div>
     </div>
   );
