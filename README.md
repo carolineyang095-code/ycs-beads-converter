@@ -1,100 +1,91 @@
 # Perler Bead Pattern Converter
 
-A web-based tool to convert images into perler bead patterns with Artkal 221 color mapping, statistics, and Shopify integration. This MVP (Minimum Viable Product) allows users to upload images, select grid sizes, map colors to the Artkal palette, and export patterns for purchase.
+A browser-based tool that converts any image into a perler bead pattern using the Artkal 221 color palette. All processing happens client-side — no server uploads required.
 
-## Features
+## Features (V2)
 
-### Core Functionality
+### Image Processing
+- **Upload**: Supports JPG, PNG, WebP via drag-and-drop or click-to-select
+- **Dynamic Grid**: Slider-based grid sizing (10–250) with automatic aspect ratio preservation
+- **Nearest Neighbor Scaling**: Maintains pixel-art style during downscaling
+- **Color Mapping**: Maps each pixel to the closest Artkal 221 palette color using RGB Euclidean distance
 
-- **Image Upload**: Support for JPG, PNG, and WebP formats with drag-and-drop and click-to-select options
-- **Grid Size Selection**: Choose from 30×30, 50×50, 80×80, 120×120, or 200×200 pixel grids
-- **Color Mapping**: Automatic color mapping using Euclidean distance algorithm to find the closest Artkal 221 palette color for each pixel
-- **Pattern Preview**: Real-time canvas preview with pixel grid visualization
-- **Color Statistics**: Detailed table showing color usage, counts, and percentages
-- **Export Options**:
-  - PNG export: Download the pixel pattern as an image
-  - CSV export: Download color statistics with codes, names, hex values, and counts
-- **Shopify Integration**: Add pre-configured items to your Shopify cart with color-to-variant mapping
+### Color Merging & Background Removal
+- **BFS Region Merging**: Merges small color regions (below a user-defined threshold) into neighboring colors, reducing noise
+- **Background Detection**: Flood-fill from image edges identifies and dims background pixels
+- **Color Exclusion**: Right-click any color in the statistics panel to exclude it; pixels are remapped to the next closest color
 
-### Design
+### Editing Tools
+- **Brush**: Paint individual pixels with a selected palette color
+- **Eraser**: Remove pixels (set to white/background)
+- **Eyedropper**: Pick a color from the canvas for use with the brush
+- **Click-to-Highlight**: Click any color in the statistics panel to highlight matching pixels on the canvas
+- **Hover Info**: Hover over any pixel to see its color code, hex value, and grid position
 
-- **Minimalist Craft Studio** aesthetic with clean white background
-- Two-column asymmetric layout: controls on the left, preview on the right
-- Professional typography: Playfair Display for headings, Inter for UI text
-- Smooth transitions and real-time updates
-- Responsive design for mobile and desktop
+### Statistics & Export
+- **Color Statistics**: Shows each color code, count, and percentage with visual progress bars
+- **PNG Export**: Download the pattern as a standard PNG image
+- **Coded PNG Export**: Download with color codes overlaid on each pixel
+- **CSV Export**: Download color statistics as a spreadsheet
 
-## Installation
+### Shopify Integration
+- **Store URL Configuration**: Enter your Shopify store URL
+- **Variant Mapping**: Map each Artkal color code to a Shopify product variant ID
+- **Cart Generation**: Creates a pre-filled Shopify cart URL with all required colors and quantities
+- **Persistent Config**: Store URL and variant mappings are saved in localStorage
 
-### Prerequisites
+## Getting Started
 
-- Node.js 18+ and pnpm 10+
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-
-### Setup
-
+### Install Dependencies
 ```bash
-# Install dependencies
 pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
 ```
 
-The development server runs at `http://localhost:3000` by default.
+### Run Development Server
+```bash
+pnpm dev
+```
 
-## Project Structure
+### Build for Production
+```bash
+pnpm build
+```
+
+## Code Structure
 
 ```
 client/
-  public/
-    artkal_221.json          # Artkal 221 color palette (291 colors)
   src/
-    lib/
-      colorMapping.ts        # Color distance calculation and palette mapping
-      imageProcessing.ts     # Image loading, resizing, and pixel grid generation
-      shopifyIntegration.ts  # Shopify cart and variant mapping utilities
-    components/
-      ImageUploadSection.tsx # Image upload with drag-and-drop
-      GridSizeSelector.tsx   # Grid size selection buttons
-      CanvasPreview.tsx      # Canvas preview display
-      ColorStatistics.tsx    # Color usage statistics table
-      ShopifyIntegration.tsx # Shopify cart integration UI
     pages/
-      Home.tsx               # Main converter interface
-    App.tsx                  # Root component with routing
-    index.css                # Global styles and design tokens
-    main.tsx                 # React entry point
-server/
-  index.ts                   # Express server (static deployment)
+      Home.tsx              # Main converter page with full layout
+    components/
+      ImageUploadSection.tsx # Drag-and-drop image upload
+      ColorStatistics.tsx    # Color usage table
+      ShopifyIntegration.tsx # Shopify cart integration panel
+      CanvasPreview.tsx      # Canvas preview
+      GridSizeSelector.tsx   # Grid size buttons
+    lib/
+      colorMapping.ts       # Color algorithms: Euclidean distance, BFS merge, background detection, color exclusion
+      imageProcessing.ts    # Image loading, grid processing, canvas drawing, export
+      shopifyIntegration.ts # Shopify cart URL builder, variant mapping
+  public/
+    artkal_221.json         # Artkal 221 color palette (291 colors)
 ```
 
-## Color Palette
+## Building the Color Palette
 
-The Artkal 221 palette is stored in `client/public/artkal_221.json` with the following structure:
+The `artkal_221.json` file was generated from `colorSystemMapping.json`, which maps color codes across multiple bead systems (MARD, COCO, 漫漫, 盼盼, 咪小窝). Each entry contains:
 
 ```json
-[
-  {
-    "code": "A01",
-    "name": "A01",
-    "hex": "#FAF4C8",
-    "rgb": { "r": 250, "g": 244, "b": 200 }
-  },
-  ...
-]
+{
+  "code": "C01",
+  "name": "白色",
+  "hex": "#FFFFFF",
+  "rgb": { "r": 255, "g": 255, "b": 255 }
+}
 ```
 
-### Generating the Palette
-
-The palette is generated from the color system mapping file (`colorSystemMapping.json`). To regenerate:
-
+To regenerate from a new mapping file:
 ```bash
 node -e "
 const fs = require('fs');
@@ -113,86 +104,59 @@ fs.writeFileSync('client/public/artkal_221.json', JSON.stringify(result, null, 2
 "
 ```
 
-## Shopify Integration
+## Shopify Variant Mapping
 
-### Configuration
+To configure the Shopify integration:
 
-The converter supports adding items directly to your Shopify cart. To enable this:
+1. In your Shopify admin, find each product variant ID for your bead colors
+2. In the app, click "Configure Variant Mapping"
+3. Enter the variant ID for each color code used in your pattern
+4. Click "Add to Cart" to generate a pre-filled cart URL
 
-1. **Get Variant IDs**: In your Shopify admin, find the product variant IDs for each bead color
-2. **Map Colors to Variants**: In the converter UI, click "Show Variant Configuration" and enter the variant ID for each color
-3. **Enter Store URL**: Provide your Shopify store URL (e.g., `https://your-store.myshopify.com`)
-4. **Add to Cart**: Click "Add to Shopify Cart" to redirect with pre-filled items
-
-### Variant Mapping Format
-
-Variant IDs follow the Shopify Storefront API format:
+The mapping format:
+```json
+{
+  "C01": "gid://shopify/ProductVariant/12345678901234",
+  "C02": "gid://shopify/ProductVariant/12345678901235"
+}
 ```
-gid://shopify/ProductVariant/12345678901234
-```
 
-Mappings are saved to browser localStorage for persistence.
-
-### Cart URL Format
-
-The converter builds cart URLs using Shopify's standard format:
+Cart URL format:
 ```
 https://your-store.myshopify.com/cart/add?id=variant_id&quantity=qty&id=variant_id&quantity=qty
 ```
 
 ## Color Mapping Algorithm
 
-The converter uses the **Euclidean distance** algorithm to map image pixels to Artkal palette colors:
-
-1. **Grid Resizing**: Image is resized to the selected grid size (30×30, 50×50, etc.) using nearest-neighbor interpolation
+1. **Grid Resizing**: Image is resized to the selected grid size using nearest-neighbor interpolation
 2. **Dominant Color**: For each grid cell, the most frequent RGB color is determined
-3. **Distance Calculation**: The Euclidean distance from the dominant color to each palette color is calculated:
+3. **Distance Calculation**: Euclidean distance from dominant color to each palette color:
    ```
    distance = sqrt((r1-r2)² + (g1-g2)² + (b1-b2)²)
    ```
 4. **Closest Match**: The palette color with the minimum distance is selected
+5. **BFS Merge** (optional): Small regions are merged into neighboring colors
+6. **Background Detection** (optional): Flood-fill from edges identifies background
 
-### Performance Considerations
+## Next Steps / Extensible Features
 
-- Grid sizes up to 200×200 (40,000 pixels) process in real-time
-- Canvas rendering uses `imageSmoothingEnabled: false` for pixel-perfect output
-- Color statistics are computed during processing with O(n) complexity
+### Advanced Color Algorithms
+- **CIEDE2000**: More perceptually accurate color distance than Euclidean RGB
+- **K-Means Clustering**: Reduce color count before palette mapping
+- **Floyd-Steinberg Dithering**: Error diffusion for smoother gradients
 
-## Acceptance Criteria
+### User Custom Palettes
+- Allow users to upload custom palette JSON files
+- Support multiple bead brands (Hama, Perler, Artkal)
 
-✅ **Image Upload**: JPG/PNG/WebP support with drag-and-drop and click selection  
-✅ **Grid Sizes**: 30×30, 50×50, 80×80, 120×120, 200×200 options  
-✅ **Color Mapping**: Artkal 221 palette with Euclidean distance algorithm  
-✅ **Statistics**: Accurate bead counts matching grid dimensions  
-✅ **Export**: PNG and CSV export functionality  
-✅ **Shopify Integration**: Cart URL generation with variant mapping  
-✅ **Code Quality**: TypeScript, modular structure, comprehensive comments  
-✅ **Responsive Design**: Mobile and desktop layouts  
+### Enhanced Editing
+- Undo/redo history stack
+- Rectangular selection tool
+- Fill tool (flood fill with selected color)
 
-## Future Enhancements
-
-### Algorithm Improvements
-
-- **CIEDE2000**: Perceptually uniform color distance for better matches
-- **Floyd-Steinberg Dithering**: Reduce banding and improve pattern quality
-- **K-Means Clustering**: Optimize palette selection for specific images
-
-### Advanced Features
-
-- **Color Merging**: Combine similar colors using BFS to reduce color count
-- **Background Removal**: Flood-fill algorithm to exclude background pixels
-- **Color Exclusion**: Allow users to exclude specific colors and remap
-- **Custom Palettes**: Support for 168-color, 96-color, and user-defined palettes
-- **Pattern Optimization**: Minimize color transitions for easier assembly
-- **Undo/Redo**: History management for iterative refinement
-
-### User Experience
-
-- **Preset Patterns**: Gallery of popular designs
-- **Color Adjustment**: Manual color selection and override
-- **Pattern Preview**: 3D visualization of assembled beads
-- **Sharing**: Generate shareable links with pattern data
-- **Accounts**: Save patterns and preferences (requires backend)
+### Performance
+- Web Worker for heavy processing (large grids)
+- Progressive rendering for 200×200+ grids
 
 ## Technical Stack
 
@@ -202,64 +166,13 @@ The converter uses the **Euclidean distance** algorithm to map image pixels to A
 - **Build**: Vite + esbuild
 - **Package Manager**: pnpm
 
-## Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari 14+, Chrome Android)
-
-## Performance Metrics
-
-- **Load Time**: ~2-3 seconds (including palette download)
-- **Processing Time**: <500ms for 200×200 grid
-- **Memory Usage**: ~50-100MB for large images
-- **Canvas Rendering**: 60 FPS on modern hardware
-
-## Troubleshooting
-
-### Image Not Loading
-
-- Ensure file is JPG, PNG, or WebP format
-- Check file size (recommended <10MB)
-- Try a different image if the first fails
-
-### Colors Don't Match Expectations
-
-- The Euclidean distance algorithm may not match human perception
-- Consider using CIEDE2000 for perceptually uniform matching
-- Try adjusting the source image contrast/saturation
-
-### Shopify Cart Not Working
-
-- Verify store URL format: `https://your-store.myshopify.com`
-- Ensure variant IDs are correct (format: `gid://shopify/ProductVariant/...`)
-- Check browser console for error messages
-- Clear localStorage and reconfigure mappings
-
-## Contributing
-
-This is an MVP project. Future contributions should:
-
-1. Maintain TypeScript strict mode
-2. Add tests for new utilities
-3. Follow the existing code style
-4. Update this README with new features
-5. Consider performance implications
-
-## License
-
-MIT
-
 ## References
 
+- [Zippland Perler Bead Generator](https://github.com/nicx519y/perler-bead-generator) — Algorithm reference
 - [Artkal Beads Official Site](https://www.artkalbeads.com/)
 - [Shopify Cart API Documentation](https://shopify.dev/docs/api/storefront)
-- [HTML5 Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
-- [Color Space and Distance Metrics](https://en.wikipedia.org/wiki/Color_difference)
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: February 2026  
-**Status**: MVP - Production Ready
+**Version**: 2.0.0
+**Last Updated**: February 2026

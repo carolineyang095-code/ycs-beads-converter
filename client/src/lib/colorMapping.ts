@@ -1,6 +1,7 @@
 /**
  * Color Mapping Library
- * Handles RGB to Artkal palette color mapping using Euclidean distance
+ * Handles RGB to Artkal palette color mapping using Euclidean distance,
+ * BFS color merging, background removal, and color exclusion.
  */
 
 export interface ColorData {
@@ -22,7 +23,6 @@ export interface RGB {
 
 /**
  * Calculate Euclidean distance between two RGB colors
- * Formula: sqrt((r1-r2)^2 + (g1-g2)^2 + (b1-b2)^2)
  */
 export function euclideanDistance(color1: RGB, color2: RGB): number {
   const dr = color1.r - color2.r;
@@ -33,15 +33,18 @@ export function euclideanDistance(color1: RGB, color2: RGB): number {
 
 /**
  * Find the closest color in the palette to the given RGB color
+ * Supports excluding certain color codes
  */
 export function findClosestColor(
   targetColor: RGB,
-  palette: ColorData[]
+  palette: ColorData[],
+  excludedCodes?: Set<string>
 ): ColorData {
-  let closestColor = palette[0];
-  let minDistance = euclideanDistance(targetColor, palette[0].rgb);
+  let closestColor: ColorData | null = null;
+  let minDistance = Infinity;
 
-  for (let i = 1; i < palette.length; i++) {
+  for (let i = 0; i < palette.length; i++) {
+    if (excludedCodes && excludedCodes.has(palette[i].code)) continue;
     const distance = euclideanDistance(targetColor, palette[i].rgb);
     if (distance < minDistance) {
       minDistance = distance;
@@ -49,7 +52,7 @@ export function findClosestColor(
     }
   }
 
-  return closestColor;
+  return closestColor || palette[0];
 }
 
 /**
@@ -72,7 +75,7 @@ export function hexToRgb(hex: string): RGB {
  */
 export function rgbToHex(rgb: RGB): string {
   const toHex = (n: number) => {
-    const hex = n.toString(16);
+    const hex = Math.max(0, Math.min(255, n)).toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   };
   return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`.toUpperCase();
@@ -80,11 +83,10 @@ export function rgbToHex(rgb: RGB): string {
 
 /**
  * Get the dominant color (most frequent) from a pixel region
- * Used to determine the primary color for a grid cell
  */
 export function getDominantColor(
   imageData: Uint8ClampedArray,
-  startIndex: number,
+  _startIndex: number,
   width: number,
   height: number,
   cellX: number,
@@ -96,13 +98,11 @@ export function getDominantColor(
   let maxCount = 0;
   let dominantColor: RGB = { r: 0, g: 0, b: 0 };
 
-  // Iterate through all pixels in the cell
   for (let y = 0; y < cellHeight; y++) {
     for (let x = 0; x < cellWidth; x++) {
       const pixelX = cellX * cellWidth + x;
       const pixelY = cellY * cellHeight + y;
 
-      // Ensure we're within bounds
       if (pixelX >= width || pixelY >= height) continue;
 
       const pixelIndex = (pixelY * width + pixelX) * 4;
@@ -111,7 +111,6 @@ export function getDominantColor(
       const b = imageData[pixelIndex + 2];
       const a = imageData[pixelIndex + 3];
 
-      // Skip transparent pixels
       if (a < 128) continue;
 
       const colorKey = `${r},${g},${b}`;
@@ -137,4 +136,220 @@ export function createColorIndex(palette: ColorData[]): Map<string, ColorData> {
     index.set(color.code, color);
   }
   return index;
+}
+
+/**
+ * BFS Color Merging Algorithm
+ * Merges small color regions into neighboring colors when the region size
+ * is below a threshold, reducing noise and simplifying the pattern.
+ * 
+ * @param pixels - flat array of color codes (row-major)
+ * @param gridWidth - number of columns
+ * @param gridHeight - number of rows
+ * @param mergeThreshold - minimum region size; regions smaller than this are merged
+ * @param palette - color palette for finding closest replacement
+ * @param colorIndex - map of code -> ColorData
+ * @returns new pixel array with merged colors
+ */
+export function bfsMergeColors(
+  pixels: string[],
+  gridWidth: number,
+  gridHeight: number,
+  mergeThreshold: number,
+  palette: ColorData[],
+  colorIndex: Map<string, ColorData>
+): string[] {
+  const result = [...pixels];
+  const visited = new Array(pixels.length).fill(false);
+  const directions = [
+    [0, 1], [0, -1], [1, 0], [-1, 0],
+  ];
+
+  // Find all connected regions using BFS
+  const regions: Array<{ code: string; indices: number[]; neighbors: Set<string> }> = [];
+
+  for (let i = 0; i < pixels.length; i++) {
+    if (visited[i]) continue;
+
+    const code = pixels[i];
+    const indices: number[] = [];
+    const neighbors = new Set<string>();
+    const queue: number[] = [i];
+    visited[i] = true;
+
+    while (queue.length > 0) {
+      const idx = queue.shift()!;
+      indices.push(idx);
+
+      const x = idx % gridWidth;
+      const y = Math.floor(idx / gridWidth);
+
+      for (const [dx, dy] of directions) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) continue;
+
+        const nIdx = ny * gridWidth + nx;
+        if (pixels[nIdx] === code) {
+          if (!visited[nIdx]) {
+            visited[nIdx] = true;
+            queue.push(nIdx);
+          }
+        } else {
+          neighbors.add(pixels[nIdx]);
+        }
+      }
+    }
+
+    regions.push({ code, indices, neighbors });
+  }
+
+  // Merge small regions into the most common neighbor
+  for (const region of regions) {
+    if (region.indices.length >= mergeThreshold) continue;
+    if (region.neighbors.size === 0) continue;
+
+    // Find the neighbor color that appears most around this region
+    const neighborCounts = new Map<string, number>();
+    for (const idx of region.indices) {
+      const x = idx % gridWidth;
+      const y = Math.floor(idx / gridWidth);
+      for (const [dx, dy] of directions) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) continue;
+        const nIdx = ny * gridWidth + nx;
+        const nCode = result[nIdx];
+        if (nCode !== region.code) {
+          neighborCounts.set(nCode, (neighborCounts.get(nCode) || 0) + 1);
+        }
+      }
+    }
+
+    let bestNeighbor = region.code;
+    let maxCount = 0;
+    neighborCounts.forEach((count, code) => {
+      if (count > maxCount) {
+        maxCount = count;
+        bestNeighbor = code;
+      }
+    });
+
+    // Replace all pixels in this region with the best neighbor
+    for (const idx of region.indices) {
+      result[idx] = bestNeighbor;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Flood-fill background detection from image edges
+ * Uses BFS from the four edges to detect background color
+ * 
+ * @param pixels - flat array of color codes
+ * @param gridWidth - number of columns
+ * @param gridHeight - number of rows
+ * @param tolerance - how many different colors to consider as background
+ * @returns Set of pixel indices that are background
+ */
+export function detectBackground(
+  pixels: string[],
+  gridWidth: number,
+  gridHeight: number,
+  tolerance: number = 10
+): { backgroundIndices: Set<number>; backgroundCode: string | null } {
+  // Count colors on the edges to find the most common edge color
+  const edgeColorCounts = new Map<string, number>();
+
+  // Top and bottom edges
+  for (let x = 0; x < gridWidth; x++) {
+    const topCode = pixels[x];
+    const bottomCode = pixels[(gridHeight - 1) * gridWidth + x];
+    edgeColorCounts.set(topCode, (edgeColorCounts.get(topCode) || 0) + 1);
+    edgeColorCounts.set(bottomCode, (edgeColorCounts.get(bottomCode) || 0) + 1);
+  }
+  // Left and right edges
+  for (let y = 0; y < gridHeight; y++) {
+    const leftCode = pixels[y * gridWidth];
+    const rightCode = pixels[y * gridWidth + gridWidth - 1];
+    edgeColorCounts.set(leftCode, (edgeColorCounts.get(leftCode) || 0) + 1);
+    edgeColorCounts.set(rightCode, (edgeColorCounts.get(rightCode) || 0) + 1);
+  }
+
+  // Find the most common edge color
+  let bgCode: string | null = null;
+  let maxCount = 0;
+  edgeColorCounts.forEach((count, code) => {
+    if (count > maxCount) {
+      maxCount = count;
+      bgCode = code;
+    }
+  });
+
+  if (!bgCode) return { backgroundIndices: new Set(), backgroundCode: null };
+
+  // BFS flood fill from all edge pixels that match bgCode
+  const backgroundIndices = new Set<number>();
+  const visited = new Array(pixels.length).fill(false);
+  const queue: number[] = [];
+  const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+
+  // Seed from edges
+  for (let x = 0; x < gridWidth; x++) {
+    if (pixels[x] === bgCode) { queue.push(x); visited[x] = true; }
+    const bIdx = (gridHeight - 1) * gridWidth + x;
+    if (pixels[bIdx] === bgCode && !visited[bIdx]) { queue.push(bIdx); visited[bIdx] = true; }
+  }
+  for (let y = 0; y < gridHeight; y++) {
+    const lIdx = y * gridWidth;
+    if (pixels[lIdx] === bgCode && !visited[lIdx]) { queue.push(lIdx); visited[lIdx] = true; }
+    const rIdx = y * gridWidth + gridWidth - 1;
+    if (pixels[rIdx] === bgCode && !visited[rIdx]) { queue.push(rIdx); visited[rIdx] = true; }
+  }
+
+  while (queue.length > 0) {
+    const idx = queue.shift()!;
+    backgroundIndices.add(idx);
+
+    const x = idx % gridWidth;
+    const y = Math.floor(idx / gridWidth);
+
+    for (const [dx, dy] of directions) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) continue;
+      const nIdx = ny * gridWidth + nx;
+      if (!visited[nIdx] && pixels[nIdx] === bgCode) {
+        visited[nIdx] = true;
+        queue.push(nIdx);
+      }
+    }
+  }
+
+  return { backgroundIndices, backgroundCode: bgCode };
+}
+
+/**
+ * Re-map pixels after excluding certain colors
+ * Excluded pixels are remapped to the closest remaining palette color
+ */
+export function remapExcludedColors(
+  pixels: Array<{ code: string; originalRgb: RGB }>,
+  excludedCodes: Set<string>,
+  palette: ColorData[]
+): Array<{ code: string; hex: string; rgb: RGB }> {
+  return pixels.map((pixel) => {
+    if (excludedCodes.has(pixel.code)) {
+      const closest = findClosestColor(pixel.originalRgb, palette, excludedCodes);
+      return { code: closest.code, hex: closest.hex, rgb: closest.rgb };
+    }
+    const paletteColor = palette.find(c => c.code === pixel.code);
+    return {
+      code: pixel.code,
+      hex: paletteColor?.hex || '#000000',
+      rgb: paletteColor?.rgb || { r: 0, g: 0, b: 0 },
+    };
+  });
 }

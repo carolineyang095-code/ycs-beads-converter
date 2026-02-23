@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { Upload } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ImageUploadSectionProps {
@@ -7,78 +7,60 @@ interface ImageUploadSectionProps {
   isProcessing?: boolean;
 }
 
-/**
- * Image Upload Component
- * Supports drag-and-drop and click-to-select
- */
 export default function ImageUploadSection({
   onImageUpload,
   isProcessing = false,
 }: ImageUploadSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
     if (file.type.startsWith('image/')) {
+      setFileName(file.name);
       onImageUpload(file);
-    } else {
-      alert('Please select a valid image file (JPG, PNG, WebP)');
     }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
+    if (file) handleFileSelect(file);
   };
 
   return (
     <div
       onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+      onDragLeave={() => setIsDragging(false)}
+      className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+        isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'
+      }`}
+      onClick={() => fileInputRef.current?.click()}
     >
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        onChange={handleInputChange}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }}
         className="hidden"
       />
-      
-      <div className="flex flex-col items-center gap-3">
-        <Upload className="w-8 h-8 text-muted-foreground" />
-        <div>
-          <p className="font-medium text-foreground">
-            Drag and drop your image here
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            or click to select (JPG, PNG, WebP)
-          </p>
+      {fileName ? (
+        <div className="flex items-center gap-2 justify-center">
+          <ImageIcon className="w-4 h-4 text-primary" />
+          <span className="text-xs text-foreground truncate max-w-[180px]">{fileName}</span>
         </div>
-        <Button
-          onClick={() => fileInputRef.current?.click()}
-          variant="outline"
-          disabled={isProcessing}
-          className="mt-2"
-        >
-          {isProcessing ? 'Processing...' : 'Select Image'}
-        </Button>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center gap-1.5">
+          <Upload className="w-6 h-6 text-muted-foreground" />
+          <p className="text-xs text-muted-foreground">
+            Drop image or click to select
+          </p>
+          <p className="text-[10px] text-muted-foreground">JPG, PNG, WebP</p>
+        </div>
+      )}
     </div>
   );
 }
