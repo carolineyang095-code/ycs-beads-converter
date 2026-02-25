@@ -157,7 +157,9 @@ export function bfsMergeColors(
   gridHeight: number,
   mergeThreshold: number,
   palette: ColorData[],
-  colorIndex: Map<string, ColorData>
+  colorIndex: Map<string, ColorData>,
+  maxMergeDistance: number = 28,     // 越小越“硬朗”、越保轮廓（漫画推荐 22~32）
+  edgeProtectDistance: number = 85    // 邻居对比太强 => 视为边缘，不 merge（漫画推荐 75~95）
 ): string[] {
   const result = [...pixels];
   const visited = new Array(pixels.length).fill(false);
@@ -203,45 +205,48 @@ export function bfsMergeColors(
 
     regions.push({ code, indices, neighbors });
   }
+// Merge small regions with edge protection + color distance control
+for (const region of regions) {
+  if (region.indices.length >= mergeThreshold * mergeThreshold) continue;
+  if (region.neighbors.size === 0) continue;
 
-  // Merge small regions into the most common neighbor
-  for (const region of regions) {
-    if (region.indices.length >= mergeThreshold) continue;
-    if (region.neighbors.size === 0) continue;
+  const regionColor = colorIndex.get(region.code);
+  if (!regionColor) continue;
 
-    // Find the neighbor color that appears most around this region
-    const neighborCounts = new Map<string, number>();
-    for (const idx of region.indices) {
-      const x = idx % gridWidth;
-      const y = Math.floor(idx / gridWidth);
-      for (const [dx, dy] of directions) {
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) continue;
-        const nIdx = ny * gridWidth + nx;
-        const nCode = result[nIdx];
-        if (nCode !== region.code) {
-          neighborCounts.set(nCode, (neighborCounts.get(nCode) || 0) + 1);
-        }
-      }
-    }
+  const luminance = (rgb: { r: number; g: number; b: number }) =>
+    (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
 
-    let bestNeighbor = region.code;
-    let maxCount = 0;
-    neighborCounts.forEach((count, code) => {
-      if (count > maxCount) {
-        maxCount = count;
-        bestNeighbor = code;
-      }
-    });
+  let bestNeighbor = region.code;
+  let bestScore = Infinity;
 
-    // Replace all pixels in this region with the best neighbor
-    for (const idx of region.indices) {
-      result[idx] = bestNeighbor;
-    }
+  Array.from(region.neighbors).forEach((neighborCode) => {
+  const neighborColor = colorIndex.get(neighborCode);
+  if (!neighborColor) return;
+
+  const dist = euclideanDistance(regionColor.rgb, neighborColor.rgb);
+
+  const MAX_MERGE_DISTANCE = 28;
+  if (dist > MAX_MERGE_DISTANCE) return;
+
+  const lum = luminance(neighborColor.rgb);
+  const darkBonus = (255 - lum) / 255;
+
+  const score = dist - darkBonus * 6;
+
+  if (score < bestScore) {
+    bestScore = score;
+    bestNeighbor = neighborCode;
   }
+});
 
-  return result;
+  if (bestNeighbor === region.code) continue;
+
+  for (const idx of region.indices) {
+    result[idx] = bestNeighbor;
+  }
+}
+
+return result;
 }
 
 /**
