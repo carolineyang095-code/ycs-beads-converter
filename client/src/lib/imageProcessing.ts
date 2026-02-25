@@ -12,6 +12,7 @@ import {
   bfsMergeColors,
   detectBackground,
   createColorIndex,
+  euclideanDistance,
 } from './colorMapping';
 
 export type { ColorData, RGB };
@@ -97,6 +98,179 @@ export function resizeImageToGrid(
   ctx.drawImage(sourceCanvas, 0, 0, gridWidth, gridHeight);
   return targetCanvas;
 }
+
+// ===============================
+// Cartoon Post-Processing Helpers
+// ===============================
+function computeColorStats(
+  pixels: PixelGridCell[],
+  backgroundIndices: Set<number>
+): Map<string, number> {
+  const stats = new Map<string, number>();
+  pixels.forEach((p, i) => {
+    if (backgroundIndices.has(i)) return;
+    stats.set(p.code, (stats.get(p.code) || 0) + 1);
+  });
+  return stats;
+}
+
+function detectEdgesSimple(
+  pixels: PixelGridCell[],
+  gridWidth: number,
+  gridHeight: number,
+  backgroundIndices: Set<number>,
+  threshold: number = 25
+): Set<number> {
+  const edges = new Set<number>();
+
+  const brightness = (p: PixelGridCell) =>
+    (p.rgb.r * 299 + p.rgb.g * 587 + p.rgb.b * 114) / 1000;
+
+  for (let y = 1; y < gridHeight - 1; y++) {
+    for (let x = 1; x < gridWidth - 1; x++) {
+      const idx = y * gridWidth + x;
+      if (backgroundIndices.has(idx)) continue;
+
+      const c = brightness(pixels[idx]);
+      const r = brightness(pixels[idx + 1]);
+      const b = brightness(pixels[idx + gridWidth]);
+
+      if (Math.abs(c - r) > threshold || Math.abs(c - b) > threshold) {
+        edges.add(idx);
+      }
+    }
+  }
+  return edges;
+}
+
+function applyOutlineOnEdges(
+  pixels: PixelGridCell[],
+  edges: Set<number>,
+  paletteIndex: Map<string, ColorData>,
+  outlineCode?: string
+): PixelGridCell[] {
+  const result = [...pixels];
+
+  // 选一个最深色当描边色：如果你传 outlineCode，用它；否则自动找最暗
+  let outline: ColorData | null = null;
+
+  if (outlineCode) outline = paletteIndex.get(outlineCode) || null;
+
+  if (!outline) {
+    let minLum = Infinity;
+    paletteIndex.forEach((c) => {
+      const lum = (c.rgb.r * 299 + c.rgb.g * 587 + c.rgb.b * 114) / 1000;
+      if (lum < minLum) {
+        minLum = lum;
+        outline = c;
+      }
+    });
+  }
+  if (!outline) return result;
+
+  // 在 edge 上强制用描边色
+  Array.from(edges).forEach((idx) => {
+    const p = result[idx];
+    result[idx] = { ...p, code: outline!.code, hex: outline!.hex, rgb: outline!.rgb };
+  });
+
+  return result;
+}
+
+function mergeSinglesToNearestNeighbor(
+  pixels: PixelGridCell[],
+  gridWidth: number,
+  gridHeight: number,
+  backgroundIndices: Set<number>,
+  paletteIndex: Map<string, ColorData>
+): PixelGridCell[] {
+  const stats = computeColorStats(pixels, backgroundIndices);
+  const result = [...pixels];
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+
+  for (let i = 0; i < result.length; i++) {
+    if (backgroundIndices.has(i)) continue;
+
+    const code = result[i].code;
+    if ((stats.get(code) || 0) !== 1) continue;
+
+    const x = i % gridWidth;
+    const y = Math.floor(i / gridWidth);
+
+    const src = paletteIndex.get(code);
+    if (!src) continue;
+
+    let bestCode = code;
+    let bestDist = Infinity;
+
+    dirs.forEach(([dx, dy]) => {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) return;
+
+      const ni = ny * gridWidth + nx;
+      if (backgroundIndices.has(ni)) return;
+
+      const nCode = result[ni].code;
+      if (nCode === code) return;
+
+      const tgt = paletteIndex.get(nCode);
+      if (!tgt) return;
+
+      const dist = euclideanDistance(src.rgb, tgt.rgb);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestCode = nCode;
+      }
+    });
+
+    if (bestCode !== code) {
+      const rep = paletteIndex.get(bestCode);
+      if (rep) result[i] = { ...result[i], code: rep.code, hex: rep.hex, rgb: rep.rgb };
+    }
+  }
+
+  return result;
+}
+
+function limitMaxColors(
+  pixels: PixelGridCell[],
+  backgroundIndices: Set<number>,
+  paletteIndex: Map<string, ColorData>,
+  maxColors: number
+): PixelGridCell[] {
+  if (maxColors <= 0) return pixels;
+
+  const stats = computeColorStats(pixels, backgroundIndices);
+  const sorted = Array.from(stats.entries()).sort((a, b) => b[1] - a[1]);
+  const allowed = new Set(sorted.slice(0, maxColors).map(([code]) => code));
+
+  return pixels.map((p, i) => {
+    if (backgroundIndices.has(i)) return p;
+    if (allowed.has(p.code)) return p;
+
+    const src = paletteIndex.get(p.code);
+    if (!src) return p;
+
+    let bestCode = p.code;
+    let bestDist = Infinity;
+
+    // 注意：用 Array.from 避免 Set 迭代 target 问题
+    Array.from(allowed).forEach((code) => {
+      const tgt = paletteIndex.get(code);
+      if (!tgt) return;
+      const dist = euclideanDistance(src.rgb, tgt.rgb);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestCode = code;
+      }
+    });
+
+    const rep = paletteIndex.get(bestCode);
+    return rep ? { ...p, code: rep.code, hex: rep.hex, rgb: rep.rgb } : p;
+  });
+}
+
 
 /**
  * Process image to create a pixel grid with color mapping
@@ -207,7 +381,7 @@ export function processImageToGrid(
   let mergedCodes = rawCodes;
   if (mergeThreshold > 1) {
     const colorIndex = createColorIndex(palette);
-    mergedCodes = bfsMergeColors(rawCodes, gridWidth, gridHeight, mergeThreshold, palette, colorIndex);
+    mergedCodes = bfsMergeColors(rawCodes, gridWidth, gridHeight, mergeThreshold, palette, colorIndex, 35);
   }
 
   // Step 3: Detect background if enabled
@@ -220,6 +394,7 @@ export function processImageToGrid(
   }
 
   // Step 4: Build final pixel array and stats
+    // Step 4: Build final pixel array (先不急着定死 stats)
   const colorIndex = createColorIndex(palette);
   for (let i = 0; i < mergedCodes.length; i++) {
     const code = mergedCodes[i];
@@ -233,16 +408,34 @@ export function processImageToGrid(
       originalRgb: originalRgbs[i],
       isBackground,
     });
-
-    // Only count non-background pixels in stats
-    if (!isBackground) {
-      colorStats.set(code, (colorStats.get(code) || 0) + 1);
-    }
   }
 
-  return { gridWidth, gridHeight, pixels, colorStats, backgroundCode, backgroundIndices };
-}
+  // ✅ Step 4.5: Cartoon Post-processing（推荐默认开启 cartoon：maxColors=50）
+  const CARTOON_MAX_COLORS = 50;   // 你想要 ≤50 就写 50
+  const EDGE_THRESHOLD = 25;       // 20~35，越小越“线条多”
+  const OUTLINE_CODE = undefined;  // 你也可以填某个固定黑色 code，比如 "M01"（看你色板）
 
+  const edges = detectEdgesSimple(pixels, gridWidth, gridHeight, backgroundIndices, EDGE_THRESHOLD);
+  let tuned = applyOutlineOnEdges(pixels, edges, colorIndex, OUTLINE_CODE);
+
+  // ✅ 先清掉“只出现 1 次”的颜色
+  tuned = mergeSinglesToNearestNeighbor(tuned, gridWidth, gridHeight, backgroundIndices, colorIndex);
+
+  // ✅ 最后强制限制总色数 ≤50
+  tuned = limitMaxColors(tuned, backgroundIndices, colorIndex, CARTOON_MAX_COLORS);
+
+  // ✅ 重新计算 stats
+  const newStats = computeColorStats(tuned, backgroundIndices);
+
+  return {
+    gridWidth,
+    gridHeight,
+    pixels: tuned,
+    colorStats: newStats,
+    backgroundCode,
+    backgroundIndices,
+  };
+}
 /**
  * Draw the pixel grid on a canvas with optional highlighting and background dimming
  */
