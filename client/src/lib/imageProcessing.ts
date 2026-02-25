@@ -143,35 +143,37 @@ function detectEdgesSimple(
   return edges;
 }
 
-function applyOutlineOnEdges(
+function applyEdgeShadingToPalette(
   pixels: PixelGridCell[],
   edges: Set<number>,
-  paletteIndex: Map<string, ColorData>,
-  outlineCode?: string
+  palette: ColorData[],
+  excludedCodes: Set<string>,
+  intensity: number = 0.18 // ✅ 建议 0.10~0.25，越小越弱
 ): PixelGridCell[] {
   const result = [...pixels];
 
-  // 选一个最深色当描边色：如果你传 outlineCode，用它；否则自动找最暗
-  let outline: ColorData | null = null;
+  const darken = (v: number) =>
+    Math.max(0, Math.min(255, Math.round(v * (1 - intensity))));
 
-  if (outlineCode) outline = paletteIndex.get(outlineCode) || null;
-
-  if (!outline) {
-    let minLum = Infinity;
-    paletteIndex.forEach((c) => {
-      const lum = (c.rgb.r * 299 + c.rgb.g * 587 + c.rgb.b * 114) / 1000;
-      if (lum < minLum) {
-        minLum = lum;
-        outline = c;
-      }
-    });
-  }
-  if (!outline) return result;
-
-  // 在 edge 上强制用描边色
   Array.from(edges).forEach((idx) => {
     const p = result[idx];
-    result[idx] = { ...p, code: outline!.code, hex: outline!.hex, rgb: outline!.rgb };
+    if (p.isBackground) return;
+
+    const shaded: RGB = {
+      r: darken(p.rgb.r),
+      g: darken(p.rgb.g),
+      b: darken(p.rgb.b),
+    };
+
+    // ✅ 压暗后重新映射回色板，保证 code/hex/rgb 一致（不会出现 rgb(...) 这种）
+    const closest = findClosestColor(shaded, palette, excludedCodes);
+
+    result[idx] = {
+      ...p,
+      code: closest.code,
+      hex: closest.hex,
+      rgb: closest.rgb,
+    };
   });
 
   return result;
@@ -412,11 +414,11 @@ export function processImageToGrid(
 
   // ✅ Step 4.5: Cartoon Post-processing（推荐默认开启 cartoon：maxColors=50）
   const CARTOON_MAX_COLORS = 50;   // 你想要 ≤50 就写 50
-  const EDGE_THRESHOLD = 25;       // 20~35，越小越“线条多”
+  const EDGE_THRESHOLD = 40;       // 20~35，越小越“线条多”
   const OUTLINE_CODE = undefined;  // 你也可以填某个固定黑色 code，比如 "M01"（看你色板）
 
   const edges = detectEdgesSimple(pixels, gridWidth, gridHeight, backgroundIndices, EDGE_THRESHOLD);
-  let tuned = applyOutlineOnEdges(pixels, edges, colorIndex, OUTLINE_CODE);
+  let tuned = applyEdgeShadingToPalette(pixels, edges, palette, excludedCodes, 0.18);
 
   // ✅ 先清掉“只出现 1 次”的颜色
   tuned = mergeSinglesToNearestNeighbor(tuned, gridWidth, gridHeight, backgroundIndices, colorIndex);
@@ -436,6 +438,7 @@ export function processImageToGrid(
     backgroundIndices,
   };
 }
+
 /**
  * Draw the pixel grid on a canvas with optional highlighting and background dimming
  */
