@@ -109,7 +109,8 @@ export function processImageToGrid(
   palette: ColorData[],
   mergeThreshold: number = 0,
   enableBackgroundRemoval: boolean = false,
-  excludedCodes: Set<string> = new Set()
+  excludedCodes: Set<string> = new Set(),
+  ditherStrength: number = 0 // ✅ NEW
 ): ProcessedImage {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
@@ -123,20 +124,82 @@ export function processImageToGrid(
   const cellWidth = Math.ceil(canvas.width / gridWidth);
   const cellHeight = Math.ceil(canvas.height / gridHeight);
 
-  // Step 1: Map each pixel to palette color
-  const rawCodes: string[] = [];
-  const originalRgbs: RGB[] = [];
+  // Step 1: Map each cell (1px) to palette color
+  const rawCodes: string[] = new Array(gridWidth * gridHeight);
+  const originalRgbs: RGB[] = new Array(gridWidth * gridHeight);
+
+  // Read pixel data (canvas is already gridWidth x gridHeight)
+  const data = imageData.data;
+
+  // Dithering config
+  const strength = Math.max(0, Math.min(100, ditherStrength)) / 100; // 0..1
+  const useDither = strength > 0;
+
+  // Working buffers (float) for dithering
+  const workR = new Float32Array(gridWidth * gridHeight);
+  const workG = new Float32Array(gridWidth * gridHeight);
+  const workB = new Float32Array(gridWidth * gridHeight);
 
   for (let y = 0; y < gridHeight; y++) {
     for (let x = 0; x < gridWidth; x++) {
-      const dominantColor = getDominantColor(
-        imageData.data, 0, canvas.width, canvas.height,
-        x, y, cellWidth, cellHeight
-      );
-      originalRgbs.push(dominantColor);
+      const idx = y * gridWidth + x;
+      const p = idx * 4;
+      const r = data[p];
+      const g = data[p + 1];
+      const b = data[p + 2];
+      const a = data[p + 3];
 
-      const closestColor = findClosestColor(dominantColor, palette, excludedCodes);
-      rawCodes.push(closestColor.code);
+      // Store original RGB for later tools (restore/remap)
+      originalRgbs[idx] = { r, g, b };
+
+      // If pixel is transparent, just keep it as-is (still mapped later)
+      workR[idx] = r;
+      workG[idx] = g;
+      workB[idx] = b;
+
+      // (optional) If you want transparent pixels to behave like background, you could:
+      // if (a < 128) { workR[idx]=255; workG[idx]=255; workB[idx]=255; }
+    }
+  }
+
+  // Floyd–Steinberg dithering on the grid
+  for (let y = 0; y < gridHeight; y++) {
+    for (let x = 0; x < gridWidth; x++) {
+      const idx = y * gridWidth + x;
+
+      const oldColor: RGB = {
+        r: workR[idx],
+        g: workG[idx],
+        b: workB[idx],
+      };
+
+      const closest = findClosestColor(oldColor, palette, excludedCodes);
+      rawCodes[idx] = closest.code;
+
+      if (!useDither) continue;
+
+      // Error = old - new
+      const errR = (oldColor.r - closest.rgb.r) * strength;
+      const errG = (oldColor.g - closest.rgb.g) * strength;
+      const errB = (oldColor.b - closest.rgb.b) * strength;
+
+      // Distribute error (Floyd–Steinberg)
+      // (x+1, y)     7/16
+      // (x-1, y+1)   3/16
+      // (x,   y+1)   5/16
+      // (x+1, y+1)   1/16
+      const addErr = (nx: number, ny: number, factor: number) => {
+        if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) return;
+        const n = ny * gridWidth + nx;
+        workR[n] = Math.max(0, Math.min(255, workR[n] + errR * factor));
+        workG[n] = Math.max(0, Math.min(255, workG[n] + errG * factor));
+        workB[n] = Math.max(0, Math.min(255, workB[n] + errB * factor));
+      };
+
+      addErr(x + 1, y, 7 / 16);
+      addErr(x - 1, y + 1, 3 / 16);
+      addErr(x, y + 1, 5 / 16);
+      addErr(x + 1, y + 1, 1 / 16);
     }
   }
 

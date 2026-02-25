@@ -43,6 +43,7 @@ export default function Home() {
   const [showBackground, setShowBackground] = useState(true);
   const [pixelSize, setPixelSize] = useState(12);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
+  const [ditherStrength, setDitherStrength] = useState<number>(30);
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
@@ -76,7 +77,8 @@ export default function Home() {
     gridH: number,
     merge: number,
     bgRemoval: boolean,
-    excluded: Set<string>
+    excluded: Set<string>,
+    dither: number
   ) => {
     if (palette.length === 0) return;
 
@@ -89,7 +91,7 @@ export default function Home() {
     processingTimeoutRef.current = requestAnimationFrame(() => {
       try {
         const resized = resizeImageToGrid(canvas, gridW, gridH);
-        const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded);
+        const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded, dither);
         setProcessed(result);
         setBaseProcessed(result);
         setRemovedColors(new Map());
@@ -127,7 +129,7 @@ export default function Home() {
       setSourceImage(canvas);
       const d = calculateGridDimensions(canvas, gridSize);
       setDims(d);
-      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set());
+      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
     } catch (err) {
       setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
@@ -141,7 +143,7 @@ export default function Home() {
     if (sourceImage) {
       const d = calculateGridDimensions(sourceImage, size);
       setDims(d);
-      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes);
+      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
     }
   };
 
@@ -150,15 +152,24 @@ export default function Home() {
     const merge = value[0];
     setMergeThreshold(merge);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes);
+      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength);
     }
   };
+
+  // Handle merge dither change
+  const handleDitherChange = (value: number[]) => {
+  const d = value[0];
+  setDitherStrength(d);
+  if (sourceImage && dims) {
+    processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, d);
+  }
+};
 
   // Handle background removal toggle
   const handleBgToggle = (enabled: boolean) => {
     setEnableBgRemoval(enabled);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes);
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength);
     }
   };
 
@@ -172,7 +183,7 @@ export default function Home() {
     }
     setExcludedCodes(newExcluded);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded);
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength);
     }
   };
 
@@ -311,7 +322,7 @@ export default function Home() {
       setMergeThreshold(1);
       setEnableBgRemoval(false);
       setRemovedColors(new Map());
-      processImage(sourceImage, dims.width, dims.height, 1, false, new Set());
+      processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
     }
   };
 
@@ -558,6 +569,24 @@ export default function Home() {
                   </p>
                 )}
               </div>
+              {/* Dithering Strength Slider */}
+            <div>
+             <div className="flex items-center justify-between mb-1.5">
+               <label className="text-xs font-medium text-foreground">Dithering Strength</label>
+               <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
+            </div>
+            <Slider
+             value={[ditherStrength]}
+             onValueChange={handleDitherChange}
+             min={0}
+             max={100}
+             step={1}
+             className="w-full"
+             />
+             <p className="text-[10px] text-muted-foreground mt-1">
+              0 = off · 20–40 natural · 60+ grainy
+              </p>
+            </div>
 
               {/* Merge Threshold Slider */}
               <div>
@@ -569,7 +598,7 @@ export default function Home() {
                   value={[mergeThreshold]}
                   onValueChange={handleMergeChange}
                   min={1}
-                  max={50}
+                  max={12}
                   step={1}
                   className="w-full"
                 />
