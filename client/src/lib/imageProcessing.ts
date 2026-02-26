@@ -286,25 +286,27 @@ export function processImageToGrid(
   mergeThreshold: number = 0,
   enableBackgroundRemoval: boolean = false,
   excludedCodes: Set<string> = new Set(),
-  ditherStrength: number = 0 // ✅ NEW
+  ditherStrength: number = 0,
+  options?: {
+    cartoonMode?: boolean;
+    maxColors?: 20 | 50 | 100 | 150 | 221;
+  }
 ): ProcessedImage {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Failed to get canvas context');
   }
 
+  const cartoonMode = options?.cartoonMode ?? true; // 默认保持“卡通后处理”开启
+  const maxColors = options?.maxColors ?? 50;       // 默认保持 50 色
+
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const pixels: PixelGridCell[] = [];
-  const colorStats = new Map<string, number>();
-
-  const cellWidth = Math.ceil(canvas.width / gridWidth);
-  const cellHeight = Math.ceil(canvas.height / gridHeight);
 
   // Step 1: Map each cell (1px) to palette color
   const rawCodes: string[] = new Array(gridWidth * gridHeight);
   const originalRgbs: RGB[] = new Array(gridWidth * gridHeight);
 
-  // Read pixel data (canvas is already gridWidth x gridHeight)
   const data = imageData.data;
 
   // Dithering config
@@ -320,21 +322,16 @@ export function processImageToGrid(
     for (let x = 0; x < gridWidth; x++) {
       const idx = y * gridWidth + x;
       const p = idx * 4;
+
       const r = data[p];
       const g = data[p + 1];
       const b = data[p + 2];
-      const a = data[p + 3];
 
-      // Store original RGB for later tools (restore/remap)
       originalRgbs[idx] = { r, g, b };
 
-      // If pixel is transparent, just keep it as-is (still mapped later)
       workR[idx] = r;
       workG[idx] = g;
       workB[idx] = b;
-
-      // (optional) If you want transparent pixels to behave like background, you could:
-      // if (a < 128) { workR[idx]=255; workG[idx]=255; workB[idx]=255; }
     }
   }
 
@@ -359,11 +356,6 @@ export function processImageToGrid(
       const errG = (oldColor.g - closest.rgb.g) * strength;
       const errB = (oldColor.b - closest.rgb.b) * strength;
 
-      // Distribute error (Floyd–Steinberg)
-      // (x+1, y)     7/16
-      // (x-1, y+1)   3/16
-      // (x,   y+1)   5/16
-      // (x+1, y+1)   1/16
       const addErr = (nx: number, ny: number, factor: number) => {
         if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) return;
         const n = ny * gridWidth + nx;
@@ -382,8 +374,16 @@ export function processImageToGrid(
   // Step 2: BFS merge small regions if threshold > 0
   let mergedCodes = rawCodes;
   if (mergeThreshold > 1) {
-    const colorIndex = createColorIndex(palette);
-    mergedCodes = bfsMergeColors(rawCodes, gridWidth, gridHeight, mergeThreshold, palette, colorIndex, 35);
+    const paletteIndex = createColorIndex(palette);
+    mergedCodes = bfsMergeColors(
+      rawCodes,
+      gridWidth,
+      gridHeight,
+      mergeThreshold,
+      palette,
+      paletteIndex,
+      35
+    );
   }
 
   // Step 3: Detect background if enabled
@@ -395,8 +395,7 @@ export function processImageToGrid(
     backgroundCode = bgResult.backgroundCode;
   }
 
-  // Step 4: Build final pixel array and stats
-    // Step 4: Build final pixel array (先不急着定死 stats)
+  // Step 4: Build final pixel array
   const colorIndex = createColorIndex(palette);
   for (let i = 0; i < mergedCodes.length; i++) {
     const code = mergedCodes[i];
@@ -412,28 +411,43 @@ export function processImageToGrid(
     });
   }
 
-  // ✅ Step 4.5: Cartoon Post-processing（推荐默认开启 cartoon：maxColors=50）
-  const CARTOON_MAX_COLORS = 50;   // 你想要 ≤50 就写 50
-  const EDGE_THRESHOLD = 40;       // 20~35，越小越“线条多”
-  const OUTLINE_CODE = undefined;  // 你也可以填某个固定黑色 code，比如 "M01"（看你色板）
+  // Step 4.5: Cartoon Post-processing（可选开启；maxColors 支持 20/50/100/150/221）
+  let finalPixels = pixels;
 
-  const edges = detectEdgesSimple(pixels, gridWidth, gridHeight, backgroundIndices, EDGE_THRESHOLD);
-  let tuned = applyEdgeShadingToPalette(pixels, edges, palette, excludedCodes, 0.18);
+  if (cartoonMode) {
+    const EDGE_THRESHOLD = 40;
+    const edges = detectEdgesSimple(
+      finalPixels,
+      gridWidth,
+      gridHeight,
+      backgroundIndices,
+      EDGE_THRESHOLD
+    );
 
-  // ✅ 先清掉“只出现 1 次”的颜色
-  tuned = mergeSinglesToNearestNeighbor(tuned, gridWidth, gridHeight, backgroundIndices, colorIndex);
+    let tuned = applyEdgeShadingToPalette(finalPixels, edges, palette, excludedCodes, 0.18);
 
-  // ✅ 最后强制限制总色数 ≤50
-  tuned = limitMaxColors(tuned, backgroundIndices, colorIndex, CARTOON_MAX_COLORS);
+    tuned = mergeSinglesToNearestNeighbor(
+      tuned,
+      gridWidth,
+      gridHeight,
+      backgroundIndices,
+      colorIndex
+    );
 
-  // ✅ 重新计算 stats
-  const newStats = computeColorStats(tuned, backgroundIndices);
+    if (maxColors < 221) {
+      tuned = limitMaxColors(tuned, backgroundIndices, colorIndex, maxColors);
+    }
+
+    finalPixels = tuned;
+  }
+
+  const finalStats = computeColorStats(finalPixels, backgroundIndices);
 
   return {
     gridWidth,
     gridHeight,
-    pixels: tuned,
-    colorStats: newStats,
+    pixels: finalPixels,
+    colorStats: finalStats,
     backgroundCode,
     backgroundIndices,
   };

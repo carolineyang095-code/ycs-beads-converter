@@ -44,6 +44,11 @@ export default function Home() {
   const [pixelSize, setPixelSize] = useState(12);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
   const [ditherStrength, setDitherStrength] = useState<number>(30);
+  const MAX_COLOR_OPTIONS = [20, 50, 100, 150, 221] as const;
+  type MaxColors = typeof MAX_COLOR_OPTIONS[number];
+  const [cartoonMode, setCartoonMode] = useState(true);     // 默认卡通
+  const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
+  const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
@@ -78,7 +83,10 @@ export default function Home() {
     merge: number,
     bgRemoval: boolean,
     excluded: Set<string>,
-    dither: number
+    dither: number,
+    cartoon: boolean,
+    maxC: MaxColors
+
   ) => {
     if (palette.length === 0) return;
 
@@ -91,7 +99,17 @@ export default function Home() {
     processingTimeoutRef.current = requestAnimationFrame(() => {
       try {
         const resized = resizeImageToGrid(canvas, gridW, gridH);
-        const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded, dither);
+        const result = processImageToGrid(
+  resized,
+  gridW,
+  gridH,
+  palette,
+  merge,
+  bgRemoval,
+  excluded,
+  dither,
+  { cartoonMode: cartoon, maxColors: maxC }
+);
         setProcessed(result);
         setBaseProcessed(result);
         setRemovedColors(new Map());
@@ -129,7 +147,7 @@ export default function Home() {
       setSourceImage(canvas);
       const d = calculateGridDimensions(canvas, gridSize);
       setDims(d);
-      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
+      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength, cartoonMode, maxColors);
     } catch (err) {
       setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
@@ -143,7 +161,7 @@ export default function Home() {
     if (sourceImage) {
       const d = calculateGridDimensions(sourceImage, size);
       setDims(d);
-      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
+      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength, cartoonMode, maxColors);
     }
   };
 
@@ -152,7 +170,7 @@ export default function Home() {
     const merge = value[0];
     setMergeThreshold(merge);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength);
+      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength, cartoonMode, maxColors);
     }
   };
 
@@ -161,7 +179,15 @@ export default function Home() {
   const d = value[0];
   setDitherStrength(d);
   if (sourceImage && dims) {
-    processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, d);
+    processImage(  sourceImage,
+  dims.width,
+  dims.height,
+  mergeThreshold,
+  enableBgRemoval,
+  excludedCodes,
+  ditherStrength,
+  cartoonMode,
+  maxColors);
   }
 };
 
@@ -169,7 +195,7 @@ export default function Home() {
   const handleBgToggle = (enabled: boolean) => {
     setEnableBgRemoval(enabled);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength);
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength, cartoonMode, maxColors);
     }
   };
 
@@ -183,7 +209,7 @@ export default function Home() {
     }
     setExcludedCodes(newExcluded);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength);
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength, cartoonMode, maxColors);
     }
   };
 
@@ -322,7 +348,7 @@ export default function Home() {
       setMergeThreshold(1);
       setEnableBgRemoval(false);
       setRemovedColors(new Map());
-      processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
+      processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength,cartoonMode, maxColors);
     }
   };
 
@@ -587,6 +613,49 @@ export default function Home() {
               0 = off · 20–40 natural · 60+ grainy
               </p>
             </div>
+
+<div className="flex items-center justify-between">
+  <label className="text-xs font-medium text-foreground">Cartoon Mode</label>
+  <Switch
+    checked={cartoonMode}
+    onCheckedChange={(enabled) => {
+      setCartoonMode(enabled);
+      if (sourceImage && dims) {
+        processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength, enabled, maxColors);
+      }
+    }}
+  />
+</div>
+
+<div>
+  <div className="flex items-center justify-between mb-1.5">
+    <label className="text-xs font-medium text-foreground">Max Colors</label>
+    <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
+  </div>
+
+  <Slider
+    value={[maxColorIndex]}
+    onValueChange={(v) => {
+      const idx = v[0];
+      setMaxColorIndex(idx);
+      if (sourceImage && dims) {
+        processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength, cartoonMode, MAX_COLOR_OPTIONS[idx]);
+      }
+    }}
+    min={0}
+    max={MAX_COLOR_OPTIONS.length - 1}
+    step={1}
+    className="w-full"
+  />
+
+  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+    {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
+  </div>
+
+  <p className="text-[10px] text-muted-foreground mt-1">
+    221 = most vivid · 50 = cleaner cartoon · 20 = very simplified
+  </p>
+</div>
 
               {/* Merge Threshold Slider */}
               <div>
