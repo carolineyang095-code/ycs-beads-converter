@@ -132,9 +132,9 @@ export function exportFullPatternPNG(
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Failed to create canvas');
 
-      // Transparent background (do not fill with white)
-      // ctx.fillStyle = '#FFFFFF';
-      // ctx.fillRect(0, 0, totalWidth, totalHeight);
+      // White background for the whole sheet
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, totalWidth, totalHeight);
 
       // === HEADER ===
       let currentY = 20;
@@ -221,13 +221,13 @@ export function exportFullPatternPNG(
         const isBg = backgroundIndices.has(i);
 
         // Fill cell
-        if (isBg) {
-          // Background removal area: semi-transparent or light gray
-          ctx.fillStyle = 'rgba(245, 245, 245, 0.5)';
-          ctx.fillRect(x, y, cellSize, cellSize);
-        } else if (pixel.hex === 'transparent' || !pixel.code) {
-          // Truly transparent (erased) area: do not fill, keep PNG transparent
+        if (isBg || pixel.hex === 'transparent' || !pixel.code) {
+          // Background removal or erased area: clear to show transparency in PNG
           ctx.clearRect(x, y, cellSize, cellSize);
+          if (isBg) {
+            ctx.fillStyle = 'rgba(245, 245, 245, 0.3)';
+            ctx.fillRect(x, y, cellSize, cellSize);
+          }
         } else {
           ctx.fillStyle = pixel.hex;
           ctx.fillRect(x, y, cellSize, cellSize);

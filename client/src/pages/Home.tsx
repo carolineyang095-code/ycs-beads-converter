@@ -579,7 +579,7 @@ export default function Home() {
                       <Paintbrush className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Brush</TooltipContent>
+                  <TooltipContent>Brush Tool</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -587,7 +587,7 @@ export default function Home() {
                       <Eraser className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Eraser</TooltipContent>
+                  <TooltipContent>Eraser Tool</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -663,7 +663,7 @@ export default function Home() {
 
               {/* Size Slider */}
               <div className="flex items-center gap-2 border-l border-border pl-3">
-                <span className="text-xs text-muted-foreground">Size</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Brush / Eraser Size</span>
                 <div className="w-32">
                   <Slider
                     value={[brushSize]}
@@ -812,7 +812,7 @@ fileInput?.click();
               {/* Grid Size Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Horizontal Grid Count</label>
+                  <label className="text-xs font-medium text-foreground">Canvas Width (Beads)</label>
                   <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
                 </div>
                 <Slider
@@ -832,7 +832,7 @@ fileInput?.click();
               {/* Dithering Strength Slider */}
             <div>
              <div className="flex items-center justify-between mb-1.5">
-               <label className="text-xs font-medium text-foreground">Dithering Strength</label>
+               <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
                <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
             </div>
             <Slider
@@ -850,7 +850,7 @@ fileInput?.click();
 
 <div>
   <div className="flex items-center justify-between mb-1.5">
-    <label className="text-xs font-medium text-foreground">Max Colors</label>
+    <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
     <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
   </div>
 
@@ -875,7 +875,7 @@ fileInput?.click();
               {/* Merge Threshold Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Color Merge Threshold</label>
+                  <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
                   <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
                 </div>
                 <Slider
@@ -903,7 +903,7 @@ fileInput?.click();
           {processed && (
             <div className="p-4 border-b border-border">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> Noise Removal
+                <Sparkles className="w-3.5 h-3.5" /> Clean Up Stray Beads
               </h3>
               <NoiseColorRemoval
                 colorStats={processed.colorStats}
@@ -921,7 +921,7 @@ fileInput?.click();
           {processed && (
             <div className="p-4 border-b border-border">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Layers className="w-3.5 h-3.5" /> Color Statistics ({totalColors})
+                <Layers className="w-3.5 h-3.5" /> Bead Count & Colors ({totalColors})
               </h3>
               <p className="text-[10px] text-muted-foreground mb-2">
                 Click to highlight · Right-click to exclude
