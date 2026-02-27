@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
-  SlidersHorizontal, Layers, Sparkles, Loader2
+  SlidersHorizontal, Layers, Sparkles, Loader2, Palette
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -57,6 +57,9 @@ export default function Home() {
 
   // ===== Brush size (1~30) =====
   const [brushSize, setBrushSize] = useState<number>(1);
+
+  // ===== Palette popup =====
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
@@ -546,7 +549,7 @@ export default function Home() {
                       size="sm"
                       variant={paletteOpen ? 'default' : 'ghost'}
                       className="h-8 w-8 p-0"
-                      onClick={() => setPaletteOpen(v => !v)}
+                      onClick={() => setPaletteOpen((v: boolean) => !v)}
                     >
                       <Palette className="w-4 h-4" />
                     </Button>
