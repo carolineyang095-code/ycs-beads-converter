@@ -620,8 +620,8 @@ export default function Home() {
                         <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
                       </div>
                       
-                      {/* Group colors by their first letter (Family) */}
-                      {Array.from(new Set(palette.map(c => c.code[0]))).sort().map(family => (
+                      {/* Group colors by their family field from JSON */}
+                      {Array.from(new Set(palette.map(c => c.family || c.code[0]))).sort().map(family => (
                         <div key={family} className="mb-4">
                           <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-2">
                             <span className="w-4 h-[1px] bg-border"></span>
@@ -629,7 +629,7 @@ export default function Home() {
                           </h5>
                           <div className="grid grid-cols-8 gap-1.5">
                             {palette
-                              .filter(c => c.code.startsWith(family))
+                              .filter(c => (c.family || c.code[0]) === family)
                               .map(color => (
                                 <Tooltip key={color.code}>
                                   <TooltipTrigger asChild>
@@ -959,9 +959,7 @@ fileInput?.click();
                   })}
               </div>
             </div>
-          )}
-
-
+            )}
         </div>
       </div>
     </div>

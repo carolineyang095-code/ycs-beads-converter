@@ -8,6 +8,7 @@ export interface ColorData {
   code: string;
   name: string;
   hex: string;
+  family?: string;
   rgb: {
     r: number;
     g: number;
