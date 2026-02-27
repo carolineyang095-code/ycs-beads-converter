@@ -503,11 +503,16 @@ export function drawPixelGridWithCodes(
     const isBg = backgroundIndices.has(i);
 
     if (isBg) {
-      ctx.fillStyle = '#F5F5F5';
+      // Background removal area: semi-transparent or light gray
+      ctx.fillStyle = 'rgba(245, 245, 245, 0.8)';
+      ctx.fillRect(x, y, pixelSize, pixelSize);
+    } else if (pixel.hex === 'transparent' || !pixel.code) {
+      // Truly transparent (erased) area: do not fill, let checkerboard show
+      ctx.clearRect(x, y, pixelSize, pixelSize);
     } else {
       ctx.fillStyle = pixel.hex;
+      ctx.fillRect(x, y, pixelSize, pixelSize);
     }
-    ctx.fillRect(x, y, pixelSize, pixelSize);
 
     // Draw grid
     ctx.strokeStyle = '#CCCCCC';
@@ -623,17 +628,27 @@ export function setPixelAt(
   gridWidth: number,
   x: number,
   y: number,
-  newColor: ColorData
+  newColor: ColorData | null
 ): PixelGridCell[] {
   const result = [...pixels];
   const idx = y * gridWidth + x;
   if (idx >= 0 && idx < result.length) {
-    result[idx] = {
-      ...result[idx],
-      code: newColor.code,
-      hex: newColor.hex,
-      rgb: newColor.rgb,
-    };
+    if (newColor) {
+      result[idx] = {
+        ...result[idx],
+        code: newColor.code,
+        hex: newColor.hex,
+        rgb: newColor.rgb,
+      };
+    } else {
+      // Eraser mode: set to transparent
+      result[idx] = {
+        ...result[idx],
+        code: '',
+        hex: 'transparent',
+        rgb: { r: 0, g: 0, b: 0 },
+      };
+    }
   }
   return result;
 }

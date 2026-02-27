@@ -98,16 +98,16 @@ export function exportFullPatternPNG(
       }
 
       const coordMargin = opts.showCoordinates ? 40 : 0;
-      const headerHeight = 100; // Increased for logo
+      const headerHeight = 150; // Increased for logo and additional text
 
       // Calculate legend dimensions (Grid layout: 4 columns)
       const legendEntries = Array.from(colorStats.entries())
         .sort((a, b) => a[0].localeCompare(b[0]));
       
-      const legendCols = 4;
+      const legendItemWidth = 150; // Adjusted for new layout
+      const legendItemHeight = 40; // Adjusted for new layout
+      const legendCols = Math.floor((gridWidth * opts.cellSize + coordMargin) / legendItemWidth); // Dynamic columns based on grid width
       const legendRows = Math.ceil(legendEntries.length / legendCols);
-      const legendItemWidth = 220;
-      const legendItemHeight = 45;
       const legendPadding = 40;
       const legendHeight = opts.showLegend ? (legendRows * legendItemHeight + legendPadding + 60) : 0;
 
@@ -132,25 +132,38 @@ export function exportFullPatternPNG(
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Failed to create canvas');
 
-      // White background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, totalWidth, totalHeight);
+      // Transparent background (do not fill with white)
+      // ctx.fillStyle = '#FFFFFF';
+      // ctx.fillRect(0, 0, totalWidth, totalHeight);
 
       // === HEADER ===
+      let currentY = 20;
       if (logoImg) {
         const logoHeight = 60;
         const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
-        ctx.drawImage(logoImg, 20, 20, logoWidth, logoHeight);
+        ctx.drawImage(logoImg, 20, currentY, logoWidth, logoHeight);
+        currentY += logoHeight + 10;
       }
+
+      ctx.fillStyle = '#452F60';
+      ctx.font = 'bold 28px "Klee One", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText("Yaya's Creative Studio", 20, currentY);
+      currentY += 35;
+
+      ctx.font = '16px "Klee One", sans-serif';
+      ctx.fillStyle = '#9867DA';
+      ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 20, currentY);
+      currentY += 25;
+
+      ctx.font = '14px "Klee One", sans-serif';
+      ctx.fillStyle = '#9867DA';
+      ctx.fillText("https://tools.yayascreativestudio.com/", 20, currentY);
+      currentY += 30; // Adjust for spacing
 
       const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
       const totalColors = colorStats.size;
-
-      ctx.fillStyle = '#452F60';
-      ctx.font = 'bold 24px "Klee One", sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(opts.title, logoImg ? 20 + (logoImg.width / logoImg.height) * 60 + 20 : 20, 50);
 
       ctx.font = '16px "Klee One", sans-serif';
       ctx.textAlign = 'right';
@@ -158,7 +171,7 @@ export function exportFullPatternPNG(
       ctx.fillText(
         `${totalColors} colors · ${totalBeads.toLocaleString()} beads · ${gridWidth}×${gridHeight}`,
         totalWidth - 20,
-        50
+        40
       );
 
       const gridStartX = coordMargin + 20;
@@ -208,8 +221,17 @@ export function exportFullPatternPNG(
         const isBg = backgroundIndices.has(i);
 
         // Fill cell
-        ctx.fillStyle = isBg ? '#FDFDFD' : pixel.hex;
-        ctx.fillRect(x, y, cellSize, cellSize);
+        if (isBg) {
+          // Background removal area: semi-transparent or light gray
+          ctx.fillStyle = 'rgba(245, 245, 245, 0.5)';
+          ctx.fillRect(x, y, cellSize, cellSize);
+        } else if (pixel.hex === 'transparent' || !pixel.code) {
+          // Truly transparent (erased) area: do not fill, keep PNG transparent
+          ctx.clearRect(x, y, cellSize, cellSize);
+        } else {
+          ctx.fillStyle = pixel.hex;
+          ctx.fillRect(x, y, cellSize, cellSize);
+        }
 
         // Draw color code inside cell
         if (showCodeText && !isBg) {
@@ -276,17 +298,21 @@ export function exportFullPatternPNG(
         ctx.textAlign = 'left';
         ctx.fillText('Color Breakdown', 20, legendStartY);
 
-        const gridOriginX = 20;
-        const gridOriginY = legendStartY + 20;
+        const legendGridStartX = 20;
+        const legendGridStartY = legendStartY + 20;
+
+        // Calculate actual columns based on available width
+        const availableLegendWidth = totalWidth - 40; // 20px padding on each side
+        const actualLegendCols = Math.max(1, Math.floor(availableLegendWidth / legendItemWidth));
 
         for (let i = 0; i < legendEntries.length; i++) {
           const [code, count] = legendEntries[i];
           const color = palette.get(code);
-          const col = i % legendCols;
-          const row = Math.floor(i / legendCols);
+          const col = i % actualLegendCols;
+          const row = Math.floor(i / actualLegendCols);
           
-          const x = gridOriginX + col * legendItemWidth;
-          const y = gridOriginY + row * legendItemHeight;
+          const x = legendGridStartX + col * legendItemWidth;
+          const y = legendGridStartY + row * legendItemHeight;
           
           // Draw rounded rectangle background
           const rectW = legendItemWidth - 15;
@@ -295,18 +321,25 @@ export function exportFullPatternPNG(
           
           ctx.fillStyle = color ? color.hex : '#F7F7F7';
           
-          // Draw rounded rect
-          ctx.beginPath();
-          ctx.moveTo(x + radius, y);
-          ctx.lineTo(x + rectW - radius, y);
-          ctx.quadraticCurveTo(x + rectW, y, x + rectW, y + radius);
-          ctx.lineTo(x + rectW, y + rectH - radius);
-          ctx.quadraticCurveTo(x + rectW, y + rectH, x + rectW - radius, y + rectH);
-          ctx.lineTo(x + radius, y + rectH);
-          ctx.quadraticCurveTo(x, y + rectH, x, y + radius);
-          ctx.quadraticCurveTo(x, y, x + radius, y);
-          ctx.closePath();
-          ctx.fill();
+        // Draw rounded rect
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + rectW - radius, y);
+        ctx.quadraticCurveTo(x + rectW, y, x + rectW, y + radius);
+        ctx.lineTo(x + rectW, y + rectH - radius);
+        ctx.quadraticCurveTo(x + rectW, y + rectH, x + rectW - radius, y + rectH);
+        ctx.lineTo(x + radius, y + rectH);
+        ctx.quadraticCurveTo(x, y + rectH, x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        
+        // Fill legend background with white first to ensure text is readable even on transparent PNG
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.fill();
           
           // Border for light colors
           const brightness = color ? (color.rgb.r * 299 + color.rgb.g * 587 + color.rgb.b * 114) / 1000 : 255;
@@ -335,7 +368,7 @@ export function exportFullPatternPNG(
         ctx.fillText(
           `Total: ${totalBeads.toLocaleString()} beads`,
           totalWidth - 20,
-          gridOriginY + legendRows * legendItemHeight + 20
+          legendGridStartY + legendRows * legendItemHeight + 20
         );
       }
 
