@@ -52,8 +52,11 @@ export default function Home() {
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
   // previewMode=false：干净（无网格线）
-// previewMode=true：显示网格线（方便照着拼）
+  // previewMode=true：显示网格线（方便照着拼）
   const [previewMode, setPreviewMode] = useState(false); 
+
+  // ===== Brush size (1~30) =====
+  const [brushSize, setBrushSize] = useState<number>(1);
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
@@ -310,6 +313,29 @@ export default function Home() {
     }
   };
 
+  function applyBrush(
+    pixels: PixelGridCell[],
+    gridW: number,
+    gridH: number,
+    x: number,
+    y: number,
+    size: number,
+    color: ColorData
+  ) {
+    const half = Math.floor(size / 2);
+    let out = pixels;
+
+    for (let dy = -half; dy <= half; dy++) {
+      for (let dx = -half; dx <= half; dx++) {
+        const xx = x + dx;
+        const yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= gridW || yy >= gridH) continue;
+        out = setPixelAt(out, gridW, xx, yy, color);
+      }
+    }
+    return out;
+  }
+
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processed || !canvasRef.current || !dims) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -330,7 +356,15 @@ export default function Home() {
         }
       }
     } else if (activeTool === 'brush' && selectedColor) {
-      const newPixels = setPixelAt(processed.pixels, processed.gridWidth, x, y, selectedColor);
+      const newPixels = applyBrush(
+        processed.pixels,
+        processed.gridWidth,
+        processed.gridHeight,
+        x,
+        y,
+        brushSize,
+        selectedColor
+      );
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
         if (!processed.backgroundIndices.has(i)) {
@@ -341,7 +375,15 @@ export default function Home() {
     } else if (activeTool === 'eraser') {
       const whiteColor: ColorData = { code: 'BG', name: 'Background', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 } };
       const bgColor = palette.find(c => c.hex === '#FFFFFF') || whiteColor;
-      const newPixels = setPixelAt(processed.pixels, processed.gridWidth, x, y, bgColor);
+      const newPixels = applyBrush(
+        processed.pixels,
+        processed.gridWidth,
+        processed.gridHeight,
+        x,
+        y,
+        brushSize,
+        bgColor
+      );
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
         if (!processed.backgroundIndices.has(i)) {
@@ -502,15 +544,30 @@ export default function Home() {
                   <TooltipTrigger asChild>
                     <Button
                       size="sm"
-                     variant={previewMode ? 'default' : 'ghost'}
-                     className="h-8 px-2"
-                      onClick={() => setPreviewMode(v => !v)}
-                         >
-                    Preview
-           </Button>
-         </TooltipTrigger>
-      <TooltipContent>Toggle grid preview</TooltipContent>
-    </Tooltip>
+                      variant={paletteOpen ? 'default' : 'ghost'}
+                      className="h-8 w-8 p-0"
+                      onClick={() => setPaletteOpen(v => !v)}
+                    >
+                      <Palette className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Palette</TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Size Slider */}
+              <div className="flex items-center gap-2 border-l border-border pl-3">
+                <span className="text-xs text-muted-foreground">Size</span>
+                <div className="w-32">
+                  <Slider
+                    value={[brushSize]}
+                    onValueChange={(v) => setBrushSize(v[0])}
+                    min={1}
+                    max={30}
+                    step={1}
+                  />
+                </div>
+                <span className="text-xs font-mono text-muted-foreground w-6">{brushSize}</span>
               </div>
 
               {/* Selected color indicator */}
