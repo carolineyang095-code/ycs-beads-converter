@@ -288,7 +288,6 @@ export function processImageToGrid(
   excludedCodes: Set<string> = new Set(),
   ditherStrength: number = 0,
   options?: {
-    cartoonMode?: boolean;
     maxColors?: 20 | 50 | 100 | 150 | 221;
   }
 ): ProcessedImage {
@@ -296,9 +295,7 @@ export function processImageToGrid(
   if (!ctx) {
     throw new Error('Failed to get canvas context');
   }
-
-  const cartoonMode = options?.cartoonMode ?? true; // 默认保持“卡通后处理”开启
-  const maxColors = options?.maxColors ?? 50;       // 默认保持 50 色
+  const maxColors = options?.maxColors ?? 211;       // 默认保持 211 色
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const pixels: PixelGridCell[] = [];
@@ -411,46 +408,23 @@ export function processImageToGrid(
     });
   }
 
-  // Step 4.5: Cartoon Post-processing（可选开启；maxColors 支持 20/50/100/150/221）
-  let finalPixels = pixels;
+  // ✅ Step 4.5: Limit max colors (always effective)
+let finalPixels = pixels;
 
-  if (cartoonMode) {
-    const EDGE_THRESHOLD = 40;
-    const edges = detectEdgesSimple(
-      finalPixels,
-      gridWidth,
-      gridHeight,
-      backgroundIndices,
-      EDGE_THRESHOLD
-    );
+if (maxColors < 221) {
+  finalPixels = limitMaxColors(finalPixels, backgroundIndices, colorIndex, maxColors);
+}
 
-    let tuned = applyEdgeShadingToPalette(finalPixels, edges, palette, excludedCodes, 0.18);
+const finalStats = computeColorStats(finalPixels, backgroundIndices);
 
-    tuned = mergeSinglesToNearestNeighbor(
-      tuned,
-      gridWidth,
-      gridHeight,
-      backgroundIndices,
-      colorIndex
-    );
-
-    if (maxColors < 221) {
-      tuned = limitMaxColors(tuned, backgroundIndices, colorIndex, maxColors);
-    }
-
-    finalPixels = tuned;
-  }
-
-  const finalStats = computeColorStats(finalPixels, backgroundIndices);
-
-  return {
-    gridWidth,
-    gridHeight,
-    pixels: finalPixels,
-    colorStats: finalStats,
-    backgroundCode,
-    backgroundIndices,
-  };
+return {
+  gridWidth,
+  gridHeight,
+  pixels: finalPixels,
+  colorStats: finalStats,
+  backgroundCode,
+  backgroundIndices,
+};
 }
 
 /**

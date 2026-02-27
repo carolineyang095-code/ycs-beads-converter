@@ -22,6 +22,8 @@ import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
+  const MAX_COLOR_OPTIONS = [20, 50, 100, 150, 221] as const;
+  type MaxColors = typeof MAX_COLOR_OPTIONS[number];
 
 export default function Home() {
   // Core state
@@ -44,9 +46,6 @@ export default function Home() {
   const [pixelSize, setPixelSize] = useState(12);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
   const [ditherStrength, setDitherStrength] = useState<number>(30);
-  const MAX_COLOR_OPTIONS = [20, 50, 100, 150, 221] as const;
-  type MaxColors = typeof MAX_COLOR_OPTIONS[number];
-  const [cartoonMode, setCartoonMode] = useState(true);     // 默认卡通
   const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
@@ -83,9 +82,7 @@ export default function Home() {
     merge: number,
     bgRemoval: boolean,
     excluded: Set<string>,
-    dither: number,
-    cartoon: boolean,
-    maxC: MaxColors
+    dither: number
 
   ) => {
     if (palette.length === 0) return;
@@ -108,7 +105,7 @@ export default function Home() {
   bgRemoval,
   excluded,
   dither,
-  { cartoonMode: cartoon, maxColors: maxC }
+  { maxColors }
 );
         setProcessed(result);
         setBaseProcessed(result);
@@ -119,7 +116,7 @@ export default function Home() {
         setIsProcessing(false);
       }
     });
-  }, [palette]);
+  }, [palette, maxColors]);
 
   // Redraw canvas when visual settings change
   useEffect(() => {
@@ -135,6 +132,21 @@ export default function Home() {
     }
   }, [processed, pixelSize, highlightCode, showBackground]);
 
+  useEffect(() => {
+  if (sourceImage && dims) {
+    processImage(
+      sourceImage,
+      dims.width,
+      dims.height,
+      mergeThreshold,
+      enableBgRemoval,
+      excludedCodes,
+      ditherStrength
+    );
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [maxColors]);
+
   // Handle image upload
   const handleImageUpload = async (file: File) => {
     setError(null);
@@ -147,7 +159,7 @@ export default function Home() {
       setSourceImage(canvas);
       const d = calculateGridDimensions(canvas, gridSize);
       setDims(d);
-      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength, cartoonMode, maxColors);
+      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
     } catch (err) {
       setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
@@ -161,7 +173,7 @@ export default function Home() {
     if (sourceImage) {
       const d = calculateGridDimensions(sourceImage, size);
       setDims(d);
-      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength, cartoonMode, maxColors);
+      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
     }
   };
 
@@ -170,7 +182,7 @@ export default function Home() {
     const merge = value[0];
     setMergeThreshold(merge);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength, cartoonMode, maxColors);
+      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength);
     }
   };
 
@@ -179,15 +191,15 @@ export default function Home() {
   const d = value[0];
   setDitherStrength(d);
   if (sourceImage && dims) {
-    processImage(  sourceImage,
-  dims.width,
-  dims.height,
-  mergeThreshold,
-  enableBgRemoval,
-  excludedCodes,
-  ditherStrength,
-  cartoonMode,
-  maxColors);
+    processImage(
+      sourceImage,
+      dims.width,
+      dims.height,
+      mergeThreshold,
+      enableBgRemoval,
+      excludedCodes,
+      d
+    );
   }
 };
 
@@ -195,7 +207,7 @@ export default function Home() {
   const handleBgToggle = (enabled: boolean) => {
     setEnableBgRemoval(enabled);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength, cartoonMode, maxColors);
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength);
     }
   };
 
@@ -209,7 +221,7 @@ export default function Home() {
     }
     setExcludedCodes(newExcluded);
     if (sourceImage && dims) {
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength, cartoonMode, maxColors);
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength);
     }
   };
 
@@ -348,7 +360,7 @@ export default function Home() {
       setMergeThreshold(1);
       setEnableBgRemoval(false);
       setRemovedColors(new Map());
-      processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength,cartoonMode, maxColors);
+      processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
     }
   };
 
@@ -614,19 +626,6 @@ export default function Home() {
               </p>
             </div>
 
-<div className="flex items-center justify-between">
-  <label className="text-xs font-medium text-foreground">Cartoon Mode</label>
-  <Switch
-    checked={cartoonMode}
-    onCheckedChange={(enabled) => {
-      setCartoonMode(enabled);
-      if (sourceImage && dims) {
-        processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength, enabled, maxColors);
-      }
-    }}
-  />
-</div>
-
 <div>
   <div className="flex items-center justify-between mb-1.5">
     <label className="text-xs font-medium text-foreground">Max Colors</label>
@@ -634,19 +633,13 @@ export default function Home() {
   </div>
 
   <Slider
-    value={[maxColorIndex]}
-    onValueChange={(v) => {
-      const idx = v[0];
-      setMaxColorIndex(idx);
-      if (sourceImage && dims) {
-        processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength, cartoonMode, MAX_COLOR_OPTIONS[idx]);
-      }
-    }}
-    min={0}
-    max={MAX_COLOR_OPTIONS.length - 1}
-    step={1}
-    className="w-full"
-  />
+  value={[maxColorIndex]}
+  onValueChange={(v) => setMaxColorIndex(v[0])}
+  min={0}
+  max={MAX_COLOR_OPTIONS.length - 1}
+  step={1}
+  className="w-full"
+/>
 
   <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
     {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
