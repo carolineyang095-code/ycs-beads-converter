@@ -1,3 +1,4 @@
+import HeroIntro from '@/components/HeroIntro';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
@@ -20,6 +21,7 @@ import {
 } from '@/lib/imageProcessing';
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
+
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
   const MAX_COLOR_OPTIONS = [20, 50, 100, 150, 221] as const;
@@ -416,9 +418,9 @@ export default function Home() {
       <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold" style={{ color: '#452F60' }}>
-            Perler Bead Pattern Converter
+            Yaya’s Creative Studio
           </h1>
-          <p className="text-xs" style={{ color: '#9867DA' }}>Artkal 221 Palette · Pixel Pattern Generator</p>
+          <p className="text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
         </div>
         <div className="flex items-center gap-2">
           {processed && (
@@ -551,13 +553,13 @@ export default function Home() {
                 onMouseLeave={handleCanvasMouseLeave}
               />
             ) : (
-              <div className="flex-1 flex items-center justify-center h-full">
-                <div className="text-center text-muted-foreground">
-                  <Upload className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium">Upload an image to start</p>
-                  <p className="text-sm mt-1">Supports JPG, PNG, WebP</p>
-                </div>
-              </div>
+              <HeroIntro
+  onUploadClick={() => {
+    // 直接滚动到右侧上传区域（简单版）
+    document.querySelector('[data-upload-panel="1"]')?.scrollIntoView({ behavior: "smooth" });
+  }}
+  shopUrl="https://yayascreativestudio.com/"
+/>
             )}
           </div>
 
