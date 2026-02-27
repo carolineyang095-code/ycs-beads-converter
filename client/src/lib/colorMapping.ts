@@ -26,9 +26,10 @@ export interface RGB {
  * Calculate Euclidean distance between two RGB colors
  */
 export function euclideanDistance(color1: RGB, color2: RGB): number {
-  const dr = color1.r - color2.r;
-  const dg = color1.g - color2.g;
-  const db = color1.b - color2.b;
+  if (!color1 || !color2) return Infinity;
+  const dr = (color1.r || 0) - (color2.r || 0);
+  const dg = (color1.g || 0) - (color2.g || 0);
+  const db = (color1.b || 0) - (color2.b || 0);
   return Math.sqrt(dr * dr + dg * dg + db * db);
 }
 
@@ -214,8 +215,10 @@ for (const region of regions) {
   const regionColor = colorIndex.get(region.code);
   if (!regionColor) continue;
 
-  const luminance = (rgb: { r: number; g: number; b: number }) =>
-    (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+  const luminance = (rgb: { r: number; g: number; b: number }) => {
+    if (!rgb) return 255;
+    return ((rgb.r || 0) * 299 + (rgb.g || 0) * 587 + (rgb.b || 0) * 114) / 1000;
+  };
 
   let bestNeighbor = region.code;
   let bestScore = Infinity;

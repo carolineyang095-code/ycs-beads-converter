@@ -236,7 +236,7 @@ export function exportFullPatternPNG(
 
         // Draw color code inside cell
         if (showCodeText && !isBg) {
-          const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
+          const brightness = ((pixel.rgb?.r || 0) * 299 + (pixel.rgb?.g || 0) * 587 + (pixel.rgb?.b || 0) * 114) / 1000;
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
           // Using thinner font weight (300 or 400) for clarity
           ctx.font = `400 ${fontSize}px sans-serif`;
@@ -343,7 +343,7 @@ export function exportFullPatternPNG(
         ctx.fill();
           
           // Border for light colors
-          const brightness = color ? (color.rgb.r * 299 + color.rgb.g * 587 + color.rgb.b * 114) / 1000 : 255;
+          const brightness = color ? ((color.rgb?.r || 0) * 299 + (color.rgb?.g || 0) * 587 + (color.rgb?.b || 0) * 114) / 1000 : 255;
           if (brightness > 220) {
             ctx.strokeStyle = '#E2E8F0';
             ctx.lineWidth = 1;
