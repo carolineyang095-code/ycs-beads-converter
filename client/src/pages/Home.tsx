@@ -51,6 +51,10 @@ export default function Home() {
   const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
+  // previewMode=false：干净（无网格线）
+// previewMode=true：显示网格线（方便照着拼）
+  const [previewMode, setPreviewMode] = useState(false); 
+
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
   const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
@@ -126,13 +130,13 @@ export default function Home() {
     try {
       drawPixelGrid(
         canvasRef.current, processed.gridWidth, processed.gridHeight,
-        processed.pixels, pixelSize, true, highlightCode,
+        processed.pixels, pixelSize, previewMode, highlightCode,
         processed.backgroundIndices, showBackground
       );
     } catch (err) {
       console.error('Draw error:', err);
     }
-  }, [processed, pixelSize, highlightCode, showBackground]);
+  }, [processed, pixelSize, highlightCode, showBackground, previewMode]);
 
   useEffect(() => {
   if (sourceImage && dims) {
@@ -422,21 +426,36 @@ export default function Home() {
           </h1>
           <p className="text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
         </div>
-        <div className="flex items-center gap-2">
-          {processed && (
-            <>
-              <Button onClick={handleExportPNG} size="sm" variant="outline" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> Preview
-              </Button>
-              <Button onClick={handleExportPatternPNG} size="sm" variant="default" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> Export Pattern
-              </Button>
-              <Button onClick={handleExportCSV} size="sm" variant="outline" className="text-xs gap-1">
-                <Download className="w-3 h-3" /> CSV
-              </Button>
-            </>
-          )}
-        </div>
+        <div className="flex items-center gap-4">
+  {processed && (
+    <>
+      {/* ===== Total Info ===== */}
+      <div className="text-xs text-muted-foreground flex items-center gap-3">
+        <span>
+          Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads
+        </span>
+        <span>
+          Colors: <span className="font-semibold">{totalColors}</span>
+        </span>
+      </div>
+
+      {/* ===== Shopping Cart Summary ===== */}
+      <div className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-md font-medium">
+        🛒 {totalBeads.toLocaleString()} pcs
+      </div>
+
+      {/* ===== Export Button ===== */}
+      <Button
+        onClick={handleExportPatternPNG}
+        size="sm"
+        variant="default"
+        className="text-xs gap-1"
+      >
+        <Download className="w-3 h-3" /> Export Pattern
+      </Button>
+    </>
+  )}
+</div>
       </header>
 
       {error && (
@@ -479,6 +498,19 @@ export default function Home() {
                   </TooltipTrigger>
                   <TooltipContent>Eyedropper</TooltipContent>
                 </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                     variant={previewMode ? 'default' : 'ghost'}
+                     className="h-8 px-2"
+                      onClick={() => setPreviewMode(v => !v)}
+                         >
+                    Preview
+           </Button>
+         </TooltipTrigger>
+      <TooltipContent>Toggle grid preview</TooltipContent>
+    </Tooltip>
               </div>
 
               {/* Selected color indicator */}
@@ -750,7 +782,7 @@ fileInput?.click();
             </div>
           )}
 
-          {/* Shopify Integration */}
+          {/* Shopify Integration hidden */}
           {processed && (
             <div className="p-4">
               <ShopifyIntegration
