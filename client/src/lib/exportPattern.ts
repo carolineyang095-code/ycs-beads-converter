@@ -102,6 +102,7 @@ export function exportFullPatternPNG(
 
       // Calculate legend dimensions (Grid layout: 4 columns)
       const legendEntries = Array.from(colorStats.entries())
+        .filter(([code]) => code !== 'BG') // Exclude BG from legend
         .sort((a, b) => a[0].localeCompare(b[0]));
       
       const legendItemWidth = 150; // Adjusted for new layout

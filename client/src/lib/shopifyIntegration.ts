@@ -20,7 +20,9 @@ export interface ShopifyConfig {
  */
 export function buildBreakdownString(colorStats: Map<string, number>): string {
   const entries: string[] = [];
-  const sorted = Array.from(colorStats.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  const sorted = Array.from(colorStats.entries())
+    .filter(([code]) => code !== 'BG') // Exclude BG from breakdown
+    .sort((a, b) => a[0].localeCompare(b[0]));
   for (const [code, count] of sorted) {
     if (count > 0) {
       entries.push(`${code}:${count}`);
@@ -34,8 +36,10 @@ export function buildBreakdownString(colorStats: Map<string, number>): string {
  */
 export function getTotalBeadCount(colorStats: Map<string, number>): number {
   let total = 0;
-  colorStats.forEach((count) => {
-    total += count;
+  colorStats.forEach((count, code) => {
+    if (code !== 'BG') { // Exclude BG from total count
+      total += count;
+    }
   });
   return total;
 }

@@ -514,8 +514,9 @@ export default function Home() {
   };
 
   // Calculate totals
-  const totalBeads = processed ? Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0) : 0;
-  const totalColors = processed ? processed.colorStats.size : 0;
+  const filteredColorStats = processed ? new Map(Array.from(processed.colorStats.entries()).filter(([code]) => code !== 'BG')) : new Map();
+  const totalBeads = processed ? Array.from(filteredColorStats.values()).reduce((a, b) => a + b, 0) : 0;
+  const totalColors = processed ? filteredColorStats.size : 0;
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -541,7 +542,7 @@ export default function Home() {
       </div>
 
       {/* ===== Add to Cart Button ===== */}
-      <ShopifyIntegration colorStats={processed.colorStats} />
+      <ShopifyIntegration colorStats={filteredColorStats} />
 
       {/* ===== Export Button ===== */}
       <Button
