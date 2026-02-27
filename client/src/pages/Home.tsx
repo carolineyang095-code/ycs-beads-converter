@@ -553,10 +553,20 @@ export default function Home() {
                 onMouseLeave={handleCanvasMouseLeave}
               />
             ) : (
+              
               <HeroIntro
   onUploadClick={() => {
-    // 直接滚动到右侧上传区域（简单版）
-    document.querySelector('[data-upload-panel="1"]')?.scrollIntoView({ behavior: "smooth" });
+    const panel = document.querySelector('[data-upload-panel="1"]') as HTMLElement | null;
+    panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // 等滚动/渲染一帧，再触发文件选择
+    requestAnimationFrame(() => {
+      const fileInput =
+  (panel?.querySelector('input[type="file"]') as HTMLInputElement | null) ??
+  (document.querySelector('input[type="file"]') as HTMLInputElement | null);
+
+fileInput?.click();
+    });
   }}
   shopUrl="https://yayascreativestudio.com/"
 />
@@ -575,7 +585,7 @@ export default function Home() {
         {/* Right: Controls Panel */}
         <div className="w-80 border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0">
           {/* Upload */}
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border" data-upload-panel="1">
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Upload className="w-3.5 h-3.5" /> Upload Image
             </h3>
