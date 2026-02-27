@@ -3,7 +3,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
-  SlidersHorizontal, Layers, Sparkles, Loader2
+  SlidersHorizontal, Layers, Sparkles, Loader2,
+  Palette, Minus, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -22,13 +23,12 @@ import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
 import { buildShopifyCartUrl } from '@/lib/shopifyIntegration'; // 你的文件实际路径按项目来
 
-
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
-  const MAX_COLOR_OPTIONS = [20, 50, 100, 150, 221] as const;
-  type MaxColors = typeof MAX_COLOR_OPTIONS[number];
+const MAX_COLOR_OPTIONS = [20, 50, 100, 150, 221] as const;
+type MaxColors = typeof MAX_COLOR_OPTIONS[number];
 
 export default function Home() {
-    // ===== Shopify 固定参数（隐藏 UI，只保留一键加购）=====
+  // ===== Shopify 固定参数（隐藏 UI，只保留一键加购）=====
   const SHOP_DOMAIN = "https://yayascreativestudio.com";
   const SHOPIFY_VARIANT_ID = "57339981201782";
 
@@ -55,10 +55,20 @@ export default function Home() {
   const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
-  // previewMode=false：干净（无网格线）
-// previewMode=true：显示网格线（方便照着拼）
+  // previewMode=false：无网格线
+  // previewMode=true：显示网格线
   const [previewMode, setPreviewMode] = useState(false); 
+  
+  // ===== Brush size (1~100) =====
+  const [brushSize, setBrushSize] = useState<number>(1);
 
+  // ===== Palette popup =====
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [familyFilter, setFamilyFilter] = useState<string>('ALL'); // 'ALL' | 'A' | 'B'...
+
+  // ===== View scale (UI zoom) =====
+  const [viewScale, setViewScale] = useState<number>(1);
+  const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
   const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
@@ -67,6 +77,8 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStartRef = useRef<{ dist: number; scale: number } | null>(null);
 
   // Load palette
   useEffect(() => {
@@ -85,48 +97,50 @@ export default function Home() {
   }, []);
 
   // Process image - debounced to prevent UI freeze
-  const processImage = useCallback((
-    canvas: HTMLCanvasElement,
-    gridW: number,
-    gridH: number,
-    merge: number,
-    bgRemoval: boolean,
-    excluded: Set<string>,
-    dither: number
+  const processImage = useCallback(
+    (
+      canvas: HTMLCanvasElement,
+      gridW: number,
+      gridH: number,
+      merge: number,
+      bgRemoval: boolean,
+      excluded: Set<string>,
+      dither: number
+    ) => {
+      if (palette.length === 0) return;
 
-  ) => {
-    if (palette.length === 0) return;
-
-    if (processingTimeoutRef.current) {
-      cancelAnimationFrame(processingTimeoutRef.current);
-    }
-
-    setIsProcessing(true);
-
-    processingTimeoutRef.current = requestAnimationFrame(() => {
-      try {
-        const resized = resizeImageToGrid(canvas, gridW, gridH);
-        const result = processImageToGrid(
-  resized,
-  gridW,
-  gridH,
-  palette,
-  merge,
-  bgRemoval,
-  excluded,
-  dither,
-  { maxColors }
-);
-        setProcessed(result);
-        setBaseProcessed(result);
-        setRemovedColors(new Map());
-      } catch (err) {
-        setError(`Processing error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
-        setIsProcessing(false);
+      if (processingTimeoutRef.current) {
+        cancelAnimationFrame(processingTimeoutRef.current);
       }
-    });
-  }, [palette, maxColors]);
+
+      setIsProcessing(true);
+
+      processingTimeoutRef.current = requestAnimationFrame(() => {
+        try {
+          const resized = resizeImageToGrid(canvas, gridW, gridH);
+          const result = processImageToGrid(
+            resized,
+            gridW,
+            gridH,
+            palette,
+            merge,
+            bgRemoval,
+            excluded,
+            dither,
+            { maxColors }
+          );
+          setProcessed(result);
+          setBaseProcessed(result);
+          setRemovedColors(new Map());
+        } catch (err) {
+          setError(`Processing error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        } finally {
+          setIsProcessing(false);
+        }
+      });
+    },
+    [palette, maxColors]
+  );
 
   // Redraw canvas when visual settings change
   useEffect(() => {
@@ -143,19 +157,19 @@ export default function Home() {
   }, [processed, pixelSize, highlightCode, showBackground, previewMode]);
 
   useEffect(() => {
-  if (sourceImage && dims) {
-    processImage(
-      sourceImage,
-      dims.width,
-      dims.height,
-      mergeThreshold,
-      enableBgRemoval,
-      excludedCodes,
-      ditherStrength
-    );
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [maxColors]);
+    if (sourceImage && dims) {
+      processImage(
+        sourceImage,
+        dims.width,
+        dims.height,
+        mergeThreshold,
+        enableBgRemoval,
+        excludedCodes,
+        ditherStrength
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxColors]);
 
   // Handle image upload
   const handleImageUpload = async (file: File) => {
@@ -198,20 +212,20 @@ export default function Home() {
 
   // Handle merge dither change
   const handleDitherChange = (value: number[]) => {
-  const d = value[0];
-  setDitherStrength(d);
-  if (sourceImage && dims) {
-    processImage(
-      sourceImage,
-      dims.width,
-      dims.height,
-      mergeThreshold,
-      enableBgRemoval,
-      excludedCodes,
-      d
-    );
-  }
-};
+    const d = value[0];
+    setDitherStrength(d);
+    if (sourceImage && dims) {
+      processImage(
+        sourceImage,
+        dims.width,
+        dims.height,
+        mergeThreshold,
+        enableBgRemoval,
+        excludedCodes,
+        d
+      );
+    }
+  };
 
   // Handle background removal toggle
   const handleBgToggle = (enabled: boolean) => {
@@ -234,6 +248,8 @@ export default function Home() {
       processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength);
     }
   };
+
+  const toolBtnClass = "h-8 px-2 text-xs gap-1 flex items-center";
 
   // === NOISE COLOR REMOVAL ===
   const handleRemoveNoiseColor = (code: string, replacementCode: string) => {
@@ -314,6 +330,29 @@ export default function Home() {
     }
   };
 
+  function applyBrush(
+    pixels: PixelGridCell[],
+    gridW: number,
+    gridH: number,
+    x: number,
+    y: number,
+    size: number,
+    color: ColorData
+  ) {
+    const half = Math.floor(size / 2);
+    let out = pixels;
+
+    for (let dy = -half; dy <= half; dy++) {
+      for (let dx = -half; dx <= half; dx++) {
+        const xx = x + dx;
+        const yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= gridW || yy >= gridH) continue;
+        out = setPixelAt(out, gridW, xx, yy, color);
+      }
+    }
+    return out;
+  }
+
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processed || !canvasRef.current || !dims) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -334,7 +373,16 @@ export default function Home() {
         }
       }
     } else if (activeTool === 'brush' && selectedColor) {
-      const newPixels = setPixelAt(processed.pixels, processed.gridWidth, x, y, selectedColor);
+      const newPixels = applyBrush(
+        processed.pixels,
+        processed.gridWidth,
+        processed.gridHeight,
+        x,
+        y,
+        brushSize,
+        selectedColor
+      );
+
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
         if (!processed.backgroundIndices.has(i)) {
@@ -342,10 +390,22 @@ export default function Home() {
         }
       });
       setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
+
     } else if (activeTool === 'eraser') {
+      // ⚠️ 这里先用“白色”当橡皮
       const whiteColor: ColorData = { code: 'BG', name: 'Background', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 } };
       const bgColor = palette.find(c => c.hex === '#FFFFFF') || whiteColor;
-      const newPixels = setPixelAt(processed.pixels, processed.gridWidth, x, y, bgColor);
+
+      const newPixels = applyBrush(
+        processed.pixels,
+        processed.gridWidth,
+        processed.gridHeight,
+        x,
+        y,
+        brushSize,
+        bgColor
+      );
+
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
         if (!processed.backgroundIndices.has(i)) {
@@ -356,8 +416,42 @@ export default function Home() {
     }
   };
 
-  const handleCanvasMouseLeave = () => setHoveredPixel(null);
+  const onPointerDownCanvas = (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+    if (pointersRef.current.size === 2) {
+      const pts = Array.from(pointersRef.current.values());
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      const dist = Math.hypot(dx, dy);
+      pinchStartRef.current = { dist, scale: viewScale };
+    }
+  };
+
+  const onPointerMoveCanvas = (e: React.PointerEvent) => {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointersRef.current.size === 2 && pinchStartRef.current) {
+      e.preventDefault(); // 防止页面滚动抢手势
+      const pts = Array.from(pointersRef.current.values());
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      const dist = Math.hypot(dx, dy);
+
+      const ratio = dist / pinchStartRef.current.dist;
+      const next = clamp(pinchStartRef.current.scale * ratio, 0.5, 6);
+      setViewScale(next);
+    }
+  };
+
+  const onPointerUpCanvas = (e: React.PointerEvent) => {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchStartRef.current = null;
+  };
+  const handleCanvasMouseLeave = () => setHoveredPixel(null);
+  
   // Zoom controls
   const zoomIn = () => setPixelSize(prev => Math.min(40, prev + 2));
   const zoomOut = () => setPixelSize(prev => Math.max(4, prev - 2));
@@ -367,7 +461,6 @@ export default function Home() {
     if (sourceImage && dims) {
       setExcludedCodes(new Set());
       setHighlightCode(null);
-      setMergeThreshold(1);
       setEnableBgRemoval(false);
       setRemovedColors(new Map());
       processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
@@ -420,21 +513,21 @@ export default function Home() {
   const totalBeads = processed ? Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0) : 0;
   const totalColors = processed ? processed.colorStats.size : 0;
 
-    const handleAddToCart = () => {
-  if (!processed) return;
+  const handleAddToCart = () => {
+    if (!processed) return;
 
-  try {
-    const url = buildShopifyCartUrl(
-      { storeUrl: SHOP_DOMAIN, variantId: SHOPIFY_VARIANT_ID },
-      processed.colorStats
-    );
+    try {
+      const url = buildShopifyCartUrl(
+        { storeUrl: SHOP_DOMAIN, variantId: SHOPIFY_VARIANT_ID },
+        processed.colorStats
+      );
 
-    // 打开新窗口：不影响你工具页面
-    window.open(url, "_blank");
-  } catch (err) {
-    toast.error(err instanceof Error ? err.message : "Failed to add to cart");
-  }
-};
+      // 打开新窗口：不影响你工具页面
+      window.open(url, "_blank");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add to cart");
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -446,7 +539,7 @@ export default function Home() {
           </h1>
           <p className="text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
         </div>
-                <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
           {processed && (
             <>
               {/* Total / Colors */}
@@ -463,11 +556,11 @@ export default function Home() {
               <Button
                 onClick={handleAddToCart}
                 size="sm"
-                variant="outline"
+                variant="default"
                 className="text-xs gap-2"
                 title="Add all required beads to cart"
               >
-                🛒 Order my beads now ({totalBeads.toLocaleString()} pcs)
+                🛒 Order my beads now · {totalBeads.toLocaleString()} pcs
               </Button>
 
               {/* Export Pattern */}
@@ -497,47 +590,123 @@ export default function Home() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Toolbar */}
           {processed && (
-            <div className="border-b border-border px-4 py-2 flex items-center gap-3 flex-shrink-0 bg-gray-50">
+            <div className="border-b border-border px-4 py-2 flex items-center gap-3 flex-shrink-0 bg-gray-50 relative">
               {/* Edit tools */}
               <div className="flex items-center gap-1 border-r border-border pr-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="sm" variant={activeTool === 'brush' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')}>
+                    <Button size="sm" variant={activeTool === 'brush' ? 'default' : 'ghost'} className={toolBtnClass} onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')}>
                       <Paintbrush className="w-4 h-4" />
+                      Brush
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Brush</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="sm" variant={activeTool === 'eraser' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')}>
+                    <Button size="sm" variant={activeTool === 'eraser' ? 'default' : 'ghost'} className={toolBtnClass} onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')}>
                       <Eraser className="w-4 h-4" />
+                      Eraser
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Eraser</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}>
+                    <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className={toolBtnClass} onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}>
                       <Pipette className="w-4 h-4" />
+                      Eyedropper
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Eyedropper</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                     variant={previewMode ? 'default' : 'ghost'}
-                     className="h-8 px-2"
-                      onClick={() => setPreviewMode(v => !v)}
-                         >
-                    Preview
-           </Button>
-         </TooltipTrigger>
-      <TooltipContent>Toggle grid preview</TooltipContent>
-    </Tooltip>
+               
+                <Button
+                  size="sm"
+                  variant={paletteOpen ? 'default' : 'ghost'}
+                  className={toolBtnClass}
+                  onClick={() => setPaletteOpen(v => !v)}
+                >
+                  <Palette className="w-4 h-4" />
+                  Palette
+                </Button>
               </div>
+
+              {paletteOpen && (
+                <div className="absolute left-4 top-[44px] z-50 w-[520px] max-w-[calc(100vw-32px)] rounded-xl border bg-white shadow-lg p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="text-xs font-semibold text-muted-foreground">Choose a color</div>
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setPaletteOpen(false)}>
+                      Close
+                    </Button>
+                  </div>
+
+                  {/* Family filter */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {['ALL','A','B','C','D','E','F','G','H','M'].map(f => (
+                      <Button
+                        key={f}
+                        size="sm"
+                        variant={familyFilter === f ? 'default' : 'outline'}
+                        className="h-7 px-2 text-[11px]"
+                        onClick={() => setFamilyFilter(f)}
+                      >
+                        {f}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Color grid */}
+                  <div className="max-h-[260px] overflow-auto grid grid-cols-10 gap-1">
+                    {palette
+                      .filter(c => familyFilter === 'ALL' ? true : c.code.startsWith(familyFilter))
+                      .map(c => (
+                        <button
+                          key={c.code}
+                          className="group relative w-full aspect-square rounded border hover:shadow-sm"
+                          style={{ backgroundColor: c.hex }}
+                          onClick={() => {
+                            setSelectedColor(c);
+                            setActiveTool('brush'); // 选色后默认切到画笔更顺
+                            toast(`Selected: ${c.code}`);
+                          }}
+                          title={`${c.code} ${c.name}`}
+                        >
+                          <span className="absolute bottom-0 left-0 right-0 text-[9px] leading-3 text-black/70 bg-white/70 opacity-0 group-hover:opacity-100">
+                            {c.code}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 border-l border-border pl-3">
+                <span className="text-xs text-muted-foreground">Size</span>
+                <div className="w-40">
+                  <Slider
+                    value={[brushSize]}
+                    onValueChange={(v) => setBrushSize(v[0])}
+                    min={1}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+                <span className="text-xs font-mono text-muted-foreground w-10">{brushSize}</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={previewMode ? 'default' : 'ghost'}
+                    className="h-8 px-2"
+                    onClick={() => setPreviewMode(v => !v)}
+                  >
+                    Preview
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Toggle grid preview</TooltipContent>
+              </Tooltip>
 
               {/* Selected color indicator */}
               {selectedColor && (
@@ -555,7 +724,7 @@ export default function Home() {
               </div>
 
               {/* Background toggle */}
-              <div className="flex items-center gap-1 border-r border-border pr-3">
+              <div className="flex items-center gap-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setShowBackground(!showBackground)}>
@@ -589,7 +758,13 @@ export default function Home() {
           )}
 
           {/* Canvas */}
-          <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-4">
+          <div
+            className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-4 touch-none"
+            onPointerDown={onPointerDownCanvas}
+            onPointerMove={onPointerMoveCanvas}
+            onPointerUp={onPointerUpCanvas}
+            onPointerCancel={onPointerUpCanvas}
+          >
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -599,35 +774,39 @@ export default function Home() {
               </div>
             )}
             {sourceImage && processed ? (
-              <canvas
-                ref={canvasRef}
-                className="border border-border shadow-sm bg-white"
-                style={{
-                  imageRendering: 'pixelated',
-                  cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default',
-                }}
-                onMouseMove={handleCanvasMouseMove}
-                onClick={handleCanvasClick}
-                onMouseLeave={handleCanvasMouseLeave}
-              />
+              <div
+                className="origin-top-left"
+                style={{ transform: `scale(${viewScale})` }}
+              >
+                <canvas
+                  ref={canvasRef}
+                  className="border border-border shadow-sm bg-white"
+                  style={{
+                    imageRendering: 'pixelated',
+                    cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default',
+                  }}
+                  onMouseMove={handleCanvasMouseMove}
+                  onClick={handleCanvasClick}
+                  onMouseLeave={handleCanvasMouseLeave}
+                />
+              </div>
             ) : (
-              
               <HeroIntro
-  onUploadClick={() => {
-    const panel = document.querySelector('[data-upload-panel="1"]') as HTMLElement | null;
-    panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+                onUploadClick={() => {
+                  const panel = document.querySelector('[data-upload-panel="1"]') as HTMLElement | null;
+                  panel?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    // 等滚动/渲染一帧，再触发文件选择
-    requestAnimationFrame(() => {
-      const fileInput =
-  (panel?.querySelector('input[type="file"]') as HTMLInputElement | null) ??
-  (document.querySelector('input[type="file"]') as HTMLInputElement | null);
+                  // 等滚动/渲染一帧，再触发文件选择
+                  requestAnimationFrame(() => {
+                    const fileInput =
+                      (panel?.querySelector('input[type="file"]') as HTMLInputElement | null) ??
+                      (document.querySelector('input[type="file"]') as HTMLInputElement | null);
 
-fileInput?.click();
-    });
-  }}
-  shopUrl="https://yayascreativestudio.com/"
-/>
+                    fileInput?.click();
+                  });
+                }}
+                shopUrl="https://yayascreativestudio.com/"
+              />
             )}
           </div>
 
@@ -635,7 +814,6 @@ fileInput?.click();
           {dims && processed && (
             <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-gray-50 flex-shrink-0">
               <span>Grid: {dims.width} x {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
-        
             </div>
           )}
         </div>
@@ -678,47 +856,47 @@ fileInput?.click();
                 )}
               </div>
               {/* Dithering Strength Slider */}
-            <div>
-             <div className="flex items-center justify-between mb-1.5">
-               <label className="text-xs font-medium text-foreground">Dithering Strength</label>
-               <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
-            </div>
-            <Slider
-             value={[ditherStrength]}
-             onValueChange={handleDitherChange}
-             min={0}
-             max={100}
-             step={1}
-             className="w-full"
-             />
-             <p className="text-[10px] text-muted-foreground mt-1">
-              0 = off · 20–40 natural · 60+ grainy
-              </p>
-            </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-foreground">Dithering Strength</label>
+                  <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
+                </div>
+                <Slider
+                  value={[ditherStrength]}
+                  onValueChange={handleDitherChange}
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="w-full"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  0 = off · 20–40 natural · 60+ grainy
+                </p>
+              </div>
 
-<div>
-  <div className="flex items-center justify-between mb-1.5">
-    <label className="text-xs font-medium text-foreground">Max Colors</label>
-    <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
-  </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-foreground">Max Colors</label>
+                  <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
+                </div>
 
-  <Slider
-  value={[maxColorIndex]}
-  onValueChange={(v) => setMaxColorIndex(v[0])}
-  min={0}
-  max={MAX_COLOR_OPTIONS.length - 1}
-  step={1}
-  className="w-full"
-/>
+                <Slider
+                  value={[maxColorIndex]}
+                  onValueChange={(v) => setMaxColorIndex(v[0])}
+                  min={0}
+                  max={MAX_COLOR_OPTIONS.length - 1}
+                  step={1}
+                  className="w-full"
+                />
 
-  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-    {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
-  </div>
+                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                  {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
+                </div>
 
-  <p className="text-[10px] text-muted-foreground mt-1">
-    221 = most vivid · 50 = cleaner cartoon · 20 = very simplified
-  </p>
-</div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  221 = most vivid · 50 = cleaner cartoon · 20 = very simplified
+                </p>
+              </div>
 
               {/* Merge Threshold Slider */}
               <div>
@@ -807,8 +985,6 @@ fileInput?.click();
               </div>
             </div>
           )}
-
-        
         </div>
       </div>
     </div>
