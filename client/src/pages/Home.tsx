@@ -28,6 +28,10 @@ type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
   type MaxColors = typeof MAX_COLOR_OPTIONS[number];
 
 export default function Home() {
+    // ===== Shopify 固定参数（隐藏 UI，只保留一键加购）=====
+  const SHOP_DOMAIN = "https://yayascreativestudio.com";
+  const SHOPIFY_VARIANT_ID = "57339981201782";
+
   // Core state
   const [palette, setPalette] = useState<ColorData[]>([]);
   const [gridSize, setGridSize] = useState<number>(50);
@@ -416,6 +420,20 @@ export default function Home() {
   const totalBeads = processed ? Array.from(processed.colorStats.values()).reduce((a, b) => a + b, 0) : 0;
   const totalColors = processed ? processed.colorStats.size : 0;
 
+    const handleAddToCart = () => {
+    if (!processed) return;
+
+    const qty = totalBeads; // 用总豆子数当数量
+    if (!qty || qty <= 0) {
+      toast.error("No beads to add.");
+      return;
+    }
+
+    // Shopify cart permalink：/cart/{variant_id}:{qty}
+    const url = `${SHOP_DOMAIN}/cart/${SHOPIFY_VARIANT_ID}:${qty}`;
+    window.open(url, "_blank"); // 或者 window.location.href = url;
+  };
+
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
       {/* Header */}
@@ -426,36 +444,42 @@ export default function Home() {
           </h1>
           <p className="text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
         </div>
-        <div className="flex items-center gap-4">
-  {processed && (
-    <>
-      {/* ===== Total Info ===== */}
-      <div className="text-xs text-muted-foreground flex items-center gap-3">
-        <span>
-          Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads
-        </span>
-        <span>
-          Colors: <span className="font-semibold">{totalColors}</span>
-        </span>
-      </div>
+                <div className="flex items-center gap-3">
+          {processed && (
+            <>
+              {/* Total / Colors */}
+              <div className="text-xs text-muted-foreground flex items-center gap-3">
+                <span>
+                  Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads
+                </span>
+                <span>
+                  Colors: <span className="font-semibold">{totalColors}</span>
+                </span>
+              </div>
 
-      {/* ===== Shopping Cart Summary ===== */}
-      <div className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-md font-medium">
-        🛒 {totalBeads.toLocaleString()} pcs
-      </div>
+              {/* Add to Cart 按钮：保留原按钮文案 + 显示 pcs */}
+              <Button
+                onClick={handleAddToCart}
+                size="sm"
+                variant="outline"
+                className="text-xs gap-2"
+                title="Add all required beads to cart"
+              >
+                🛒 Add to Cart ({totalBeads.toLocaleString()} pcs)
+              </Button>
 
-      {/* ===== Export Button ===== */}
-      <Button
-        onClick={handleExportPatternPNG}
-        size="sm"
-        variant="default"
-        className="text-xs gap-1"
-      >
-        <Download className="w-3 h-3" /> Export Pattern
-      </Button>
-    </>
-  )}
-</div>
+              {/* Export Pattern */}
+              <Button
+                onClick={handleExportPatternPNG}
+                size="sm"
+                variant="default"
+                className="text-xs gap-1"
+              >
+                <Download className="w-3 h-3" /> Export Pattern
+              </Button>
+            </>
+          )}
+        </div>
       </header>
 
       {error && (
@@ -609,7 +633,7 @@ fileInput?.click();
           {dims && processed && (
             <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-gray-50 flex-shrink-0">
               <span>Grid: {dims.width} x {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
-              <span>Total: {totalBeads.toLocaleString()} beads | Colors: {totalColors}</span>
+        
             </div>
           )}
         </div>
@@ -782,15 +806,7 @@ fileInput?.click();
             </div>
           )}
 
-          {/* Shopify Integration hidden */}
-          {processed && (
-            <div className="p-4">
-              <ShopifyIntegration
-                colorStats={processed.colorStats}
-                palette={colorIndexRef.current}
-              />
-            </div>
-          )}
+        
         </div>
       </div>
     </div>
