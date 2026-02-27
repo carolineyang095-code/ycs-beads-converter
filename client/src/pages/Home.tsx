@@ -45,7 +45,9 @@ export default function Home() {
   const [excludedCodes, setExcludedCodes] = useState<Set<string>>(new Set());
   const [enableBgRemoval, setEnableBgRemoval] = useState(false);
   const [showBackground, setShowBackground] = useState(true);
-  const [pixelSize, setPixelSize] = useState(12);
+  const [pixelSize, setPixelSize] = useState(20);
+  const [isPinching, setIsPinching] = useState(false);
+  const lastPinchDistRef = useRef<number | null>(null);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
   const [ditherStrength, setDitherStrength] = useState<number>(30);
   const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
@@ -419,8 +421,43 @@ export default function Home() {
   const handleCanvasMouseLeave = () => setHoveredPixel(null);
 
   // Zoom controls
-  const zoomIn = () => setPixelSize(prev => Math.min(40, prev + 2));
+  const zoomIn = () => setPixelSize(prev => Math.min(100, prev + 2));
   const zoomOut = () => setPixelSize(prev => Math.max(4, prev - 2));
+
+  // Handle pinch-to-zoom for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      setIsPinching(true);
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      lastPinchDistRef.current = dist;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isPinching && e.touches.length === 2 && lastPinchDistRef.current !== null) {
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      const delta = dist - lastPinchDistRef.current;
+      
+      if (Math.abs(delta) > 2) {
+        setPixelSize(prev => {
+          const next = prev + (delta > 0 ? 1 : -1);
+          return Math.max(4, Math.min(100, next));
+        });
+        lastPinchDistRef.current = dist;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsPinching(false);
+    lastPinchDistRef.current = null;
+  };
 
   // Reset processing
   const handleReset = () => {
@@ -689,7 +726,15 @@ export default function Home() {
           )}
 
           {/* Canvas */}
-          <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-4">
+          <div 
+            className="flex-1 overflow-auto flex items-start justify-center p-4"
+            style={{
+              backgroundColor: '#f0f0f0',
+              backgroundImage: 'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)',
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+            }}
+          >
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -713,6 +758,9 @@ export default function Home() {
                   handleCanvasMouseLeave();
                   handleCanvasMouseUp();
                 }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               />
             ) : (
               
