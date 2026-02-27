@@ -333,7 +333,7 @@ export default function Home() {
     x: number,
     y: number,
     size: number,
-    color: ColorData
+    color: ColorData | null
   ) {
     const half = Math.floor(size / 2);
     let out = pixels;
@@ -343,7 +343,21 @@ export default function Home() {
         const xx = x + dx;
         const yy = y + dy;
         if (xx < 0 || yy < 0 || xx >= gridW || yy >= gridH) continue;
-        out = setPixelAt(out, gridW, xx, yy, color);
+        if (color) {
+          out = setPixelAt(out, gridW, xx, yy, color);
+        } else {
+          // Eraser: set to transparent/background
+          const idx = yy * gridW + xx;
+          const newPixels = [...out];
+          newPixels[idx] = { 
+            code: 'BG', 
+            hex: 'transparent', 
+            rgb: { r: 0, g: 0, b: 0 }, 
+            originalRgb: { r: 0, g: 0, b: 0 },
+            isBackground: true 
+          };
+          out = newPixels;
+        }
       }
     }
     return out;
@@ -379,8 +393,6 @@ export default function Home() {
       });
       setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     } else if (activeTool === 'eraser') {
-      const whiteColor: ColorData = { code: 'BG', name: 'Background', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 } };
-      const bgColor = palette.find(c => c.hex === '#FFFFFF') || whiteColor;
       const newPixels = applyBrush(
         processed.pixels,
         processed.gridWidth,
@@ -388,11 +400,11 @@ export default function Home() {
         x,
         y,
         brushSize,
-        bgColor
+        null // Pass null for eraser to set transparent
       );
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
-        if (!processed.backgroundIndices.has(i)) {
+        if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG') {
           newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
         }
       });
@@ -620,8 +632,8 @@ export default function Home() {
                         <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
                       </div>
                       
-                      {/* Group colors by their family field from JSON */}
-                      {Array.from(new Set(palette.map(c => c.family || c.code[0]))).sort().map(family => (
+                      {/* Group colors by their first letter (Family) */}
+                      {Array.from(new Set(palette.map(c => c.code[0]))).sort().map(family => (
                         <div key={family} className="mb-4">
                           <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-2">
                             <span className="w-4 h-[1px] bg-border"></span>
@@ -629,31 +641,41 @@ export default function Home() {
                           </h5>
                           <div className="grid grid-cols-8 gap-1.5">
                             {palette
-                              .filter(c => (c.family || c.code[0]) === family)
-                              .map(color => (
-                                <Tooltip key={color.code}>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      className={`w-7 h-7 rounded-sm border transition-transform hover:scale-110 ${
-                                        selectedColor?.code === color.code ? 'ring-2 ring-purple-500 ring-offset-1 border-transparent' : 'border-gray-200'
-                                      }`}
-                                      style={{ backgroundColor: color.hex }}
-                                      onClick={() => {
-                                        setSelectedColor(color);
-                                        setActiveTool('brush');
-                                        setPaletteOpen(false);
-                                        toast(`Selected: ${color.code}`);
-                                      }}
-                                    />
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top">
-                                    <div className="text-[10px]">
-                                      <p className="font-bold">{color.code}</p>
-                                      <p className="opacity-80">{color.hex}</p>
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              ))}
+                              .filter(c => c.code.startsWith(family))
+                              .map(color => {
+                                const isH01 = color.code === 'H01';
+                                return (
+                                  <Tooltip key={color.code}>
+                                    <TooltipTrigger asChild>
+                                      <button
+                                        className={`w-7 h-7 rounded-sm border transition-transform hover:scale-110 relative overflow-hidden ${
+                                          selectedColor?.code === color.code ? 'ring-2 ring-purple-500 ring-offset-1 border-transparent' : 'border-gray-200'
+                                        }`}
+                                        style={{ backgroundColor: color.hex }}
+                                        onClick={() => {
+                                          setSelectedColor(color);
+                                          setActiveTool('brush');
+                                          setPaletteOpen(false);
+                                          toast(`Selected: ${color.code}`);
+                                        }}
+                                      >
+                                        {isH01 && (
+                                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
+                                            <div className="w-full h-[1px] bg-red-500 -rotate-45 absolute"></div>
+                                          </div>
+                                        )}
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top">
+                                      <div className="text-[10px]">
+                                        <p className="font-bold">{color.code}</p>
+                                        <p className="opacity-80">{color.hex}</p>
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                );
+                              })}
                           </div>
                         </div>
                       ))}
@@ -959,7 +981,9 @@ fileInput?.click();
                   })}
               </div>
             </div>
-            )}
+          )}
+
+
         </div>
       </div>
     </div>

@@ -160,9 +160,9 @@ function applyEdgeShadingToPalette(
     if (p.isBackground) return;
 
     const shaded: RGB = {
-      r: darken(p.rgb?.r || 0),
-      g: darken(p.rgb?.g || 0),
-      b: darken(p.rgb?.b || 0),
+      r: darken(p.rgb.r),
+      g: darken(p.rgb.g),
+      b: darken(p.rgb.b),
     };
 
     // ✅ 压暗后重新映射回色板，保证 code/hex/rgb 一致（不会出现 rgb(...) 这种）
@@ -349,9 +349,9 @@ export function processImageToGrid(
       if (!useDither) continue;
 
       // Error = old - new
-      const errR = (oldColor.r - (closest.rgb?.r || 0)) * strength;
-      const errG = (oldColor.g - (closest.rgb?.g || 0)) * strength;
-      const errB = (oldColor.b - (closest.rgb?.b || 0)) * strength;
+      const errR = (oldColor.r - closest.rgb.r) * strength;
+      const errG = (oldColor.g - closest.rgb.g) * strength;
+      const errB = (oldColor.b - closest.rgb.b) * strength;
 
       const addErr = (nx: number, ny: number, factor: number) => {
         if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) return;
@@ -502,10 +502,12 @@ export function drawPixelGridWithCodes(
 
     const isBg = backgroundIndices.has(i);
 
-    if (isBg || pixel.hex === 'transparent' || !pixel.code) {
+    const isTransparent = pixel.hex === 'transparent' || !pixel.code || pixel.code === 'BG';
+    
+    if (isBg || isTransparent) {
       // Background removal or erased area: clear to show checkerboard
       ctx.clearRect(x, y, pixelSize, pixelSize);
-      if (isBg) {
+      if (isBg && !isTransparent) {
         ctx.fillStyle = 'rgba(245, 245, 245, 0.5)';
         ctx.fillRect(x, y, pixelSize, pixelSize);
       }
@@ -521,7 +523,7 @@ export function drawPixelGridWithCodes(
 
     // Draw color code text if not background and pixel is large enough
     if (!isBg && pixelSize >= 20) {
-      const brightness = ((pixel.rgb?.r || 0) * 299 + (pixel.rgb?.g || 0) * 587 + (pixel.rgb?.b || 0) * 114) / 1000;
+      const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
       ctx.fillStyle = brightness > 128 ? '#333333' : '#FFFFFF';
       ctx.font = `${Math.max(8, pixelSize * 0.3)}px monospace`;
       ctx.textAlign = 'center';
