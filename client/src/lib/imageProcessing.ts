@@ -505,8 +505,10 @@ export function drawPixelGridWithCodes(
     const isTransparent = pixel.hex === 'transparent' || !pixel.code || pixel.code === 'BG';
     
     if (isBg || isTransparent) {
-      // Background removal or erased area: clear to show checkerboard
-      ctx.clearRect(x, y, pixelSize, pixelSize);
+      // Background removal or erased area: fill with white for web display
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(x, y, pixelSize, pixelSize);
+      
       if (isBg && !isTransparent) {
         ctx.fillStyle = 'rgba(245, 245, 245, 0.5)';
         ctx.fillRect(x, y, pixelSize, pixelSize);

@@ -749,15 +749,7 @@ export default function Home() {
           )}
 
           {/* Canvas */}
-          <div 
-            className="flex-1 overflow-auto flex items-start justify-center p-4"
-            style={{
-              backgroundColor: '#f0f0f0',
-              backgroundImage: 'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)',
-              backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
-            }}
-          >
+          <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-gray-50">
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
