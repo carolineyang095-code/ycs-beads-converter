@@ -61,6 +61,9 @@ export default function Home() {
   // ===== Palette popup =====
   const [paletteOpen, setPaletteOpen] = useState(false);
 
+  // ===== Drawing state =====
+  const [isDrawing, setIsDrawing] = useState(false);
+
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
   const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
@@ -311,6 +314,11 @@ export default function Home() {
     if (x >= 0 && x < processed.gridWidth && y >= 0 && y < processed.gridHeight) {
       const pixel = getPixelAt(processed.pixels, processed.gridWidth, x, y);
       if (pixel) setHoveredPixel({ x, y, pixel });
+
+      // Continuous drawing
+      if (isDrawing && (activeTool === 'brush' || activeTool === 'eraser')) {
+        handleCanvasAction(x, y);
+      }
     } else {
       setHoveredPixel(null);
     }
@@ -339,15 +347,8 @@ export default function Home() {
     return out;
   }
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!processed || !canvasRef.current || !dims) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = canvasRef.current.width / rect.width;
-    const scaleY = canvasRef.current.height / rect.height;
-    const x = Math.floor((e.clientX - rect.left) * scaleX / pixelSize);
-    const y = Math.floor((e.clientY - rect.top) * scaleY / pixelSize);
-
-    if (x < 0 || x >= processed.gridWidth || y < 0 || y >= processed.gridHeight) return;
+  const handleCanvasAction = useCallback((x: number, y: number) => {
+    if (!processed || !dims) return;
 
     if (activeTool === 'eyedropper') {
       const pixel = getPixelAt(processed.pixels, processed.gridWidth, x, y);
@@ -395,6 +396,24 @@ export default function Home() {
       });
       setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     }
+  }, [processed, dims, activeTool, selectedColor, brushSize, palette]);
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!processed || !canvasRef.current) return;
+    setIsDrawing(true);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    const x = Math.floor((e.clientX - rect.left) * scaleX / pixelSize);
+    const y = Math.floor((e.clientY - rect.top) * scaleY / pixelSize);
+
+    if (x >= 0 && y >= 0 && x < processed.gridWidth && y < processed.gridHeight) {
+      handleCanvasAction(x, y);
+    }
+  };
+
+  const handleCanvasMouseUp = () => {
+    setIsDrawing(false);
   };
 
   const handleCanvasMouseLeave = () => setHoveredPixel(null);
@@ -484,17 +503,15 @@ export default function Home() {
         </span>
       </div>
 
-      {/* ===== Shopping Cart Summary ===== */}
-      <div className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-md font-medium">
-        🛒 {totalBeads.toLocaleString()} pcs
-      </div>
+      {/* ===== Add to Cart Button ===== */}
+      <ShopifyIntegration colorStats={processed.colorStats} />
 
       {/* ===== Export Button ===== */}
       <Button
         onClick={handleExportPatternPNG}
         size="sm"
-        variant="default"
-        className="text-xs gap-1"
+        variant="outline"
+        className="text-xs gap-1 border-[#9867DA] text-[#9867DA] hover:bg-purple-50 rounded-full px-4"
       >
         <Download className="w-3 h-3" /> Export Pattern
       </Button>
@@ -543,19 +560,68 @@ export default function Home() {
                   </TooltipTrigger>
                   <TooltipContent>Eyedropper</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant={paletteOpen ? 'default' : 'ghost'}
-                      className="h-8 w-8 p-0"
-                      onClick={() => setPaletteOpen((v: boolean) => !v)}
-                    >
-                      <Palette className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Palette</TooltipContent>
-                </Tooltip>
+                <div className="relative">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant={paletteOpen ? 'default' : 'ghost'}
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPaletteOpen((v: boolean) => !v)}
+                      >
+                        <Palette className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Full Palette</TooltipContent>
+                  </Tooltip>
+
+                  {paletteOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-3 border-b pb-2">
+                        <h4 className="text-sm font-semibold text-[#452F60]">Artkal 221 Palette</h4>
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
+                      </div>
+                      
+                      {/* Group colors by their first letter (Family) */}
+                      {Array.from(new Set(palette.map(c => c.code[0]))).sort().map(family => (
+                        <div key={family} className="mb-4">
+                          <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-2">
+                            <span className="w-4 h-[1px] bg-border"></span>
+                            Family {family}
+                          </h5>
+                          <div className="grid grid-cols-8 gap-1.5">
+                            {palette
+                              .filter(c => c.code.startsWith(family))
+                              .map(color => (
+                                <Tooltip key={color.code}>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      className={`w-7 h-7 rounded-sm border transition-transform hover:scale-110 ${
+                                        selectedColor?.code === color.code ? 'ring-2 ring-purple-500 ring-offset-1 border-transparent' : 'border-gray-200'
+                                      }`}
+                                      style={{ backgroundColor: color.hex }}
+                                      onClick={() => {
+                                        setSelectedColor(color);
+                                        setActiveTool('brush');
+                                        setPaletteOpen(false);
+                                        toast(`Selected: ${color.code}`);
+                                      }}
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <div className="text-[10px]">
+                                      <p className="font-bold">{color.code}</p>
+                                      <p className="opacity-80">{color.hex}</p>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Size Slider */}
@@ -641,8 +707,12 @@ export default function Home() {
                   cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default',
                 }}
                 onMouseMove={handleCanvasMouseMove}
-                onClick={handleCanvasClick}
-                onMouseLeave={handleCanvasMouseLeave}
+                onMouseDown={handleCanvasMouseDown}
+                onMouseUp={handleCanvasMouseUp}
+                onMouseLeave={() => {
+                  handleCanvasMouseLeave();
+                  handleCanvasMouseUp();
+                }}
               />
             ) : (
               
@@ -842,15 +912,7 @@ fileInput?.click();
             </div>
           )}
 
-          {/* Shopify Integration hidden */}
-          {processed && (
-            <div className="p-4">
-              <ShopifyIntegration
-                colorStats={processed.colorStats}
-                palette={colorIndexRef.current}
-              />
-            </div>
-          )}
+
         </div>
       </div>
     </div>
