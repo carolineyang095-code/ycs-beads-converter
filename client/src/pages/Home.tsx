@@ -11,7 +11,6 @@ import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import ImageUploadSection from '@/components/ImageUploadSection';
-import ShopifyIntegration from '@/components/ShopifyIntegration';
 import NoiseColorRemoval from '@/components/NoiseColorRemoval';
 import {
   loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
@@ -21,6 +20,7 @@ import {
 } from '@/lib/imageProcessing';
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
+import { buildShopifyCartUrl } from '@/lib/shopifyIntegration'; // 你的文件实际路径按项目来
 
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
@@ -421,18 +421,20 @@ export default function Home() {
   const totalColors = processed ? processed.colorStats.size : 0;
 
     const handleAddToCart = () => {
-    if (!processed) return;
+  if (!processed) return;
 
-    const qty = totalBeads; // 用总豆子数当数量
-    if (!qty || qty <= 0) {
-      toast.error("No beads to add.");
-      return;
-    }
+  try {
+    const url = buildShopifyCartUrl(
+      { storeUrl: SHOP_DOMAIN, variantId: SHOPIFY_VARIANT_ID },
+      processed.colorStats
+    );
 
-    // Shopify cart permalink：/cart/{variant_id}:{qty}
-    const url = `${SHOP_DOMAIN}/cart/${SHOPIFY_VARIANT_ID}:${qty}`;
-    window.open(url, "_blank"); // 或者 window.location.href = url;
-  };
+    // 打开新窗口：不影响你工具页面
+    window.open(url, "_blank");
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : "Failed to add to cart");
+  }
+};
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -465,7 +467,7 @@ export default function Home() {
                 className="text-xs gap-2"
                 title="Add all required beads to cart"
               >
-                🛒 Add to Cart ({totalBeads.toLocaleString()} pcs)
+                🛒 Order my beads now ({totalBeads.toLocaleString()} pcs)
               </Button>
 
               {/* Export Pattern */}
