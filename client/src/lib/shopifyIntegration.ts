@@ -50,6 +50,56 @@ export function getTotalBeadCount(colorStats: Map<string, number>): number {
  * Uses Shopify's /cart/add endpoint with line item properties:
  *   /cart/add?id={variantId}&quantity={total}&properties[Breakdown]={breakdown}
  */
+/**
+ * Build a redirect URL to the Shopify bead-builder page with encoded selections
+ * 
+ * Payload format:
+ *   { v: 1, selections: { A01: 25, A02: 6, ... } }
+ * 
+ * URL format:
+ *   https://yayascreativestudio.com/pages/bead-builder?from=tools&bb={base64url_payload}
+ */
+export function buildBeadBuilderUrl(
+  colorStats: Map<string, number>
+): string {
+  const selections: Record<string, number> = {};
+  
+  colorStats.forEach((count, code) => {
+    if (code !== 'BG' && count > 0) {
+      selections[code] = count;
+    }
+  });
+
+  const payload = {
+    v: 1,
+    selections
+  };
+
+  // Convert to JSON and then to Base64URL
+  const jsonStr = JSON.stringify(payload);
+  
+  // Modern UTF-8 safe Base64 encoding
+  const encoder = new TextEncoder();
+  const data = encoder.encode(jsonStr);
+  // Use a more compatible way to convert Uint8Array to binary string
+  const binary = Array.from(data).map(byte => String.fromCharCode(byte)).join('');
+  const base64 = btoa(binary);
+  
+  // Convert Base64 to Base64URL (URL-safe)
+  const base64url = base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  return `https://yayascreativestudio.com/pages/bead-builder?from=tools&bb=${base64url}`;
+}
+
+/**
+ * Build a Shopify cart URL with single product, total quantity, and breakdown attribute
+ * 
+ * Uses Shopify's /cart/add endpoint with line item properties:
+ *   /cart/add?id={variantId}&quantity={total}&properties[Breakdown]={breakdown}
+ */
 export function buildShopifyCartUrl(
   config: ShopifyConfig,
   colorStats: Map<string, number>

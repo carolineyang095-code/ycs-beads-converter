@@ -2,7 +2,7 @@ import { ShoppingCart, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
-  buildShopifyCartUrl,
+  buildBeadBuilderUrl,
   getTotalBeadCount,
   ShopifyConfig,
 } from '@/lib/shopifyIntegration';
@@ -22,16 +22,17 @@ export default function ShopifyIntegration({
 }: ShopifyIntegrationProps) {
   const totalBeads = getTotalBeadCount(colorStats);
 
-  const handleAddToCart = () => {
+  const handleBuyAllBeads = () => {
     if (totalBeads === 0) {
-      toast.error('No beads to add to cart');
+      toast.error('No beads to buy');
       return;
     }
 
     try {
-      const cartUrl = buildShopifyCartUrl(FIXED_CONFIG, colorStats);
-      window.open(cartUrl, '_blank');
-      toast.success('Cart opened in a new tab');
+      const builderUrl = buildBeadBuilderUrl(colorStats);
+      // Same-tab navigation for smoother flow
+      window.location.href = builderUrl;
+      toast.success('Redirecting to bead builder...');
     } catch (error) {
       toast.error(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -39,13 +40,13 @@ export default function ShopifyIntegration({
 
   return (
     <Button
-      onClick={handleAddToCart}
+      onClick={handleBuyAllBeads}
       variant="default"
       size="sm"
       className="text-xs gap-1.5 bg-[#9867DA] hover:bg-[#8558C2] text-white border-none rounded-full px-4"
     >
       <ShoppingCart className="w-3.5 h-3.5" />
-      Add to Cart ({totalBeads.toLocaleString()} pcs)
+      Buy All Beads for This Pattern ({totalBeads.toLocaleString()} pcs)
       <ExternalLink className="w-3 h-3 opacity-70" />
     </Button>
   );
