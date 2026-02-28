@@ -4,7 +4,7 @@ import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
   SlidersHorizontal, Layers, Sparkles, Loader2, Palette, Copy, Check,
-  PanelLeftClose, PanelRightClose, PanelRightOpen
+  PanelLeftClose, PanelRightClose, PanelRightOpen, Minus, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -669,7 +669,14 @@ export default function Home() {
   const totalColors = filteredColorStats.size;e : 0;
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-white overflow-hidden relative">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-opacity duration-300" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div>
@@ -831,34 +838,51 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Size Slider */}
-              <div className="flex items-center gap-2 border-l border-border pl-3">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Brush / Eraser Size</span>
-                <div className="w-32">
-                  <Slider
-                    value={[brushSize]}
-                    onValueChange={(v) => setBrushSize(v[0])}
-                    min={1}
-                    max={30}
-                    step={1}
-                  />
-                </div>
-                <span className="text-xs font-mono text-muted-foreground w-6">{brushSize}</span>
+              {/* Brush Size (Buttons) */}
+              <div className="flex items-center gap-1 border-l border-border pl-3">
+                <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Brush Size</span>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-7 w-7 p-0" 
+                  onClick={() => setBrushSize(prev => Math.max(1, prev - 1))}
+                  disabled={brushSize <= 1}
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </Button>
+                <span className="text-xs font-mono text-muted-foreground w-5 text-center">{brushSize}</span>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-7 w-7 p-0" 
+                  onClick={() => setBrushSize(prev => Math.min(30, prev + 1))}
+                  disabled={brushSize >= 30}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
               </div>
 
               {/* Selected color indicator */}
               {selectedColor && (
-                <div className="flex items-center gap-1 border-r border-border pr-3">
+                <div className="flex items-center gap-1 border-x border-border px-3">
                   <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                   <span className="text-xs font-medium">{selectedColor.code}</span>
                 </div>
               )}
 
-              {/* Zoom */}
-              <div className="flex items-center gap-1 border-r border-border pr-3">
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={zoomOut}><ZoomOut className="w-4 h-4" /></Button>
-                <span className="text-xs text-muted-foreground w-8 text-center">{pixelSize}px</span>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={zoomIn}><ZoomIn className="w-4 h-4" /></Button>
+              {/* Zoom (Slider) */}
+              <div className="flex items-center gap-2 border-r border-border pr-3">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Zoom</span>
+                <div className="w-24 lg:w-32">
+                  <Slider
+                    value={[pixelSize]}
+                    onValueChange={(v) => setPixelSize(v[0])}
+                    min={4}
+                    max={100}
+                    step={2}
+                  />
+                </div>
+                <span className="text-xs font-mono text-muted-foreground w-8 text-center">{pixelSize}px</span>
               </div>
 
               {/* Background toggle */}
@@ -887,10 +911,10 @@ export default function Home() {
               <Button 
                 size="sm" 
                 variant="ghost" 
-                className="h-8 w-8 p-0 lg:hidden" 
+                className={`h-8 w-8 p-0 lg:hidden ${isSidebarOpen ? 'text-primary bg-primary/10' : ''}`} 
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               >
-                {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+                {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <SlidersHorizontal className="w-4 h-4" />}
               </Button>
 
               {/* Pixel info on hover */}
@@ -965,17 +989,30 @@ fileInput?.click();
         </div>
 
         {/* Right: Controls Panel */}
-        <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0 transition-all duration-300 relative group`}>
+        <div className={`
+          ${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} 
+          fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0
+          border-l border-border flex flex-col overflow-y-auto bg-white 
+          flex-shrink-0 transition-all duration-300 ease-in-out group
+        `}>
           {/* Desktop Toggle Button (Floating on the edge) */}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 bg-white border border-r-0 border-border rounded-l-md p-1 shadow-sm opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity"
+            className={`
+              absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 
+              bg-white border border-r-0 border-border rounded-l-md p-1 shadow-sm 
+              transition-opacity duration-200
+              ${isSidebarOpen ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}
+            `}
             title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             {isSidebarOpen ? <PanelRightClose className="w-4 h-4 text-muted-foreground" /> : <PanelRightOpen className="w-4 h-4 text-muted-foreground" />}
           </button>
 
-          <div className={`${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity duration-200 flex flex-col h-full w-80`}>
+          <div className={`
+            ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} 
+            transition-all duration-200 flex flex-col h-full w-80
+          `}>
           {/* Upload */}
           <div className="p-4 border-b border-border" data-upload-panel="1">
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
