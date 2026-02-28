@@ -3,7 +3,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
-  SlidersHorizontal, Layers, Sparkles, Loader2, Palette, Copy, Check
+  SlidersHorizontal, Layers, Sparkles, Loader2, Palette, Copy, Check,
+  PanelLeftClose, PanelRightClose, PanelRightOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -57,6 +58,9 @@ export default function Home() {
   // isPreview=false：显示网格线
   // isPreview=true：隐藏网格线（预览模式）
   const [isPreview, setIsPreview] = useState(false);
+
+  // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // ===== Brush size (1~30) =====
   const [brushSize, setBrushSize] = useState<number>(1);
@@ -611,7 +615,8 @@ export default function Home() {
     if (!processed || !dims) return;
     try {
       const exportCanvas = document.createElement('canvas');
-      drawPixelGrid(exportCanvas, dims.width, dims.height, processed.pixels, 15, true, null, processed.backgroundIndices, showBackground);
+      // Increased pixelSize from 15 to 30 for higher resolution preview export
+      drawPixelGrid(exportCanvas, dims.width, dims.height, processed.pixels, 30, true, null, processed.backgroundIndices, showBackground);
       exportGridAsPNG(exportCanvas, `perler-${dims.width}x${dims.height}.png`);
       toast.success('Preview exported');
     } catch (err) {
@@ -878,6 +883,16 @@ export default function Home() {
                 <TooltipContent>Reset</TooltipContent>
               </Tooltip>
 
+              {/* Sidebar Toggle (Mobile/Small screens) */}
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 lg:hidden" 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              >
+                {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+              </Button>
+
               {/* Pixel info on hover */}
               {hoveredPixel && (
                 <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
@@ -950,7 +965,17 @@ fileInput?.click();
         </div>
 
         {/* Right: Controls Panel */}
-        <div className="w-80 border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0">
+        <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0 transition-all duration-300 relative group`}>
+          {/* Desktop Toggle Button (Floating on the edge) */}
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 bg-white border border-r-0 border-border rounded-l-md p-1 shadow-sm opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity"
+            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+          >
+            {isSidebarOpen ? <PanelRightClose className="w-4 h-4 text-muted-foreground" /> : <PanelRightOpen className="w-4 h-4 text-muted-foreground" />}
+          </button>
+
+          <div className={`${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity duration-200 flex flex-col h-full w-80`}>
           {/* Upload */}
           <div className="p-4 border-b border-border" data-upload-panel="1">
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -1163,8 +1188,7 @@ fileInput?.click();
               </div>
             </div>
           )}
-
-
+          </div>
         </div>
       </div>
     </div>

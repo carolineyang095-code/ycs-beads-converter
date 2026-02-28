@@ -92,9 +92,10 @@ export function exportFullPatternPNG(
     try {
       const opts = { ...DEFAULT_OPTIONS, ...options };
 
-      // High-definition cell size (increased from 16-50 to 24-60)
+      // High-definition cell size (increased from 24-60 to 40-80 for better clarity on iPad)
       if (opts.cellSize === 0) {
-        opts.cellSize = Math.max(24, Math.min(60, Math.floor(4000 / Math.max(gridWidth, gridHeight))));
+        // Target a larger canvas for high-density displays (e.g., 8000px instead of 4000px)
+        opts.cellSize = Math.max(40, Math.min(80, Math.floor(8000 / Math.max(gridWidth, gridHeight))));
       }
 
       const coordMargin = opts.showCoordinates ? 40 : 0;
@@ -132,6 +133,9 @@ export function exportFullPatternPNG(
       canvas.height = totalHeight;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Failed to create canvas');
+
+      // Disable image smoothing for sharp pixel edges
+      ctx.imageSmoothingEnabled = false;
 
       // White background for the whole sheet
       ctx.fillStyle = '#FFFFFF';
@@ -210,8 +214,8 @@ export function exportFullPatternPNG(
 
       // === GRID CELLS ===
       const showCodeText = opts.showCodes && cellSize >= 18;
-      // Use thinner font for better clarity
-      const fontSize = Math.max(8, Math.min(14, Math.floor(cellSize * 0.35)));
+      // Use thinner font for better clarity, adjusted for larger cell size
+      const fontSize = Math.max(10, Math.min(24, Math.floor(cellSize * 0.38)));
 
       for (let i = 0; i < pixels.length; i++) {
         const pixel = pixels[i];
@@ -236,7 +240,7 @@ export function exportFullPatternPNG(
 
         // Draw color code inside cell
         if (showCodeText && !isBg) {
-          const brightness = ((pixel.rgb?.r || 0) * 299 + (pixel.rgb?.g || 0) * 587 + (pixel.rgb?.b || 0) * 114) / 1000;
+          const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
           // Using thinner font weight (300 or 400) for clarity
           ctx.font = `400 ${fontSize}px sans-serif`;
@@ -343,7 +347,7 @@ export function exportFullPatternPNG(
         ctx.fill();
           
           // Border for light colors
-          const brightness = color ? ((color.rgb?.r || 0) * 299 + (color.rgb?.g || 0) * 587 + (color.rgb?.b || 0) * 114) / 1000 : 255;
+          const brightness = color ? (color.rgb.r * 299 + color.rgb.g * 587 + color.rgb.b * 114) / 1000 : 255;
           if (brightness > 220) {
             ctx.strokeStyle = '#E2E8F0';
             ctx.lineWidth = 1;
