@@ -33,6 +33,7 @@ export default function Home() {
   const [gridSize, setGridSize] = useState<number>(50);
   const [mergeThreshold, setMergeThreshold] = useState<number>(1);
   const [sourceImage, setSourceImage] = useState<HTMLCanvasElement | null>(null);
+  const [canvasSource, setCanvasSource] = useState<'image' | 'manual'>('image');
   const [dims, setDims] = useState<{ width: number; height: number } | null>(null);
   const [processed, setProcessed] = useState<ProcessedImage | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -174,6 +175,7 @@ export default function Home() {
       setIsProcessing(true);
       const canvas = await loadImage(file);
       setSourceImage(canvas);
+      setCanvasSource('image');
       const d = calculateGridDimensions(canvas, gridSize);
       setDims(d);
       processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
@@ -183,13 +185,23 @@ export default function Home() {
     }
   };
 
+  // Re-generate from current source image
+  const handleRegenerateFromImage = () => {
+    if (!sourceImage) return;
+    setCanvasSource('image');
+    const d = calculateGridDimensions(sourceImage, gridSize);
+    setDims(d);
+    processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
+    toast.success('Re-generated from image');
+  };
+
   // Handle create empty canvas
   const handleCreateCanvas = () => {
     setError(null);
     setExcludedCodes(new Set());
     setHighlightCode(null);
     setRemovedColors(new Map());
-    setSourceImage(null); // Clear source image as we're starting fresh
+    setCanvasSource('manual');
 
     const width = gridSize;
     const height = gridSize;
@@ -218,14 +230,62 @@ export default function Home() {
     toast.success(`Created ${width}x${height} empty canvas`);
   };
 
+  // Resize grid while preserving content (top-left anchor)
+  const resizeGridPreserveContent = (oldProcessed: ProcessedImage, newWidth: number, newHeight: number): ProcessedImage => {
+    const newPixels: PixelGridCell[] = Array.from({ length: newWidth * newHeight }, (_, i) => {
+      const x = i % newWidth;
+      const y = Math.floor(i / newWidth);
+      
+      if (x < oldProcessed.gridWidth && y < oldProcessed.gridHeight) {
+        return oldProcessed.pixels[y * oldProcessed.gridWidth + x];
+      }
+      
+      return {
+        code: '',
+        hex: 'transparent',
+        rgb: { r: 0, g: 0, b: 0 },
+        originalRgb: { r: 0, g: 0, b: 0 },
+        isBackground: false
+      };
+    });
+
+    const newStats = new Map<string, number>();
+    newPixels.forEach((p) => {
+      if (p.code && p.code !== 'BG' && p.hex !== 'transparent') {
+        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
+      }
+    });
+
+    return {
+      ...oldProcessed,
+      gridWidth: newWidth,
+      gridHeight: newHeight,
+      pixels: newPixels,
+      colorStats: newStats,
+      backgroundIndices: new Set() // Reset background indices for manual mode
+    };
+  };
+
   // Handle grid size slider change
   const handleGridSizeChange = (value: number[]) => {
     const size = value[0];
     setGridSize(size);
-    if (sourceImage) {
+    
+    if (canvasSource === 'image' && sourceImage) {
       const d = calculateGridDimensions(sourceImage, size);
       setDims(d);
       processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
+    } else if (canvasSource === 'manual' && processed) {
+      // For manual mode, we maintain square aspect ratio for simplicity or follow current dims
+      // Here we'll keep it square as per "Create Canvas" logic
+      const newWidth = size;
+      const newHeight = size;
+      const d = { width: newWidth, height: newHeight };
+      setDims(d);
+      
+      const resized = resizeGridPreserveContent(processed, newWidth, newHeight);
+      setProcessed(resized);
+      setBaseProcessed(resized);
     }
   };
 
@@ -293,7 +353,7 @@ export default function Home() {
 
     const newStats = new Map<string, number>();
     newPixels.forEach((p, i) => {
-      if (!processed.backgroundIndices.has(i)) {
+      if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
         newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
       }
     });
@@ -317,7 +377,7 @@ export default function Home() {
 
     const newStats = new Map<string, number>();
     newPixels.forEach((p, i) => {
-      if (!processed.backgroundIndices.has(i)) {
+      if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
         newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
       }
     });
@@ -338,9 +398,12 @@ export default function Home() {
   const breakdownText = useMemo(() => {
     if (!processed) return '';
     
-    // Filter out excluded colors and BG
+    // Filter out excluded colors, BG, and empty codes
     const entries = Array.from(processed.colorStats.entries())
-      .filter(([code]) => !excludedCodes.has(code) && code !== 'BG' && code !== '')
+      .filter(([code]) => {
+        const color = colorIndexRef.current.get(code);
+        return code && code !== 'BG' && !excludedCodes.has(code) && color && color.hex !== 'transparent';
+      })
       .sort((a, b) => a[0].localeCompare(b[0])); // Sort alphabetically by code
 
     return entries.map(([code, count]) => `${code}:${count}`).join('; ');
@@ -447,7 +510,7 @@ export default function Home() {
       );
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
-        if (!processed.backgroundIndices.has(i)) {
+        if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
           newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
         }
       });
@@ -464,7 +527,7 @@ export default function Home() {
       );
       const newStats = new Map<string, number>();
       newPixels.forEach((p, i) => {
-        if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG') {
+        if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
           newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
         }
       });
@@ -585,10 +648,20 @@ export default function Home() {
     }
   };
 
-  // Calculate totals
-  const filteredColorStats = processed ? new Map(Array.from(processed.colorStats.entries()).filter(([code]) => code !== 'BG')) : new Map();
-  const totalBeads = processed ? Array.from(filteredColorStats.values()).reduce((a, b) => a + b, 0) : 0;
-  const totalColors = processed ? filteredColorStats.size : 0;
+  // Calcu  // Calculate totals
+  const filteredColorStats = useMemo(() => {
+    if (!processed) return new Map<string, number>();
+    return new Map(
+      Array.from(processed.colorStats.entries())
+        .filter(([code]) => code && code !== 'BG' && !excludedCodes.has(code))
+    );
+  }, [processed, excludedCodes]);
+
+  const totalBeads = useMemo(() => {
+    return Array.from(filteredColorStats.values()).reduce((a, b) => a + b, 0);
+  }, [filteredColorStats]);
+
+  const totalColors = filteredColorStats.size;e : 0;
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -881,23 +954,33 @@ fileInput?.click();
           {/* Upload */}
           <div className="p-4 border-b border-border" data-upload-panel="1">
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5" /> Upload Image
+              <Upload className="w-3.5 h-3.5" /> Canvas Source
             </h3>
             <div className="space-y-2">
               <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
-              <Button
-                onClick={handleCreateCanvas}
-                variant="outline"
-                className="w-full text-xs gap-2 border-dashed"
-                disabled={isProcessing}
-              >
-                <Sparkles className="w-3.5 h-3.5" /> Create Empty Canvas
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleCreateCanvas}
+                  variant="outline"
+                  className="w-full text-[10px] h-8 gap-1.5 border-dashed"
+                  disabled={isProcessing}
+                >
+                  <Sparkles className="w-3 h-3" /> New Canvas
+                </Button>
+                <Button
+                  onClick={handleRegenerateFromImage}
+                  variant="outline"
+                  className="w-full text-[10px] h-8 gap-1.5"
+                  disabled={isProcessing || !sourceImage}
+                >
+                  <RotateCcw className="w-3 h-3" /> Reset to Image
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Processing Parameters */}
-          {sourceImage && (
+          {processed && (
             <div className="p-4 border-b border-border space-y-4">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <SlidersHorizontal className="w-3.5 h-3.5" /> Parameters
@@ -923,73 +1006,78 @@ fileInput?.click();
                   </p>
                 )}
               </div>
-              {/* Dithering Strength Slider */}
-            <div>
-             <div className="flex items-center justify-between mb-1.5">
-               <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
-               <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
-            </div>
-            <Slider
-             value={[ditherStrength]}
-             onValueChange={handleDitherChange}
-             min={0}
-             max={100}
-             step={1}
-             className="w-full"
-             />
-             <p className="text-[10px] text-muted-foreground mt-1">
-              0 = off · 20–40 natural · 60+ grainy
-              </p>
-            </div>
+              {/* Image-only Parameters */}
+              {canvasSource === 'image' && (
+                <>
+                  {/* Dithering Strength Slider */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
+                      <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
+                    </div>
+                    <Slider
+                      value={[ditherStrength]}
+                      onValueChange={handleDitherChange}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      0 = off · 20–40 natural · 60+ grainy
+                    </p>
+                  </div>
 
-<div>
-  <div className="flex items-center justify-between mb-1.5">
-    <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
-    <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
-  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
+                      <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
+                    </div>
 
-  <Slider
-  value={[maxColorIndex]}
-  onValueChange={(v) => setMaxColorIndex(v[0])}
-  min={0}
-  max={MAX_COLOR_OPTIONS.length - 1}
-  step={1}
-  className="w-full"
-/>
+                    <Slider
+                      value={[maxColorIndex]}
+                      onValueChange={(v) => setMaxColorIndex(v[0])}
+                      min={0}
+                      max={MAX_COLOR_OPTIONS.length - 1}
+                      step={1}
+                      className="w-full"
+                    />
 
-  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-    {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
-  </div>
+                    <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                      {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
+                    </div>
 
-  <p className="text-[10px] text-muted-foreground mt-1">
-    221 = most vivid · 50 = cleaner cartoon · 20 = very simplified
-  </p>
-</div>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      221 = most vivid · 50 = cleaner cartoon · 20 = very simplified
+                    </p>
+                  </div>
 
-              {/* Merge Threshold Slider */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
-                  <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
-                </div>
-                <Slider
-                  value={[mergeThreshold]}
-                  onValueChange={handleMergeChange}
-                  min={1}
-                  max={12}
-                  step={1}
-                  className="w-full"
-                />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Regions smaller than {mergeThreshold}px will be merged
-                </p>
-              </div>
+                  {/* Merge Threshold Slider */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
+                      <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
+                    </div>
+                    <Slider
+                      value={[mergeThreshold]}
+                      onValueChange={handleMergeChange}
+                      min={1}
+                      max={12}
+                      step={1}
+                      className="w-full"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Regions smaller than {mergeThreshold}px will be merged
+                    </p>
+                  </div>
 
-              {/* Background Removal */}
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-foreground">Remove Background</label>
-                <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
-              </div>
+                  {/* Background Removal */}
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-foreground">Remove Background</label>
+                    <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
