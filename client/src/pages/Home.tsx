@@ -1,9 +1,9 @@
 import HeroIntro from '@/components/HeroIntro';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
-  SlidersHorizontal, Layers, Sparkles, Loader2, Palette
+  SlidersHorizontal, Layers, Sparkles, Loader2, Palette, Copy, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -53,9 +53,9 @@ export default function Home() {
   const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
-  // previewMode=false：干净（无网格线）
-  // previewMode=true：显示网格线（方便照着拼）
-  const [previewMode, setPreviewMode] = useState(false); 
+  // isPreview=false：显示网格线
+  // isPreview=true：隐藏网格线（预览模式）
+  const [isPreview, setIsPreview] = useState(false);
 
   // ===== Brush size (1~30) =====
   const [brushSize, setBrushSize] = useState<number>(1);
@@ -141,13 +141,13 @@ export default function Home() {
     try {
       drawPixelGrid(
         canvasRef.current, processed.gridWidth, processed.gridHeight,
-        processed.pixels, pixelSize, previewMode, highlightCode,
+        processed.pixels, pixelSize, !isPreview, highlightCode,
         processed.backgroundIndices, showBackground
       );
     } catch (err) {
       console.error('Draw error:', err);
     }
-  }, [processed, pixelSize, highlightCode, showBackground, previewMode]);
+  }, [processed, pixelSize, highlightCode, showBackground, isPreview]);
 
   useEffect(() => {
   if (sourceImage && dims) {
@@ -181,6 +181,41 @@ export default function Home() {
       setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
     }
+  };
+
+  // Handle create empty canvas
+  const handleCreateCanvas = () => {
+    setError(null);
+    setExcludedCodes(new Set());
+    setHighlightCode(null);
+    setRemovedColors(new Map());
+    setSourceImage(null); // Clear source image as we're starting fresh
+
+    const width = gridSize;
+    const height = gridSize;
+    const d = { width, height };
+    setDims(d);
+
+    const emptyPixels: PixelGridCell[] = Array.from({ length: width * height }, () => ({
+      code: '',
+      hex: 'transparent',
+      rgb: { r: 0, g: 0, b: 0 },
+      originalRgb: { r: 0, g: 0, b: 0 },
+      isBackground: false
+    }));
+
+    const result: ProcessedImage = {
+      gridWidth: width,
+      gridHeight: height,
+      pixels: emptyPixels,
+      colorStats: new Map(),
+      backgroundCode: null,
+      backgroundIndices: new Set()
+    };
+
+    setProcessed(result);
+    setBaseProcessed(result);
+    toast.success(`Created ${width}x${height} empty canvas`);
   };
 
   // Handle grid size slider change
@@ -297,6 +332,31 @@ export default function Home() {
     if (!baseProcessed) return;
     setProcessed({ ...baseProcessed });
     setRemovedColors(new Map());
+  };
+
+  // Bead Breakdown logic
+  const breakdownText = useMemo(() => {
+    if (!processed) return '';
+    
+    // Filter out excluded colors and BG
+    const entries = Array.from(processed.colorStats.entries())
+      .filter(([code]) => !excludedCodes.has(code) && code !== 'BG' && code !== '')
+      .sort((a, b) => a[0].localeCompare(b[0])); // Sort alphabetically by code
+
+    return entries.map(([code, count]) => `${code}:${count}`).join('; ');
+  }, [processed, excludedCodes]);
+
+  const [copied, setCopied] = useState(false);
+  const handleCopyBreakdown = () => {
+    if (!breakdownText) return;
+    navigator.clipboard.writeText(breakdownText).then(() => {
+      setCopied(true);
+      toast.success('Copied breakdown to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      toast.error('Failed to copy. Please select and copy manually.');
+    });
   };
 
   // Handle highlight color click
@@ -584,6 +644,15 @@ export default function Home() {
           {/* Toolbar */}
           {processed && (
             <div className="border-b border-border px-4 py-2 flex items-center gap-3 flex-shrink-0 bg-gray-50">
+              {/* Preview Toggle */}
+              <div className="flex items-center gap-2 border-r border-border pr-3">
+                <span className="text-xs font-medium text-muted-foreground">Preview</span>
+                <Switch
+                  checked={isPreview}
+                  onCheckedChange={setIsPreview}
+                />
+              </div>
+
               {/* Edit tools */}
               <div className="flex items-center gap-1 border-r border-border pr-3">
                 <Tooltip>
@@ -758,7 +827,7 @@ export default function Home() {
                 </div>
               </div>
             )}
-            {sourceImage && processed ? (
+            {(sourceImage || processed) && processed ? (
               <canvas
                 ref={canvasRef}
                 className="border border-border shadow-sm bg-white"
@@ -814,7 +883,17 @@ fileInput?.click();
             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Upload className="w-3.5 h-3.5" /> Upload Image
             </h3>
-            <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
+            <div className="space-y-2">
+              <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
+              <Button
+                onClick={handleCreateCanvas}
+                variant="outline"
+                className="w-full text-xs gap-2 border-dashed"
+                disabled={isProcessing}
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Create Empty Canvas
+              </Button>
+            </div>
           </div>
 
           {/* Processing Parameters */}
@@ -941,7 +1020,7 @@ fileInput?.click();
               <p className="text-[10px] text-muted-foreground mb-2">
                 Click to highlight · Right-click to exclude
               </p>
-              <div className="space-y-0.5 max-h-72 overflow-y-auto">
+              <div className="space-y-0.5 max-h-72 overflow-y-auto mb-4">
                 {Array.from(processed.colorStats.entries())
                   .sort((a, b) => b[1] - a[1])
                   .map(([code, count]) => {
@@ -971,6 +1050,28 @@ fileInput?.click();
                       </div>
                     );
                   })}
+              </div>
+
+              {/* Breakdown Copy Area */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Quick Breakdown</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#9867DA]"
+                    onClick={handleCopyBreakdown}
+                  >
+                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copied ? 'Copied!' : 'Copy breakdown'}
+                  </Button>
+                </div>
+                <textarea
+                  readOnly
+                  value={breakdownText}
+                  className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none"
+                  placeholder="No beads to show"
+                />
               </div>
             </div>
           )}

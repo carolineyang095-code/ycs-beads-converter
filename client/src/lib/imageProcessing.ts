@@ -453,11 +453,17 @@ export function drawPixelGrid(
     const y = Math.floor(i / gridWidth) * pixelSize;
 
     const isBg = backgroundIndices.has(i);
+    const isTransparent = pixel.hex === 'transparent' || !pixel.code || pixel.code === 'BG';
 
     if (isBg && !showBackground) {
       // Draw background as light gray checkerboard
       ctx.fillStyle = (Math.floor(i / gridWidth) + (i % gridWidth)) % 2 === 0
         ? '#F0F0F0' : '#E0E0E0';
+      ctx.fillRect(x, y, pixelSize, pixelSize);
+    } else if (isTransparent) {
+      // Draw checkerboard for transparent pixels
+      ctx.fillStyle = (Math.floor(i / gridWidth) + (i % gridWidth)) % 2 === 0
+        ? '#FFFFFF' : '#F0F0F0';
       ctx.fillRect(x, y, pixelSize, pixelSize);
     } else {
       ctx.fillStyle = pixel.hex;
