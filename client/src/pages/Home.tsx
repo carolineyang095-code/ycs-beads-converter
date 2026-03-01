@@ -75,6 +75,30 @@ export default function Home() {
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
   const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
 
+  // Undo history state
+  const [historyStack, setHistoryStack] = useState<ProcessedImage[]>([]);
+  const MAX_HISTORY = 20;
+
+  const pushToHistory = useCallback((currentProcessed: ProcessedImage | null) => {
+    if (!currentProcessed) return;
+    
+    // Deep clone the current state to avoid reference issues
+    const snapshot: ProcessedImage = {
+      ...currentProcessed,
+      pixels: [...currentProcessed.pixels.map(p => ({ ...p }))],
+      colorStats: new Map(currentProcessed.colorStats),
+      backgroundIndices: new Set(currentProcessed.backgroundIndices)
+    };
+
+    setHistoryStack(prev => {
+      const newStack = [...prev, snapshot];
+      if (newStack.length > MAX_HISTORY) {
+        return newStack.slice(newStack.length - MAX_HISTORY);
+      }
+      return newStack;
+    });
+  }, []);
+
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
@@ -178,6 +202,7 @@ export default function Home() {
     try {
       setIsProcessing(true);
       const canvas = await loadImage(file);
+      pushToHistory(processed);
       setSourceImage(canvas);
       setCanvasSource('image');
       const d = calculateGridDimensions(canvas, gridSize);
@@ -192,6 +217,7 @@ export default function Home() {
   // Re-generate from current source image
   const handleRegenerateFromImage = () => {
     if (!sourceImage) return;
+    pushToHistory(processed);
     setCanvasSource('image');
     const d = calculateGridDimensions(sourceImage, gridSize);
     setDims(d);
@@ -205,6 +231,7 @@ export default function Home() {
     setExcludedCodes(new Set());
     setHighlightCode(null);
     setRemovedColors(new Map());
+    pushToHistory(processed);
     setCanvasSource('manual');
 
     const width = gridSize;
@@ -276,10 +303,12 @@ export default function Home() {
     setGridSize(size);
     
     if (canvasSource === 'image' && sourceImage) {
+      pushToHistory(processed);
       const d = calculateGridDimensions(sourceImage, size);
       setDims(d);
       processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
     } else if (canvasSource === 'manual' && processed) {
+      pushToHistory(processed);
       // For manual mode, we maintain square aspect ratio for simplicity or follow current dims
       // Here we'll keep it square as per "Create Canvas" logic
       const newWidth = size;
@@ -298,6 +327,7 @@ export default function Home() {
     const merge = value[0];
     setMergeThreshold(merge);
     if (sourceImage && dims) {
+      pushToHistory(processed);
       processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength);
     }
   };
@@ -307,6 +337,7 @@ export default function Home() {
   const d = value[0];
   setDitherStrength(d);
   if (sourceImage && dims) {
+    pushToHistory(processed);
     processImage(
       sourceImage,
       dims.width,
@@ -323,6 +354,7 @@ export default function Home() {
   const handleBgToggle = (enabled: boolean) => {
     setEnableBgRemoval(enabled);
     if (sourceImage && dims) {
+      pushToHistory(processed);
       processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength);
     }
   };
@@ -337,6 +369,7 @@ export default function Home() {
     }
     setExcludedCodes(newExcluded);
     if (sourceImage && dims) {
+      pushToHistory(processed);
       processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength);
     }
   };
@@ -344,6 +377,7 @@ export default function Home() {
   // === NOISE COLOR REMOVAL ===
   const handleRemoveNoiseColor = (code: string, replacementCode: string) => {
     if (!processed) return;
+    pushToHistory(processed);
 
     const newPixels = processed.pixels.map((pixel) => {
       if (pixel.code === code && !pixel.isBackground) {
@@ -370,6 +404,7 @@ export default function Home() {
 
   const handleRestoreColor = (code: string) => {
     if (!baseProcessed || !processed) return;
+    pushToHistory(processed);
 
     const newPixels = processed.pixels.map((pixel, i) => {
       const basePixel = baseProcessed.pixels[i];
@@ -394,9 +429,25 @@ export default function Home() {
 
   const handleRestoreAll = () => {
     if (!baseProcessed) return;
+    pushToHistory(processed);
     setProcessed({ ...baseProcessed });
     setRemovedColors(new Map());
   };
+
+  const handleUndo = useCallback(() => {
+    if (historyStack.length === 0) return;
+
+    const lastSnapshot = historyStack[historyStack.length - 1];
+    setHistoryStack(prev => prev.slice(0, -1));
+    
+    // Update grid and dimensions
+    setProcessed(lastSnapshot);
+    setBaseProcessed(lastSnapshot);
+    setDims({ width: lastSnapshot.gridWidth, height: lastSnapshot.gridHeight });
+    setGridSize(lastSnapshot.gridWidth);
+    
+    toast.success('Undo successful');
+  }, [historyStack]);
 
   // Bead Breakdown logic
   const breakdownText = useMemo(() => {
@@ -541,6 +592,12 @@ export default function Home() {
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processed || !canvasRef.current) return;
+    
+    // Push to history before starting a new drawing stroke
+    if (activeTool === 'brush' || activeTool === 'eraser') {
+      pushToHistory(processed);
+    }
+    
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = canvasRef.current.width / rect.width;
@@ -598,9 +655,22 @@ export default function Home() {
     lastPinchDistRef.current = null;
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo]);
+
   // Reset processing
   const handleReset = () => {
     if (sourceImage && dims) {
+      pushToHistory(processed);
       setExcludedCodes(new Set());
       setHighlightCode(null);
       setMergeThreshold(1);
@@ -756,15 +826,29 @@ export default function Home() {
                   </TooltipTrigger>
                   <TooltipContent>Eraser Tool</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}>
-                      <Pipette className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Eyedropper</TooltipContent>
-                </Tooltip>
-                <div className="relative">
+	                <Tooltip>
+	                  <TooltipTrigger asChild>
+	                    <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}>
+	                      <Pipette className="w-4 h-4" />
+	                    </Button>
+	                  </TooltipTrigger>
+	                  <TooltipContent>Eyedropper</TooltipContent>
+	                </Tooltip>
+	                <Tooltip>
+	                  <TooltipTrigger asChild>
+	                    <Button 
+	                      size="sm" 
+	                      variant="ghost" 
+	                      className="h-8 w-8 p-0" 
+	                      onClick={handleUndo}
+	                      disabled={historyStack.length === 0}
+	                    >
+	                      <RotateCcw className="w-4 h-4" />
+	                    </Button>
+	                  </TooltipTrigger>
+	                  <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+	                </Tooltip>
+	                <div className="relative">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
