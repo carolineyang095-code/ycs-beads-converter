@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import ImageUploadSection from '@/components/ImageUploadSection';
 import ShopifyIntegration from '@/components/ShopifyIntegration';
 import NoiseColorRemoval from '@/components/NoiseColorRemoval';
+import CropModal from '@/components/CropModal';
 import {
   loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
   exportGridAsPNG, exportStatsAsCSV, calculateGridDimensions,
@@ -75,6 +76,10 @@ export default function Home() {
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
   const [baseProcessed, setBaseProcessed] = useState<ProcessedImage | null>(null);
+
+  // Crop state
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
 
   // Undo history state
   const [historyStack, setHistoryStack] = useState<ProcessedImage[]>([]);
@@ -194,25 +199,48 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [maxColors]);
 
-  // Handle image upload
+  // Handle image upload — open crop modal instead of processing directly
   const handleImageUpload = async (file: File) => {
     setError(null);
     setExcludedCodes(new Set());
     setHighlightCode(null);
     setRemovedColors(new Map());
     try {
-      setIsProcessing(true);
-      const canvas = await loadImage(file);
-      pushToHistory(processed);
-      setSourceImage(canvas);
-      setCanvasSource('image');
-      const d = calculateGridDimensions(canvas, gridSize);
-      setDims(d);
-      processImage(canvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      setPendingCropFile(file);
+      setCropImageSrc(dataUrl);
     } catch (err) {
       setError(`Failed to load image: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  // Handle crop confirm — process the cropped canvas
+  const handleCropConfirm = async (croppedCanvas: HTMLCanvasElement) => {
+    setCropImageSrc(null);
+    setPendingCropFile(null);
+    try {
+      setIsProcessing(true);
+      pushToHistory(processed);
+      setSourceImage(croppedCanvas);
+      setCanvasSource('image');
+      const d = calculateGridDimensions(croppedCanvas, gridSize);
+      setDims(d);
+      processImage(croppedCanvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
+    } catch (err) {
+      setError(`Failed to process cropped image: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
     }
+  };
+
+  // Handle crop cancel — discard and return to previous state
+  const handleCropCancel = () => {
+    setCropImageSrc(null);
+    setPendingCropFile(null);
   };
 
   // Re-generate from current source image
@@ -744,6 +772,15 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden relative">
+      {/* Crop Modal */}
+      {cropImageSrc && (
+        <CropModal
+          imageSrc={cropImageSrc}
+          onConfirm={handleCropConfirm}
+          onCancel={handleCropCancel}
+        />
+      )}
+
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
