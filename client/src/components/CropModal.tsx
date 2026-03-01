@@ -3,6 +3,7 @@ import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { X, Check, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface CropModalProps {
@@ -15,6 +16,9 @@ export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalPr
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  // ✅ NEW: lock/unlock aspect ratio
+  const [lockRatio, setLockRatio] = useState(true);
 
   const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -33,7 +37,6 @@ export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalPr
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-
       if (!ctx) return;
 
       canvas.width = croppedAreaPixels.width;
@@ -74,7 +77,8 @@ export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalPr
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={1}
+            // ✅ change here: square by default, free when unlocked
+            aspect={lockRatio ? 1 : undefined}
             onCropChange={setCrop}
             onCropComplete={onCropComplete}
             onZoomChange={setZoom}
@@ -83,6 +87,17 @@ export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalPr
 
         {/* Controls */}
         <div className="p-4 space-y-4 bg-background border-t">
+          {/* ✅ NEW: lock ratio toggle */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium">Lock ratio (1:1)</div>
+              <div className="text-xs text-muted-foreground">
+                Turn off to crop freely (any rectangle).
+              </div>
+            </div>
+            <Switch checked={lockRatio} onCheckedChange={setLockRatio} />
+          </div>
+
           <div className="flex items-center gap-4">
             <ZoomOut className="w-4 h-4 text-muted-foreground" />
             <Slider
