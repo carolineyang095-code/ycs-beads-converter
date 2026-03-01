@@ -4,7 +4,8 @@ import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
   SlidersHorizontal, Layers, Sparkles, Loader2, Palette, Copy, Check,
-  PanelLeftClose, PanelRightClose, PanelRightOpen, Minus, Plus
+  PanelLeftClose, PanelRightClose, PanelRightOpen, Minus, Plus,
+  Undo2, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -669,14 +670,17 @@ export default function Home() {
 
   // Reset processing
   const handleReset = () => {
-    if (sourceImage && dims) {
-      pushToHistory(processed);
-      setExcludedCodes(new Set());
-      setHighlightCode(null);
-      setMergeThreshold(1);
-      setEnableBgRemoval(false);
-      setRemovedColors(new Map());
-      processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
+    if (confirm("This will clear the entire canvas and cannot be undone. Continue?")) {
+      if (sourceImage && dims) {
+        pushToHistory(processed);
+        setExcludedCodes(new Set());
+        setHighlightCode(null);
+        setMergeThreshold(1);
+        setEnableBgRemoval(false);
+        setRemovedColors(new Map());
+        processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
+        setHistoryStack([]); // Clear history stack on reset as requested
+      }
     }
   };
 
@@ -834,20 +838,20 @@ export default function Home() {
 	                  </TooltipTrigger>
 	                  <TooltipContent>Eyedropper</TooltipContent>
 	                </Tooltip>
-	                <Tooltip>
-	                  <TooltipTrigger asChild>
-	                    <Button 
-	                      size="sm" 
-	                      variant="ghost" 
-	                      className="h-8 w-8 p-0" 
-	                      onClick={handleUndo}
-	                      disabled={historyStack.length === 0}
-	                    >
-	                      <RotateCcw className="w-4 h-4" />
-	                    </Button>
-	                  </TooltipTrigger>
-	                  <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
-	                </Tooltip>
+		                <Tooltip>
+		                  <TooltipTrigger asChild>
+		                    <Button 
+		                      size="sm" 
+		                      variant="ghost" 
+		                      className="h-8 w-8 p-0" 
+		                      onClick={handleUndo}
+		                      disabled={historyStack.length === 0}
+		                    >
+		                      <Undo2 className="w-4 h-4" />
+		                    </Button>
+		                  </TooltipTrigger>
+		                  <TooltipContent>Undo (Step Back)</TooltipContent>
+		                </Tooltip>
 	                <div className="relative">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -981,15 +985,22 @@ export default function Home() {
                 </Tooltip>
               </div>
 
-              {/* Reset */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleReset}>
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Reset</TooltipContent>
-              </Tooltip>
+	              {/* System Actions */}
+	              <div className="flex items-center gap-1 ml-auto border-l border-border pl-3">
+	                <Tooltip>
+	                  <TooltipTrigger asChild>
+	                    <Button 
+	                      size="sm" 
+	                      variant="ghost" 
+	                      className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" 
+	                      onClick={handleReset}
+	                    >
+	                      <Trash2 className="w-4 h-4" />
+	                    </Button>
+	                  </TooltipTrigger>
+	                  <TooltipContent>Reset Canvas (Clear All)</TooltipContent>
+	                </Tooltip>
+	              </div>
 
               {/* Sidebar Toggle (Mobile/Small screens) */}
               <Button 
