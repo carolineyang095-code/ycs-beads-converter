@@ -264,33 +264,26 @@ export default function Home() {
 
   // Resize grid while preserving content (top-left anchor)
   const resizeGridPreserveContent = (oldProcessed: ProcessedImage, newWidth: number, newHeight: number): ProcessedImage => {
-    const newBackgroundIndices = new Set<number>();
     const newPixels: PixelGridCell[] = Array.from({ length: newWidth * newHeight }, (_, i) => {
       const x = i % newWidth;
       const y = Math.floor(i / newWidth);
       
       if (x < oldProcessed.gridWidth && y < oldProcessed.gridHeight) {
-        const oldIdx = y * oldProcessed.gridWidth + x;
-        if (oldProcessed.backgroundIndices.has(oldIdx)) {
-          newBackgroundIndices.add(i);
-        }
-        return oldProcessed.pixels[oldIdx];
+        return oldProcessed.pixels[y * oldProcessed.gridWidth + x];
       }
       
-      // New areas are transparent background
-      newBackgroundIndices.add(i);
       return {
-        code: 'BG',
+        code: '',
         hex: 'transparent',
         rgb: { r: 0, g: 0, b: 0 },
         originalRgb: { r: 0, g: 0, b: 0 },
-        isBackground: true
+        isBackground: false
       };
     });
 
     const newStats = new Map<string, number>();
-    newPixels.forEach((p, i) => {
-      if (!newBackgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
+    newPixels.forEach((p) => {
+      if (p.code && p.code !== 'BG' && p.hex !== 'transparent') {
         newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
       }
     });
@@ -301,7 +294,7 @@ export default function Home() {
       gridHeight: newHeight,
       pixels: newPixels,
       colorStats: newStats,
-      backgroundIndices: newBackgroundIndices
+      backgroundIndices: new Set() // Reset background indices for manual mode
     };
   };
 
@@ -310,25 +303,24 @@ export default function Home() {
     const size = value[0];
     setGridSize(size);
     
-    if (!processed) return;
-
-    pushToHistory(processed);
-
-    let newWidth = size;
-    let newHeight = size;
-
     if (canvasSource === 'image' && sourceImage) {
+      pushToHistory(processed);
       const d = calculateGridDimensions(sourceImage, size);
-      newWidth = d.width;
-      newHeight = d.height;
+      setDims(d);
+      processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
+    } else if (canvasSource === 'manual' && processed) {
+      pushToHistory(processed);
+      // For manual mode, we maintain square aspect ratio for simplicity or follow current dims
+      // Here we'll keep it square as per "Create Canvas" logic
+      const newWidth = size;
+      const newHeight = size;
+      const d = { width: newWidth, height: newHeight };
+      setDims(d);
+      
+      const resized = resizeGridPreserveContent(processed, newWidth, newHeight);
+      setProcessed(resized);
+      setBaseProcessed(resized);
     }
-
-    const d = { width: newWidth, height: newHeight };
-    setDims(d);
-    
-    const resized = resizeGridPreserveContent(processed, newWidth, newHeight);
-    setProcessed(resized);
-    setBaseProcessed(resized);
   };
 
   // Handle merge threshold change
