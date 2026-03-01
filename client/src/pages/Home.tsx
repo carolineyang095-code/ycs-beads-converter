@@ -50,7 +50,7 @@ export default function Home() {
   const [excludedCodes, setExcludedCodes] = useState<Set<string>>(new Set());
   const [enableBgRemoval, setEnableBgRemoval] = useState(false);
   const [showBackground, setShowBackground] = useState(true);
-  const [pixelSize, setPixelSize] = useState(20);
+  const [pixelSize, setPixelSize] = useState(8);
   const [isPinching, setIsPinching] = useState(false);
   const lastPinchDistRef = useRef<number | null>(null);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
@@ -1030,7 +1030,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                     value={[pixelSize]}
                     onValueChange={(v) => setPixelSize(v[0])}
                     min={4}
-                    max={100}
+                    max={25}
                     step={2}
                   />
                 </div>
