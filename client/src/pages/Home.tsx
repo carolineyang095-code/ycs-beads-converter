@@ -34,7 +34,7 @@ type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
 export default function Home() {
   // Core state
   const [palette, setPalette] = useState<ColorData[]>([]);
-  const [gridSize, setGridSize] = useState<number>(50);
+  const [gridSize, setGridSize] = useState<number>(100);
   const [mergeThreshold, setMergeThreshold] = useState<number>(1);
   const [sourceImage, setSourceImage] = useState<HTMLCanvasElement | null>(null);
   const [canvasSource, setCanvasSource] = useState<'image' | 'manual'>('image');
@@ -1318,10 +1318,12 @@ fileInput?.click();
 )}
 
                   {/* Background Removal */}
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-foreground">Remove Background</label>
-                    <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
-                  </div>
+                  {SHOW_REMOVE_BACKGROUND && (
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-foreground">Remove Background</label>
+                      <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
+                    </div>
+                  )}
                 </>
               )}
             </div>
