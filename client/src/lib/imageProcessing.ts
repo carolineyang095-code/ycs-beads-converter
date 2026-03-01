@@ -16,6 +16,7 @@ import {
 } from './colorMapping';
 
 export type { ColorData, RGB };
+export type ProcessingMode = 'clean' | 'vivid' | 'soft';
 
 export interface PixelGridCell {
   code: string;
@@ -109,6 +110,7 @@ function computeColorStats(
   const stats = new Map<string, number>();
   pixels.forEach((p, i) => {
     if (backgroundIndices.has(i)) return;
+    if (!p.code || p.code === 'BG' || p.hex === 'transparent') return;
     stats.set(p.code, (stats.get(p.code) || 0) + 1);
   });
   return stats;
@@ -289,13 +291,24 @@ export function processImageToGrid(
   ditherStrength: number = 0,
   options?: {
     maxColors?: 20 | 50 | 100 | 150 | 221;
+    mode?: ProcessingMode;
   }
 ): ProcessedImage {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Failed to get canvas context');
   }
-  const maxColors = options?.maxColors ?? 211;       // 默认保持 211 色
+  const maxColors = options?.maxColors ?? 221;       // 默认保持 221 色
+  const mode: ProcessingMode = options?.mode ?? 'clean';
+
+    // Keep existing sliders, but provide mode-based defaults (P0, low risk)
+  const effectiveMergeThreshold =
+    mode === 'vivid' ? 0 :
+    mode === 'soft'  ? Math.max(mergeThreshold, 4) :
+                       Math.max(mergeThreshold, 6); // clean
+
+  const effectiveDitherStrength =
+    mode === 'clean' ? 0 : ditherStrength; // clean 强制无抖动
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const pixels: PixelGridCell[] = [];
@@ -307,7 +320,7 @@ export function processImageToGrid(
   const data = imageData.data;
 
   // Dithering config
-  const strength = Math.max(0, Math.min(100, ditherStrength)) / 100; // 0..1
+  const strength = Math.max(0, Math.min(100, effectiveDitherStrength)) / 100; // 0..1
   const useDither = strength > 0;
 
   // Working buffers (float) for dithering
@@ -370,18 +383,23 @@ export function processImageToGrid(
 
   // Step 2: BFS merge small regions if threshold > 0
   let mergedCodes = rawCodes;
-  if (mergeThreshold > 1) {
-    const paletteIndex = createColorIndex(palette);
+
+const paletteIndex = createColorIndex(palette);
+
+if (effectiveMergeThreshold > 1) {
     mergedCodes = bfsMergeColors(
       rawCodes,
       gridWidth,
       gridHeight,
-      mergeThreshold,
+      effectiveMergeThreshold,
       palette,
       paletteIndex,
       35
-    );
-  }
+  );
+}
+
+
+// vivid 不 merge
 
   // Step 3: Detect background if enabled
   let backgroundIndices = new Set<number>();

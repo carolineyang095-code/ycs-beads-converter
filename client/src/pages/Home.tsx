@@ -1,4 +1,5 @@
 import HeroIntro from '@/components/HeroIntro';
+import type React from 'react';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Upload, Download, Paintbrush, Eraser,
@@ -17,10 +18,10 @@ import ShopifyIntegration from '@/components/ShopifyIntegration';
 import NoiseColorRemoval from '@/components/NoiseColorRemoval';
 import CropModal from '@/components/CropModal';
 import {
-  loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
+ loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
   exportGridAsPNG, exportStatsAsCSV, calculateGridDimensions,
   getAspectRatioString, getPixelAt, setPixelAt,
-  PixelGridCell, ProcessedImage
+  PixelGridCell, ProcessedImage, ProcessingMode
 } from '@/lib/imageProcessing';
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
@@ -54,6 +55,13 @@ export default function Home() {
   const lastPinchDistRef = useRef<number | null>(null);
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
   const [ditherStrength, setDitherStrength] = useState<number>(30);
+  const [processingMode, setProcessingMode] = useState<ProcessingMode>('clean');
+
+  // === UI visibility toggles (temporary) ===
+const SHOW_DITHERING = false;
+const SHOW_SIMPLIFY_SMALL_AREAS = false;
+const SHOW_REMOVE_BACKGROUND = false;
+
   const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
@@ -157,7 +165,7 @@ export default function Home() {
   bgRemoval,
   excluded,
   dither,
-  { maxColors }
+  {mode: processingMode, maxColors}
 );
         setProcessed(result);
         setBaseProcessed(result);
@@ -168,7 +176,7 @@ export default function Home() {
         setIsProcessing(false);
       }
     });
-  }, [palette, maxColors]);
+  }, [palette, maxColors, processingMode]);
 
   // Redraw canvas when visual settings change
   useEffect(() => {
@@ -197,7 +205,7 @@ export default function Home() {
     );
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [maxColors]);
+}, [maxColors, processingMode]);
 
   // Handle image upload — open crop modal instead of processing directly
   const handleImageUpload = async (file: File) => {
@@ -375,6 +383,25 @@ export default function Home() {
       enableBgRemoval,
       excludedCodes,
       d
+    );
+  }
+};
+
+  // HandleModeChange
+  const handleModeChange = (value: string) => {
+  const next = value as ProcessingMode;
+  setProcessingMode(next);
+
+  if (sourceImage && dims) {
+    pushToHistory(processed);
+    processImage(
+      sourceImage,
+      dims.width,
+      dims.height,
+      mergeThreshold,
+      enableBgRemoval,
+      excludedCodes,
+      ditherStrength
     );
   }
 };
@@ -768,7 +795,7 @@ export default function Home() {
     return Array.from(filteredColorStats.values()).reduce((a, b) => a + b, 0);
   }, [filteredColorStats]);
 
-  const totalColors = filteredColorStats.size;e : 0;
+  const totalColors = filteredColorStats.size;
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden relative">
@@ -905,7 +932,7 @@ export default function Home() {
                   </Tooltip>
 
                   {paletteOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
                       <div className="flex items-center justify-between mb-3 border-b pb-2">
                         <h4 className="text-sm font-semibold text-[#452F60]">Artkal 221 Palette</h4>
                         <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
@@ -1203,24 +1230,48 @@ fileInput?.click();
               {/* Image-only Parameters */}
               {canvasSource === 'image' && (
                 <>
-                  {/* Dithering Strength Slider */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
-                      <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
-                    </div>
-                    <Slider
-                      value={[ditherStrength]}
-                      onValueChange={handleDitherChange}
-                      min={0}
-                      max={100}
-                      step={1}
-                      className="w-full"
-                    />
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      0 = off · 20–40 natural · 60+ grainy
-                    </p>
-                  </div>
+
+                {/* Processing Mode */}
+<div>
+  <div className="flex items-center justify-between mb-1.5">
+    <label className="text-xs font-medium text-foreground">Processing Mode</label>
+    <span className="text-xs font-mono text-muted-foreground">{processingMode}</span>
+  </div>
+
+  <select
+    value={processingMode}
+    onChange={(e) => handleModeChange(e.target.value)}
+    className="w-full h-9 px-2 text-xs border border-border rounded-md bg-white"
+  >
+    <option value="clean">Clean Cartoon</option>
+    <option value="vivid">Vivid Game</option>
+    <option value="soft">Soft Illustration</option>
+  </select>
+
+  <p className="text-[10px] text-muted-foreground mt-1">
+    clean = no dithering + stronger simplify · vivid = keep details · soft = gentle simplify
+  </p>
+</div>
+
+                  {SHOW_DITHERING && (
+  <div>
+    <div className="flex items-center justify-between mb-1.5">
+      <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
+      <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
+    </div>
+    <Slider
+      value={[ditherStrength]}
+      onValueChange={handleDitherChange}
+      min={0}
+      max={100}
+      step={1}
+      className="w-full"
+    />
+    <p className="text-[10px] text-muted-foreground mt-1">
+      0 = off · 20–40 natural · 60+ grainy
+    </p>
+  </div>
+)}
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
@@ -1246,24 +1297,25 @@ fileInput?.click();
                     </p>
                   </div>
 
-                  {/* Merge Threshold Slider */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
-                      <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
-                    </div>
-                    <Slider
-                      value={[mergeThreshold]}
-                      onValueChange={handleMergeChange}
-                      min={1}
-                      max={12}
-                      step={1}
-                      className="w-full"
-                    />
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      Regions smaller than {mergeThreshold}px will be merged
-                    </p>
-                  </div>
+                 {SHOW_SIMPLIFY_SMALL_AREAS && (
+  <div>
+    <div className="flex items-center justify-between mb-1.5">
+      <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
+      <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
+    </div>
+    <Slider
+      value={[mergeThreshold]}
+      onValueChange={handleMergeChange}
+      min={1}
+      max={12}
+      step={1}
+      className="w-full"
+    />
+    <p className="text-[10px] text-muted-foreground mt-1">
+      Regions smaller than {mergeThreshold}px will be merged
+    </p>
+  </div>
+)}
 
                   {/* Background Removal */}
                   <div className="flex items-center justify-between">
