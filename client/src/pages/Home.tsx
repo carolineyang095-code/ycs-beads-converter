@@ -62,23 +62,13 @@ const SHOW_DITHERING = false;
 const SHOW_SIMPLIFY_SMALL_AREAS = false;
 const SHOW_REMOVE_BACKGROUND = false;
 
-  const [maxColorIndex, setMaxColorIndex] = useState(1);    // 默认 50（index=1）
+  const [maxColorIndex, setMaxColorIndex] = useState(1);
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
-  // isPreview=false：显示网格线
-  // isPreview=true：隐藏网格线（预览模式）
   const [isPreview, setIsPreview] = useState(false);
-
-  // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  // ===== Brush size (1~30) =====
   const [brushSize, setBrushSize] = useState<number>(1);
-
-  // ===== Palette popup =====
   const [paletteOpen, setPaletteOpen] = useState(false);
-
-  // ===== Drawing state =====
   const [isDrawing, setIsDrawing] = useState(false);
 
   // Noise color removal state
@@ -95,20 +85,15 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const pushToHistory = useCallback((currentProcessed: ProcessedImage | null) => {
     if (!currentProcessed) return;
-    
-    // Deep clone the current state to avoid reference issues
     const snapshot: ProcessedImage = {
       ...currentProcessed,
       pixels: [...currentProcessed.pixels.map(p => ({ ...p }))],
       colorStats: new Map(currentProcessed.colorStats),
       backgroundIndices: new Set(currentProcessed.backgroundIndices)
     };
-
     setHistoryStack(prev => {
       const newStack = [...prev, snapshot];
-      if (newStack.length > MAX_HISTORY) {
-        return newStack.slice(newStack.length - MAX_HISTORY);
-      }
+      if (newStack.length > MAX_HISTORY) return newStack.slice(newStack.length - MAX_HISTORY);
       return newStack;
     });
   }, []);
@@ -118,7 +103,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
 
-  // Load palette
+  // Load palette — set default brush color to H07
   useEffect(() => {
     const loadPalette = async () => {
       try {
@@ -126,7 +111,11 @@ const SHOW_REMOVE_BACKGROUND = false;
         if (!response.ok) throw new Error('Failed to load color palette');
         const data: ColorData[] = await response.json();
         setPalette(data);
-        colorIndexRef.current = createColorIndex(data);
+        const index = createColorIndex(data);
+        colorIndexRef.current = index;
+        // Default brush color: H07
+        const defaultColor = index.get('H07');
+        if (defaultColor) setSelectedColor(defaultColor);
       } catch (err) {
         setError(`Failed to load palette: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
@@ -134,39 +123,17 @@ const SHOW_REMOVE_BACKGROUND = false;
     loadPalette();
   }, []);
 
-  // Process image - debounced to prevent UI freeze
   const processImage = useCallback((
-    canvas: HTMLCanvasElement,
-    gridW: number,
-    gridH: number,
-    merge: number,
-    bgRemoval: boolean,
-    excluded: Set<string>,
-    dither: number
-
+    canvas: HTMLCanvasElement, gridW: number, gridH: number,
+    merge: number, bgRemoval: boolean, excluded: Set<string>, dither: number
   ) => {
     if (palette.length === 0) return;
-
-    if (processingTimeoutRef.current) {
-      cancelAnimationFrame(processingTimeoutRef.current);
-    }
-
+    if (processingTimeoutRef.current) cancelAnimationFrame(processingTimeoutRef.current);
     setIsProcessing(true);
-
     processingTimeoutRef.current = requestAnimationFrame(() => {
       try {
         const resized = resizeImageToGrid(canvas, gridW, gridH);
-        const result = processImageToGrid(
-  resized,
-  gridW,
-  gridH,
-  palette,
-  merge,
-  bgRemoval,
-  excluded,
-  dither,
-  {mode: processingMode, maxColors}
-);
+        const result = processImageToGrid(resized, gridW, gridH, palette, merge, bgRemoval, excluded, dither, {mode: processingMode, maxColors});
         setProcessed(result);
         setBaseProcessed(result);
         setRemovedColors(new Map());
@@ -178,41 +145,22 @@ const SHOW_REMOVE_BACKGROUND = false;
     });
   }, [palette, maxColors, processingMode]);
 
-  // Redraw canvas when visual settings change
   useEffect(() => {
     if (!processed || !canvasRef.current) return;
     try {
-      drawPixelGrid(
-        canvasRef.current, processed.gridWidth, processed.gridHeight,
-        processed.pixels, pixelSize, !isPreview, highlightCode,
-        processed.backgroundIndices, showBackground
-      );
-    } catch (err) {
-      console.error('Draw error:', err);
-    }
+      drawPixelGrid(canvasRef.current, processed.gridWidth, processed.gridHeight, processed.pixels, pixelSize, !isPreview, highlightCode, processed.backgroundIndices, showBackground);
+    } catch (err) { console.error('Draw error:', err); }
   }, [processed, pixelSize, highlightCode, showBackground, isPreview]);
 
   useEffect(() => {
-  if (sourceImage && dims) {
-    processImage(
-      sourceImage,
-      dims.width,
-      dims.height,
-      mergeThreshold,
-      enableBgRemoval,
-      excludedCodes,
-      ditherStrength
-    );
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [maxColors, processingMode]);
+    if (sourceImage && dims) {
+      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxColors, processingMode]);
 
-  // Handle image upload — open crop modal instead of processing directly
   const handleImageUpload = async (file: File) => {
-    setError(null);
-    setExcludedCodes(new Set());
-    setHighlightCode(null);
-    setRemovedColors(new Map());
+    setError(null); setExcludedCodes(new Set()); setHighlightCode(null); setRemovedColors(new Map());
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -227,15 +175,11 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
   };
 
-  // Handle crop confirm — process the cropped canvas
   const handleCropConfirm = async (croppedCanvas: HTMLCanvasElement) => {
-    setCropImageSrc(null);
-    setPendingCropFile(null);
+    setCropImageSrc(null); setPendingCropFile(null);
     try {
-      setIsProcessing(true);
-      pushToHistory(processed);
-      setSourceImage(croppedCanvas);
-      setCanvasSource('image');
+      setIsProcessing(true); pushToHistory(processed);
+      setSourceImage(croppedCanvas); setCanvasSource('image');
       const d = calculateGridDimensions(croppedCanvas, gridSize);
       setDims(d);
       processImage(croppedCanvas, d.width, d.height, mergeThreshold, enableBgRemoval, new Set(), ditherStrength);
@@ -245,278 +189,129 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
   };
 
-  // Handle crop cancel — discard and return to previous state
-  const handleCropCancel = () => {
-    setCropImageSrc(null);
-    setPendingCropFile(null);
-  };
+  const handleCropCancel = () => { setCropImageSrc(null); setPendingCropFile(null); };
 
-  // Re-generate from current source image
   const handleRegenerateFromImage = () => {
     if (!sourceImage) return;
-    pushToHistory(processed);
-    setCanvasSource('image');
+    pushToHistory(processed); setCanvasSource('image');
     const d = calculateGridDimensions(sourceImage, gridSize);
     setDims(d);
     processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
     toast.success('Re-generated from image');
   };
 
-  // Handle create empty canvas
   const handleCreateCanvas = () => {
-    setError(null);
-    setExcludedCodes(new Set());
-    setHighlightCode(null);
-    setRemovedColors(new Map());
-    pushToHistory(processed);
-    setCanvasSource('manual');
-
-    const width = gridSize;
-    const height = gridSize;
-    const d = { width, height };
-    setDims(d);
-
-    const emptyPixels: PixelGridCell[] = Array.from({ length: width * height }, () => ({
-      code: '',
-      hex: 'transparent',
-      rgb: { r: 0, g: 0, b: 0 },
-      originalRgb: { r: 0, g: 0, b: 0 },
-      isBackground: false
+    setError(null); setExcludedCodes(new Set()); setHighlightCode(null); setRemovedColors(new Map());
+    pushToHistory(processed); setCanvasSource('manual');
+    const d = { width: gridSize, height: gridSize }; setDims(d);
+    const emptyPixels: PixelGridCell[] = Array.from({ length: gridSize * gridSize }, () => ({
+      code: '', hex: 'transparent', rgb: { r: 0, g: 0, b: 0 }, originalRgb: { r: 0, g: 0, b: 0 }, isBackground: false
     }));
-
-    const result: ProcessedImage = {
-      gridWidth: width,
-      gridHeight: height,
-      pixels: emptyPixels,
-      colorStats: new Map(),
-      backgroundCode: null,
-      backgroundIndices: new Set()
-    };
-
-    setProcessed(result);
-    setBaseProcessed(result);
-    toast.success(`Created ${width}x${height} empty canvas`);
+    const result: ProcessedImage = { gridWidth: gridSize, gridHeight: gridSize, pixels: emptyPixels, colorStats: new Map(), backgroundCode: null, backgroundIndices: new Set() };
+    setProcessed(result); setBaseProcessed(result);
+    toast.success(`Created ${gridSize}x${gridSize} empty canvas`);
   };
 
-  // Resize grid while preserving content (top-left anchor)
   const resizeGridPreserveContent = (oldProcessed: ProcessedImage, newWidth: number, newHeight: number): ProcessedImage => {
     const newPixels: PixelGridCell[] = Array.from({ length: newWidth * newHeight }, (_, i) => {
-      const x = i % newWidth;
-      const y = Math.floor(i / newWidth);
-      
-      if (x < oldProcessed.gridWidth && y < oldProcessed.gridHeight) {
-        return oldProcessed.pixels[y * oldProcessed.gridWidth + x];
-      }
-      
-      return {
-        code: '',
-        hex: 'transparent',
-        rgb: { r: 0, g: 0, b: 0 },
-        originalRgb: { r: 0, g: 0, b: 0 },
-        isBackground: false
-      };
+      const x = i % newWidth; const y = Math.floor(i / newWidth);
+      if (x < oldProcessed.gridWidth && y < oldProcessed.gridHeight) return oldProcessed.pixels[y * oldProcessed.gridWidth + x];
+      return { code: '', hex: 'transparent', rgb: { r: 0, g: 0, b: 0 }, originalRgb: { r: 0, g: 0, b: 0 }, isBackground: false };
     });
-
     const newStats = new Map<string, number>();
-    newPixels.forEach((p) => {
-      if (p.code && p.code !== 'BG' && p.hex !== 'transparent') {
-        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
-      }
-    });
-
-    return {
-      ...oldProcessed,
-      gridWidth: newWidth,
-      gridHeight: newHeight,
-      pixels: newPixels,
-      colorStats: newStats,
-      backgroundIndices: new Set() // Reset background indices for manual mode
-    };
+    newPixels.forEach((p) => { if (p.code && p.code !== 'BG' && p.hex !== 'transparent') newStats.set(p.code, (newStats.get(p.code) || 0) + 1); });
+    return { ...oldProcessed, gridWidth: newWidth, gridHeight: newHeight, pixels: newPixels, colorStats: newStats, backgroundIndices: new Set() };
   };
 
-  // Handle grid size slider change
   const handleGridSizeChange = (value: number[]) => {
-    const size = value[0];
-    setGridSize(size);
-    
+    const size = value[0]; setGridSize(size);
     if (canvasSource === 'image' && sourceImage) {
       pushToHistory(processed);
-      const d = calculateGridDimensions(sourceImage, size);
-      setDims(d);
+      const d = calculateGridDimensions(sourceImage, size); setDims(d);
       processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
     } else if (canvasSource === 'manual' && processed) {
       pushToHistory(processed);
-      // For manual mode, we maintain square aspect ratio for simplicity or follow current dims
-      // Here we'll keep it square as per "Create Canvas" logic
-      const newWidth = size;
-      const newHeight = size;
-      const d = { width: newWidth, height: newHeight };
-      setDims(d);
-      
-      const resized = resizeGridPreserveContent(processed, newWidth, newHeight);
-      setProcessed(resized);
-      setBaseProcessed(resized);
+      setDims({ width: size, height: size });
+      const resized = resizeGridPreserveContent(processed, size, size);
+      setProcessed(resized); setBaseProcessed(resized);
     }
   };
 
-  // Handle merge threshold change
   const handleMergeChange = (value: number[]) => {
-    const merge = value[0];
-    setMergeThreshold(merge);
-    if (sourceImage && dims) {
-      pushToHistory(processed);
-      processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength);
-    }
+    const merge = value[0]; setMergeThreshold(merge);
+    if (sourceImage && dims) { pushToHistory(processed); processImage(sourceImage, dims.width, dims.height, merge, enableBgRemoval, excludedCodes, ditherStrength); }
   };
 
-  // Handle merge dither change
   const handleDitherChange = (value: number[]) => {
-  const d = value[0];
-  setDitherStrength(d);
-  if (sourceImage && dims) {
-    pushToHistory(processed);
-    processImage(
-      sourceImage,
-      dims.width,
-      dims.height,
-      mergeThreshold,
-      enableBgRemoval,
-      excludedCodes,
-      d
-    );
-  }
-};
+    const d = value[0]; setDitherStrength(d);
+    if (sourceImage && dims) { pushToHistory(processed); processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, d); }
+  };
 
-  // HandleModeChange
   const handleModeChange = (value: string) => {
-  const next = value as ProcessingMode;
-  setProcessingMode(next);
+    const next = value as ProcessingMode; setProcessingMode(next);
+    if (sourceImage && dims) { pushToHistory(processed); processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength); }
+  };
 
-  if (sourceImage && dims) {
-    pushToHistory(processed);
-    processImage(
-      sourceImage,
-      dims.width,
-      dims.height,
-      mergeThreshold,
-      enableBgRemoval,
-      excludedCodes,
-      ditherStrength
-    );
-  }
-};
-
-  // Handle background removal toggle
   const handleBgToggle = (enabled: boolean) => {
     setEnableBgRemoval(enabled);
-    if (sourceImage && dims) {
-      pushToHistory(processed);
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength);
-    }
+    if (sourceImage && dims) { pushToHistory(processed); processImage(sourceImage, dims.width, dims.height, mergeThreshold, enabled, excludedCodes, ditherStrength); }
   };
 
-  // Handle color exclusion (right-click in stats)
   const handleExcludeColor = (code: string) => {
     const newExcluded = new Set(excludedCodes);
-    if (newExcluded.has(code)) {
-      newExcluded.delete(code);
-    } else {
-      newExcluded.add(code);
-    }
+    if (newExcluded.has(code)) newExcluded.delete(code); else newExcluded.add(code);
     setExcludedCodes(newExcluded);
-    if (sourceImage && dims) {
-      pushToHistory(processed);
-      processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength);
-    }
+    if (sourceImage && dims) { pushToHistory(processed); processImage(sourceImage, dims.width, dims.height, mergeThreshold, enableBgRemoval, newExcluded, ditherStrength); }
   };
 
-  // === NOISE COLOR REMOVAL ===
   const handleRemoveNoiseColor = (code: string, replacementCode: string) => {
-    if (!processed) return;
-    pushToHistory(processed);
-
+    if (!processed) return; pushToHistory(processed);
     const newPixels = processed.pixels.map((pixel) => {
       if (pixel.code === code && !pixel.isBackground) {
         const replacement = colorIndexRef.current.get(replacementCode);
-        if (replacement) {
-          return { ...pixel, code: replacement.code, hex: replacement.hex, rgb: replacement.rgb };
-        }
+        if (replacement) return { ...pixel, code: replacement.code, hex: replacement.hex, rgb: replacement.rgb };
       }
       return pixel;
     });
-
     const newStats = new Map<string, number>();
-    newPixels.forEach((p, i) => {
-      if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
-        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
-      }
-    });
-
-    const newRemoved = new Map(removedColors);
-    newRemoved.set(code, replacementCode);
-    setRemovedColors(newRemoved);
-    setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
+    newPixels.forEach((p, i) => { if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') newStats.set(p.code, (newStats.get(p.code) || 0) + 1); });
+    const newRemoved = new Map(removedColors); newRemoved.set(code, replacementCode);
+    setRemovedColors(newRemoved); setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
   };
 
   const handleRestoreColor = (code: string) => {
-    if (!baseProcessed || !processed) return;
-    pushToHistory(processed);
-
+    if (!baseProcessed || !processed) return; pushToHistory(processed);
     const newPixels = processed.pixels.map((pixel, i) => {
       const basePixel = baseProcessed.pixels[i];
-      if (basePixel && basePixel.code === code) {
-        return { ...basePixel };
-      }
+      if (basePixel && basePixel.code === code) return { ...basePixel };
       return pixel;
     });
-
     const newStats = new Map<string, number>();
-    newPixels.forEach((p, i) => {
-      if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
-        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
-      }
-    });
-
-    const newRemoved = new Map(removedColors);
-    newRemoved.delete(code);
-    setRemovedColors(newRemoved);
-    setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
+    newPixels.forEach((p, i) => { if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') newStats.set(p.code, (newStats.get(p.code) || 0) + 1); });
+    const newRemoved = new Map(removedColors); newRemoved.delete(code);
+    setRemovedColors(newRemoved); setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
   };
 
   const handleRestoreAll = () => {
-    if (!baseProcessed) return;
-    pushToHistory(processed);
-    setProcessed({ ...baseProcessed });
-    setRemovedColors(new Map());
+    if (!baseProcessed) return; pushToHistory(processed);
+    setProcessed({ ...baseProcessed }); setRemovedColors(new Map());
   };
 
   const handleUndo = useCallback(() => {
     if (historyStack.length === 0) return;
-
     const lastSnapshot = historyStack[historyStack.length - 1];
     setHistoryStack(prev => prev.slice(0, -1));
-    
-    // Update grid and dimensions
-    setProcessed(lastSnapshot);
-    setBaseProcessed(lastSnapshot);
+    setProcessed(lastSnapshot); setBaseProcessed(lastSnapshot);
     setDims({ width: lastSnapshot.gridWidth, height: lastSnapshot.gridHeight });
     setGridSize(lastSnapshot.gridWidth);
-    
     toast.success('Undo successful');
   }, [historyStack]);
 
-  // Bead Breakdown logic
   const breakdownText = useMemo(() => {
     if (!processed) return '';
-    
-    // Filter out excluded colors, BG, and empty codes
     const entries = Array.from(processed.colorStats.entries())
-      .filter(([code]) => {
-        const color = colorIndexRef.current.get(code);
-        return code && code !== 'BG' && !excludedCodes.has(code) && color && color.hex !== 'transparent';
-      })
-      .sort((a, b) => a[0].localeCompare(b[0])); // Sort alphabetically by code
-
+      .filter(([code]) => { const color = colorIndexRef.current.get(code); return code && code !== 'BG' && !excludedCodes.has(code) && color && color.hex !== 'transparent'; })
+      .sort((a, b) => a[0].localeCompare(b[0]));
     return entries.map(([code, count]) => `${code}:${count}`).join('; ');
   }, [processed, excludedCodes]);
 
@@ -524,72 +319,36 @@ const SHOW_REMOVE_BACKGROUND = false;
   const handleCopyBreakdown = () => {
     if (!breakdownText) return;
     navigator.clipboard.writeText(breakdownText).then(() => {
-      setCopied(true);
-      toast.success('Copied breakdown to clipboard!');
+      setCopied(true); toast.success('Copied breakdown to clipboard!');
       setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-      toast.error('Failed to copy. Please select and copy manually.');
-    });
+    }).catch(() => toast.error('Failed to copy. Please select and copy manually.'));
   };
 
-  // Handle highlight color click
-  const handleHighlightColor = (code: string | null) => {
-    setHighlightCode(prev => prev === code ? null : code);
-  };
+  const handleHighlightColor = (code: string | null) => setHighlightCode(prev => prev === code ? null : code);
 
-  // Canvas mouse interaction
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processed || !canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = canvasRef.current.width / rect.width;
-    const scaleY = canvasRef.current.height / rect.height;
-    const x = Math.floor((e.clientX - rect.left) * scaleX / pixelSize);
-    const y = Math.floor((e.clientY - rect.top) * scaleY / pixelSize);
-
+    const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
+    const y = Math.floor((e.clientY - rect.top) * (canvasRef.current.height / rect.height) / pixelSize);
     if (x >= 0 && x < processed.gridWidth && y >= 0 && y < processed.gridHeight) {
       const pixel = getPixelAt(processed.pixels, processed.gridWidth, x, y);
       if (pixel) setHoveredPixel({ x, y, pixel });
-
-      // Continuous drawing
-      if (isDrawing && (activeTool === 'brush' || activeTool === 'eraser')) {
-        handleCanvasAction(x, y);
-      }
-    } else {
-      setHoveredPixel(null);
-    }
+      if (isDrawing && (activeTool === 'brush' || activeTool === 'eraser')) handleCanvasAction(x, y);
+    } else { setHoveredPixel(null); }
   };
 
-  function applyBrush(
-    pixels: PixelGridCell[],
-    gridW: number,
-    gridH: number,
-    x: number,
-    y: number,
-    size: number,
-    color: ColorData | null
-  ) {
+  function applyBrush(pixels: PixelGridCell[], gridW: number, gridH: number, x: number, y: number, size: number, color: ColorData | null) {
     const half = Math.floor(size / 2);
     let out = pixels;
-
     for (let dy = -half; dy <= half; dy++) {
       for (let dx = -half; dx <= half; dx++) {
-        const xx = x + dx;
-        const yy = y + dy;
+        const xx = x + dx; const yy = y + dy;
         if (xx < 0 || yy < 0 || xx >= gridW || yy >= gridH) continue;
-        if (color) {
-          out = setPixelAt(out, gridW, xx, yy, color);
-        } else {
-          // Eraser: set to transparent/background
-          const idx = yy * gridW + xx;
+        if (color) { out = setPixelAt(out, gridW, xx, yy, color); }
+        else {
           const newPixels = [...out];
-          newPixels[idx] = { 
-            code: 'BG', 
-            hex: 'transparent', 
-            rgb: { r: 0, g: 0, b: 0 }, 
-            originalRgb: { r: 0, g: 0, b: 0 },
-            isBackground: true 
-          };
+          newPixels[yy * gridW + xx] = { code: 'BG', hex: 'transparent', rgb: { r: 0, g: 0, b: 0 }, originalRgb: { r: 0, g: 0, b: 0 }, isBackground: true };
           out = newPixels;
         }
       }
@@ -599,484 +358,235 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const handleCanvasAction = useCallback((x: number, y: number) => {
     if (!processed || !dims) return;
-
     if (activeTool === 'eyedropper') {
       const pixel = getPixelAt(processed.pixels, processed.gridWidth, x, y);
-      if (pixel) {
-        const color = colorIndexRef.current.get(pixel.code);
-        if (color) {
-          setSelectedColor(color);
-          toast(`Picked: ${color.code}`);
-        }
-      }
+      if (pixel) { const color = colorIndexRef.current.get(pixel.code); if (color) { setSelectedColor(color); toast(`Picked: ${color.code}`); } }
     } else if (activeTool === 'brush' && selectedColor) {
-      const newPixels = applyBrush(
-        processed.pixels,
-        processed.gridWidth,
-        processed.gridHeight,
-        x,
-        y,
-        brushSize,
-        selectedColor
-      );
+      const newPixels = applyBrush(processed.pixels, processed.gridWidth, processed.gridHeight, x, y, brushSize, selectedColor);
       const newStats = new Map<string, number>();
-      newPixels.forEach((p, i) => {
-        if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
-          newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
-        }
-      });
+      newPixels.forEach((p, i) => { if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') newStats.set(p.code, (newStats.get(p.code) || 0) + 1); });
       setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     } else if (activeTool === 'eraser') {
-      const newPixels = applyBrush(
-        processed.pixels,
-        processed.gridWidth,
-        processed.gridHeight,
-        x,
-        y,
-        brushSize,
-        null // Pass null for eraser to set transparent
-      );
+      const newPixels = applyBrush(processed.pixels, processed.gridWidth, processed.gridHeight, x, y, brushSize, null);
       const newStats = new Map<string, number>();
-      newPixels.forEach((p, i) => {
-        if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
-          newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
-        }
-      });
+      newPixels.forEach((p, i) => { if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') newStats.set(p.code, (newStats.get(p.code) || 0) + 1); });
       setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     }
   }, [processed, dims, activeTool, selectedColor, brushSize, palette]);
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processed || !canvasRef.current) return;
-    
-    // Push to history before starting a new drawing stroke
-    if (activeTool === 'brush' || activeTool === 'eraser') {
-      pushToHistory(processed);
-    }
-    
+    if (activeTool === 'brush' || activeTool === 'eraser') pushToHistory(processed);
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = canvasRef.current.width / rect.width;
-    const scaleY = canvasRef.current.height / rect.height;
-    const x = Math.floor((e.clientX - rect.left) * scaleX / pixelSize);
-    const y = Math.floor((e.clientY - rect.top) * scaleY / pixelSize);
-
-    if (x >= 0 && y >= 0 && x < processed.gridWidth && y < processed.gridHeight) {
-      handleCanvasAction(x, y);
-    }
+    const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
+    const y = Math.floor((e.clientY - rect.top) * (canvasRef.current.height / rect.height) / pixelSize);
+    if (x >= 0 && y >= 0 && x < processed.gridWidth && y < processed.gridHeight) handleCanvasAction(x, y);
   };
 
-  const handleCanvasMouseUp = () => {
-    setIsDrawing(false);
-  };
-
+  const handleCanvasMouseUp = () => setIsDrawing(false);
   const handleCanvasMouseLeave = () => setHoveredPixel(null);
 
-  // Zoom controls
-  const zoomIn = () => setPixelSize(prev => Math.min(100, prev + 2));
-  const zoomOut = () => setPixelSize(prev => Math.max(4, prev - 2));
-
-  // Handle pinch-to-zoom for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      setIsPinching(true);
-      const dist = Math.hypot(
-        e.touches[0].pageX - e.touches[1].pageX,
-        e.touches[0].pageY - e.touches[1].pageY
-      );
-      lastPinchDistRef.current = dist;
-    }
+    if (e.touches.length === 2) { setIsPinching(true); lastPinchDistRef.current = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     if (isPinching && e.touches.length === 2 && lastPinchDistRef.current !== null) {
-      const dist = Math.hypot(
-        e.touches[0].pageX - e.touches[1].pageX,
-        e.touches[0].pageY - e.touches[1].pageY
-      );
+      const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
       const delta = dist - lastPinchDistRef.current;
-      
-      if (Math.abs(delta) > 2) {
-        setPixelSize(prev => {
-          const next = prev + (delta > 0 ? 1 : -1);
-          return Math.max(4, Math.min(100, next));
-        });
-        lastPinchDistRef.current = dist;
-      }
+      if (Math.abs(delta) > 2) { setPixelSize(prev => Math.max(4, Math.min(100, prev + (delta > 0 ? 1 : -1)))); lastPinchDistRef.current = dist; }
     }
   };
+  const handleTouchEnd = () => { setIsPinching(false); lastPinchDistRef.current = null; };
 
-  const handleTouchEnd = () => {
-    setIsPinching(false);
-    lastPinchDistRef.current = null;
-  };
-
-  // Keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault();
-        handleUndo();
-      }
-    };
+    const handleKeyDown = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); } };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo]);
 
-  // Reset processing
   const handleReset = () => {
     if (confirm("This will clear the entire canvas and cannot be undone. Continue?")) {
       if (sourceImage && dims) {
-        pushToHistory(processed);
-        setExcludedCodes(new Set());
-        setHighlightCode(null);
-        setMergeThreshold(1);
-        setEnableBgRemoval(false);
-        setRemovedColors(new Map());
+        pushToHistory(processed); setExcludedCodes(new Set()); setHighlightCode(null);
+        setMergeThreshold(1); setEnableBgRemoval(false); setRemovedColors(new Map());
         processImage(sourceImage, dims.width, dims.height, 1, false, new Set(), ditherStrength);
-        setHistoryStack([]); // Clear history stack on reset as requested
+        setHistoryStack([]);
       }
-    }
-  };
-
-  // Export handlers
-  const handleExportPNG = () => {
-    if (!processed || !dims) return;
-    try {
-      const exportCanvas = document.createElement('canvas');
-      // Increased pixelSize from 15 to 30 for higher resolution preview export
-      drawPixelGrid(exportCanvas, dims.width, dims.height, processed.pixels, 30, true, null, processed.backgroundIndices, showBackground);
-      exportGridAsPNG(exportCanvas, `perler-${dims.width}x${dims.height}.png`);
-      toast.success('Preview exported');
-    } catch (err) {
-      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
   const handleExportPatternPNG = () => {
     if (!processed || !dims) return;
     try {
-      exportFullPatternPNG(
-        dims.width,
-        dims.height,
-        processed.pixels,
-        processed.colorStats,
-        colorIndexRef.current,
-        processed.backgroundIndices,
-        `perler-pattern-${dims.width}x${dims.height}.png`,
-        { title: 'Bead Pattern' }
-      );
+      exportFullPatternPNG(dims.width, dims.height, processed.pixels, processed.colorStats, colorIndexRef.current, processed.backgroundIndices, `perler-pattern-${dims.width}x${dims.height}.png`, { title: 'Bead Pattern' });
       toast.success('Exporting pattern...');
-    } catch (err) {
-      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
+    } catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
   };
 
   const handleExportCSV = () => {
     if (!processed || !dims) return;
-    try {
-      exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`);
-      toast.success('CSV exported');
-    } catch (err) {
-      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
+    try { exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`); toast.success('CSV exported'); }
+    catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
   };
 
-  // Calcu  // Calculate totals
   const filteredColorStats = useMemo(() => {
     if (!processed) return new Map<string, number>();
-    return new Map(
-      Array.from(processed.colorStats.entries())
-        .filter(([code]) => code && code !== 'BG' && !excludedCodes.has(code))
-    );
+    return new Map(Array.from(processed.colorStats.entries()).filter(([code]) => code && code !== 'BG' && !excludedCodes.has(code)));
   }, [processed, excludedCodes]);
 
-  const totalBeads = useMemo(() => {
-    return Array.from(filteredColorStats.values()).reduce((a, b) => a + b, 0);
-  }, [filteredColorStats]);
-
+  const totalBeads = useMemo(() => Array.from(filteredColorStats.values()).reduce((a, b) => a + b, 0), [filteredColorStats]);
   const totalColors = filteredColorStats.size;
+
+  // Shared palette popup content
+  const PalettePopupContent = () => (
+    <>
+      <div className="flex items-center justify-between mb-3 border-b pb-2">
+        <h4 className="text-sm font-semibold text-[#452F60]">Artkal 221 Palette</h4>
+        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
+      </div>
+      {Array.from(new Set(palette.map(c => c.code[0]))).sort().map(family => (
+        <div key={family} className="mb-4">
+          <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-2">
+            <span className="w-4 h-[1px] bg-border"></span>Family {family}
+          </h5>
+          <div className="grid grid-cols-8 gap-1.5">
+            {palette.filter(c => c.code.startsWith(family)).map(color => {
+              const isH01 = color.code === 'H01';
+              return (
+                <Tooltip key={color.code}>
+                  <TooltipTrigger asChild>
+                    <button
+                      className={`w-7 h-7 rounded-sm border transition-transform hover:scale-110 relative overflow-hidden ${selectedColor?.code === color.code ? 'ring-2 ring-purple-500 ring-offset-1 border-transparent' : 'border-gray-200'}`}
+                      style={{ backgroundColor: color.hex }}
+                      onClick={() => { setSelectedColor(color); setActiveTool('brush'); setPaletteOpen(false); toast(`Selected: ${color.code}`); }}
+                    >
+                      {isH01 && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
+                          <div className="w-full h-[1px] bg-red-500 -rotate-45 absolute"></div>
+                        </div>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <div className="text-[10px]"><p className="font-bold">{color.code}</p><p className="opacity-80">{color.hex}</p></div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </>
+  );
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden relative">
-      {/* Crop Modal */}
-      {cropImageSrc && (
-        <CropModal
-          imageSrc={cropImageSrc}
-          onConfirm={handleCropConfirm}
-          onCancel={handleCropCancel}
-        />
+      {cropImageSrc && <CropModal imageSrc={cropImageSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
+
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-opacity duration-300" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-opacity duration-300" 
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold" style={{ color: '#452F60' }}>
-            Yaya’s Creative Studio
-          </h1>
+          <h1 className="text-xl font-semibold" style={{ color: '#452F60' }}>Yaya's Creative Studio</h1>
           <p className="text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
         </div>
         <div className="flex items-center gap-4">
-  {processed && (
-    <>
-      {/* ===== Total Info ===== */}
-      <div className="text-xs text-muted-foreground flex items-center gap-3">
-        <span>
-          Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads
-        </span>
-        <span>
-          Colors: <span className="font-semibold">{totalColors}</span>
-        </span>
-      </div>
-
-      {/* ===== Add to Cart Button ===== */}
-      <ShopifyIntegration colorStats={filteredColorStats} />
-
-      {/* ===== Export Button ===== */}
-      <Button
-        onClick={handleExportPatternPNG}
-        size="sm"
-        variant="outline"
-        className="text-xs gap-1 border-[#9867DA] text-[#9867DA] hover:bg-purple-50 rounded-full px-4"
-      >
-        <Download className="w-3 h-3" /> Export Pattern
-      </Button>
-    </>
-  )}
-</div>
+          {processed && (
+            <>
+              <div className="text-xs text-muted-foreground flex items-center gap-3">
+                <span>Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads</span>
+                <span>Colors: <span className="font-semibold">{totalColors}</span></span>
+              </div>
+              <ShopifyIntegration colorStats={filteredColorStats} />
+              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-xs gap-1 border-[#9867DA] text-[#9867DA] hover:bg-purple-50 rounded-full px-4">
+                <Download className="w-3 h-3" /> Export Pattern
+              </Button>
+            </>
+          )}
+        </div>
       </header>
 
       {error && (
         <div className="mx-4 mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex-shrink-0">
-          {error}
-          <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
+          {error}<button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
         </div>
       )}
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Canvas Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Toolbar */}
+        {/* Canvas Area — pb-[108px] on mobile reserves space for bottom toolbar */}
+        <div className="flex-1 flex flex-col overflow-hidden pb-[108px] lg:pb-0">
+
+          {/* Desktop Toolbar — hidden on mobile */}
           {processed && (
-            <div className="border-b border-border px-4 py-2 flex items-center gap-3 flex-shrink-0 bg-gray-50">
-              {/* Preview Toggle */}
+            <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-gray-50">
               <div className="flex items-center gap-2 border-r border-border pr-3">
                 <span className="text-xs font-medium text-muted-foreground">Preview</span>
-                <Switch
-                  checked={isPreview}
-                  onCheckedChange={setIsPreview}
-                />
+                <Switch checked={isPreview} onCheckedChange={setIsPreview} />
               </div>
-
-              {/* Edit tools */}
               <div className="flex items-center gap-1 border-r border-border pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant={activeTool === 'brush' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')}>
-                      <Paintbrush className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Brush Tool</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant={activeTool === 'eraser' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')}>
-                      <Eraser className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Eraser Tool</TooltipContent>
-                </Tooltip>
-	                <Tooltip>
-	                  <TooltipTrigger asChild>
-	                    <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}>
-	                      <Pipette className="w-4 h-4" />
-	                    </Button>
-	                  </TooltipTrigger>
-	                  <TooltipContent>Eyedropper</TooltipContent>
-	                </Tooltip>
-		                <Tooltip>
-		                  <TooltipTrigger asChild>
-		                    <Button 
-		                      size="sm" 
-		                      variant="ghost" 
-		                      className="h-8 w-8 p-0" 
-		                      onClick={handleUndo}
-		                      disabled={historyStack.length === 0}
-		                    >
-		                      <Undo2 className="w-4 h-4" />
-		                    </Button>
-		                  </TooltipTrigger>
-		                  <TooltipContent>Undo (Step Back)</TooltipContent>
-		                </Tooltip>
-	                <div className="relative">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant={paletteOpen ? 'default' : 'ghost'}
-                        className="h-8 w-8 p-0"
-                        onClick={() => setPaletteOpen((v: boolean) => !v)}
-                      >
-                        <Palette className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Full Palette</TooltipContent>
-                  </Tooltip>
-
+                <Tooltip><TooltipTrigger asChild>
+                  <Button size="sm" variant={activeTool === 'brush' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')}><Paintbrush className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Brush Tool</TooltipContent></Tooltip>
+                <Tooltip><TooltipTrigger asChild>
+                  <Button size="sm" variant={activeTool === 'eraser' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')}><Eraser className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Eraser Tool</TooltipContent></Tooltip>
+                <Tooltip><TooltipTrigger asChild>
+                  <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}><Pipette className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Eyedropper</TooltipContent></Tooltip>
+                <Tooltip><TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleUndo} disabled={historyStack.length === 0}><Undo2 className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Undo (Step Back)</TooltipContent></Tooltip>
+                <div className="relative">
+                  <Tooltip><TooltipTrigger asChild>
+                    <Button size="sm" variant={paletteOpen ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setPaletteOpen((v: boolean) => !v)}><Palette className="w-4 h-4" /></Button>
+                  </TooltipTrigger><TooltipContent>Full Palette</TooltipContent></Tooltip>
                   {paletteOpen && (
-                    <div className="absolute top-full left-0 mt-2 bg-white border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
-                      <div className="flex items-center justify-between mb-3 border-b pb-2">
-                        <h4 className="text-sm font-semibold text-[#452F60]">Artkal 221 Palette</h4>
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
-                      </div>
-                      
-                      {/* Group colors by their first letter (Family) */}
-                      {Array.from(new Set(palette.map(c => c.code[0]))).sort().map(family => (
-                        <div key={family} className="mb-4">
-                          <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-2">
-                            <span className="w-4 h-[1px] bg-border"></span>
-                            Family {family}
-                          </h5>
-                          <div className="grid grid-cols-8 gap-1.5">
-                            {palette
-                              .filter(c => c.code.startsWith(family))
-                              .map(color => {
-                                const isH01 = color.code === 'H01';
-                                return (
-                                  <Tooltip key={color.code}>
-                                    <TooltipTrigger asChild>
-                                      <button
-                                        className={`w-7 h-7 rounded-sm border transition-transform hover:scale-110 relative overflow-hidden ${
-                                          selectedColor?.code === color.code ? 'ring-2 ring-purple-500 ring-offset-1 border-transparent' : 'border-gray-200'
-                                        }`}
-                                        style={{ backgroundColor: color.hex }}
-                                        onClick={() => {
-                                          setSelectedColor(color);
-                                          setActiveTool('brush');
-                                          setPaletteOpen(false);
-                                          toast(`Selected: ${color.code}`);
-                                        }}
-                                      >
-                                        {isH01 && (
-                                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div className="w-full h-[1px] bg-red-500 rotate-45 absolute"></div>
-                                            <div className="w-full h-[1px] bg-red-500 -rotate-45 absolute"></div>
-                                          </div>
-                                        )}
-                                      </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top">
-                                      <div className="text-[10px]">
-                                        <p className="font-bold">{color.code}</p>
-                                        <p className="opacity-80">{color.hex}</p>
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      ))}
+                    <div className="absolute top-full left-0  w-96 mt-2 bg-white border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
+                      <PalettePopupContent />
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Brush Size (Buttons) */}
               <div className="flex items-center gap-1 border-l border-border pl-3">
                 <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Brush Size</span>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="h-7 w-7 p-0" 
-                  onClick={() => setBrushSize(prev => Math.max(1, prev - 1))}
-                  disabled={brushSize <= 1}
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </Button>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} disabled={brushSize <= 1}><Minus className="w-3.5 h-3.5" /></Button>
                 <span className="text-xs font-mono text-muted-foreground w-5 text-center">{brushSize}</span>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="h-7 w-7 p-0" 
-                  onClick={() => setBrushSize(prev => Math.min(30, prev + 1))}
-                  disabled={brushSize >= 30}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </Button>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30}><Plus className="w-3.5 h-3.5" /></Button>
               </div>
-
-              {/* Selected color indicator */}
               {selectedColor && (
                 <div className="flex items-center gap-1 border-x border-border px-3">
                   <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                   <span className="text-xs font-medium">{selectedColor.code}</span>
                 </div>
               )}
-
-              {/* Zoom (Slider) */}
               <div className="flex items-center gap-2 border-r border-border pr-3">
                 <span className="text-xs text-muted-foreground whitespace-nowrap">Zoom</span>
                 <div className="w-24 lg:w-32">
-                  <Slider
-                    value={[pixelSize]}
-                    onValueChange={(v) => setPixelSize(v[0])}
-                    min={4}
-                    max={25}
-                    step={2}
-                  />
+                  <Slider value={[pixelSize]} onValueChange={(v) => setPixelSize(v[0])} min={4} max={30} step={2} />
                 </div>
                 <span className="text-xs font-mono text-muted-foreground w-8 text-center">{pixelSize}px</span>
               </div>
-
-              {/* Background toggle */}
               <div className="flex items-center gap-1 border-r border-border pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setShowBackground(!showBackground)}>
-                      {showBackground ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{showBackground ? 'Hide' : 'Show'} Background</TooltipContent>
-                </Tooltip>
+                <Tooltip><TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setShowBackground(!showBackground)}>
+                    {showBackground ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </Button>
+                </TooltipTrigger><TooltipContent>{showBackground ? 'Hide' : 'Show'} Background</TooltipContent></Tooltip>
               </div>
-
-	              {/* System Actions */}
-	              <div className="flex items-center gap-1 ml-auto border-l border-border pl-3">
-	                <Tooltip>
-	                  <TooltipTrigger asChild>
-	                    <Button 
-	                      size="sm" 
-	                      variant="ghost" 
-	                      className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" 
-	                      onClick={handleReset}
-	                    >
-	                      <Trash2 className="w-4 h-4" />
-	                    </Button>
-	                  </TooltipTrigger>
-	                  <TooltipContent>Reset Canvas (Clear All)</TooltipContent>
-	                </Tooltip>
-	              </div>
-
-              {/* Sidebar Toggle (Mobile/Small screens) */}
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className={`h-8 w-8 p-0 lg:hidden ${isSidebarOpen ? 'text-primary bg-primary/10' : ''}`} 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              >
+              <div className="flex items-center gap-1 ml-auto border-l border-border pl-3">
+                <Tooltip><TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={handleReset}><Trash2 className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Reset Canvas (Clear All)</TooltipContent></Tooltip>
+              </div>
+              <Button size="sm" variant="ghost" className={`h-8 w-8 p-0 lg:hidden ${isSidebarOpen ? 'text-primary bg-primary/10' : ''}`} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <SlidersHorizontal className="w-4 h-4" />}
               </Button>
-
-              {/* Pixel info on hover */}
               {hoveredPixel && (
                 <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
                   <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: hoveredPixel.pixel.hex }} />
@@ -1092,49 +602,34 @@ const SHOW_REMOVE_BACKGROUND = false;
           <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-gray-50">
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Processing...
-                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" />Processing...</div>
               </div>
             )}
             {(sourceImage || processed) && processed ? (
               <canvas
                 ref={canvasRef}
                 className="border border-border shadow-sm bg-white"
-                style={{
-                  imageRendering: 'pixelated',
-                  cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default',
-                }}
+                style={{ imageRendering: 'pixelated', cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseDown={handleCanvasMouseDown}
                 onMouseUp={handleCanvasMouseUp}
-                onMouseLeave={() => {
-                  handleCanvasMouseLeave();
-                  handleCanvasMouseUp();
-                }}
+                onMouseLeave={() => { handleCanvasMouseLeave(); handleCanvasMouseUp(); }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               />
             ) : (
-              
               <HeroIntro
-  onUploadClick={() => {
-    const panel = document.querySelector('[data-upload-panel="1"]') as HTMLElement | null;
-    panel?.scrollIntoView({ behavior: "smooth", block: "start" });
-
-    // 等滚动/渲染一帧，再触发文件选择
-    requestAnimationFrame(() => {
-      const fileInput =
-  (panel?.querySelector('input[type="file"]') as HTMLInputElement | null) ??
-  (document.querySelector('input[type="file"]') as HTMLInputElement | null);
-
-fileInput?.click();
-    });
-  }}
-  shopUrl="https://yayascreativestudio.com/"
-/>
+                onUploadClick={() => {
+                  const panel = document.querySelector('[data-upload-panel="1"]') as HTMLElement | null;
+                  panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  requestAnimationFrame(() => {
+                    const fileInput = (panel?.querySelector('input[type="file"]') as HTMLInputElement | null) ?? (document.querySelector('input[type="file"]') as HTMLInputElement | null);
+                    fileInput?.click();
+                  });
+                }}
+                shopUrl="https://yayascreativestudio.com/"
+              />
             )}
           </div>
 
@@ -1148,235 +643,108 @@ fileInput?.click();
         </div>
 
         {/* Right: Controls Panel */}
-        <div className={`
-          ${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} 
-          fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0
-          border-l border-border flex flex-col overflow-y-auto bg-white 
-          flex-shrink-0 transition-all duration-300 ease-in-out group
-        `}>
-          {/* Desktop Toggle Button (Floating on the edge) */}
+        <div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0 transition-all duration-300 ease-in-out group`}>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`
-              absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 
-              bg-white border border-r-0 border-border rounded-l-md p-1 shadow-sm 
-              transition-opacity duration-200
-              ${isSidebarOpen ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}
-            `}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 bg-white border border-r-0 border-border rounded-l-md p-1 shadow-sm transition-opacity duration-200 ${isSidebarOpen ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}
             title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             {isSidebarOpen ? <PanelRightClose className="w-4 h-4 text-muted-foreground" /> : <PanelRightOpen className="w-4 h-4 text-muted-foreground" />}
           </button>
-
-          <div className={`
-            ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} 
-            transition-all duration-200 flex flex-col h-full w-80
-          `}>
-          {/* Upload */}
-          <div className="p-4 border-b border-border" data-upload-panel="1">
-            <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5" /> Canvas Source
-            </h3>
-            <div className="space-y-2">
-              <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  onClick={handleCreateCanvas}
-                  variant="outline"
-                  className="w-full text-[10px] h-8 gap-1.5 border-dashed"
-                  disabled={isProcessing}
-                >
-                  <Sparkles className="w-3 h-3" /> New Canvas
-                </Button>
-                <Button
-                  onClick={handleRegenerateFromImage}
-                  variant="outline"
-                  className="w-full text-[10px] h-8 gap-1.5"
-                  disabled={isProcessing || !sourceImage}
-                >
-                  <RotateCcw className="w-3 h-3" /> Reset to Image
-                </Button>
+          <div className={`${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} transition-all duration-200 flex flex-col h-full w-80`}>
+            <div className="p-4 border-b border-border" data-upload-panel="1">
+              <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Canvas Source</h3>
+              <div className="space-y-2">
+                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> New Canvas</Button>
+                  <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> Reset to Image</Button>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Processing Parameters */}
-          {processed && (
-            <div className="p-4 border-b border-border space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <SlidersHorizontal className="w-3.5 h-3.5" /> Parameters
-              </h3>
-
-              {/* Grid Size Slider */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-foreground">Canvas Width (Beads)</label>
-                  <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
+            {processed && (
+              <div className="p-4 border-b border-border space-y-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><SlidersHorizontal className="w-3.5 h-3.5" /> Parameters</h3>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-foreground">Canvas Width (Beads)</label>
+                    <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
+                  </div>
+                  <Slider value={[gridSize]} onValueChange={handleGridSizeChange} min={10} max={250} step={1} className="w-full" />
+                  {dims && <p className="text-[10px] text-muted-foreground mt-1">Output: {dims.width} x {dims.height}</p>}
                 </div>
-                <Slider
-                  value={[gridSize]}
-                  onValueChange={handleGridSizeChange}
-                  min={10}
-                  max={250}
-                  step={1}
-                  className="w-full"
-                />
-                {dims && (
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    Output: {dims.width} x {dims.height}
-                  </p>
+                {canvasSource === 'image' && (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-medium text-foreground">Processing Mode</label>
+                        <span className="text-xs font-mono text-muted-foreground">{processingMode}</span>
+                      </div>
+                      <select value={processingMode} onChange={(e) => handleModeChange(e.target.value)} className="w-full h-9 px-2 text-xs border border-border rounded-md bg-white">
+                        <option value="clean">Clean Cartoon</option>
+                        <option value="vivid">Vivid Game</option>
+                        <option value="soft">Soft Illustration</option>
+                      </select>
+                      <p className="text-[10px] text-muted-foreground mt-1">clean = no dithering + stronger simplify · vivid = keep details · soft = gentle simplify</p>
+                    </div>
+                    {SHOW_DITHERING && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
+                          <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
+                        </div>
+                        <Slider value={[ditherStrength]} onValueChange={handleDitherChange} min={0} max={100} step={1} className="w-full" />
+                        <p className="text-[10px] text-muted-foreground mt-1">0 = off · 20–40 natural · 60+ grainy</p>
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
+                        <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
+                      </div>
+                      <Slider value={[maxColorIndex]} onValueChange={(v) => setMaxColorIndex(v[0])} min={0} max={MAX_COLOR_OPTIONS.length - 1} step={1} className="w-full" />
+                      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">{MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}</div>
+                      <p className="text-[10px] text-muted-foreground mt-1">221 = most vivid · 50 = cleaner cartoon · 20 = very simplified</p>
+                    </div>
+                    {SHOW_SIMPLIFY_SMALL_AREAS && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
+                          <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
+                        </div>
+                        <Slider value={[mergeThreshold]} onValueChange={handleMergeChange} min={1} max={12} step={1} className="w-full" />
+                        <p className="text-[10px] text-muted-foreground mt-1">Regions smaller than {mergeThreshold}px will be merged</p>
+                      </div>
+                    )}
+                    {SHOW_REMOVE_BACKGROUND && (
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium text-foreground">Remove Background</label>
+                        <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
-              {/* Image-only Parameters */}
-              {canvasSource === 'image' && (
-                <>
-
-                {/* Processing Mode */}
-<div>
-  <div className="flex items-center justify-between mb-1.5">
-    <label className="text-xs font-medium text-foreground">Processing Mode</label>
-    <span className="text-xs font-mono text-muted-foreground">{processingMode}</span>
-  </div>
-
-  <select
-    value={processingMode}
-    onChange={(e) => handleModeChange(e.target.value)}
-    className="w-full h-9 px-2 text-xs border border-border rounded-md bg-white"
-  >
-    <option value="clean">Clean Cartoon</option>
-    <option value="vivid">Vivid Game</option>
-    <option value="soft">Soft Illustration</option>
-  </select>
-
-  <p className="text-[10px] text-muted-foreground mt-1">
-    clean = no dithering + stronger simplify · vivid = keep details · soft = gentle simplify
-  </p>
-</div>
-
-                  {SHOW_DITHERING && (
-  <div>
-    <div className="flex items-center justify-between mb-1.5">
-      <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
-      <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
-    </div>
-    <Slider
-      value={[ditherStrength]}
-      onValueChange={handleDitherChange}
-      min={0}
-      max={100}
-      step={1}
-      className="w-full"
-    />
-    <p className="text-[10px] text-muted-foreground mt-1">
-      0 = off · 20–40 natural · 60+ grainy
-    </p>
-  </div>
-)}
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
-                      <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
-                    </div>
-
-                    <Slider
-                      value={[maxColorIndex]}
-                      onValueChange={(v) => setMaxColorIndex(v[0])}
-                      min={0}
-                      max={MAX_COLOR_OPTIONS.length - 1}
-                      step={1}
-                      className="w-full"
-                    />
-
-                    <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-                      {MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}
-                    </div>
-
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      221 = most vivid · 50 = cleaner cartoon · 20 = very simplified
-                    </p>
-                  </div>
-
-                 {SHOW_SIMPLIFY_SMALL_AREAS && (
-  <div>
-    <div className="flex items-center justify-between mb-1.5">
-      <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
-      <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
-    </div>
-    <Slider
-      value={[mergeThreshold]}
-      onValueChange={handleMergeChange}
-      min={1}
-      max={12}
-      step={1}
-      className="w-full"
-    />
-    <p className="text-[10px] text-muted-foreground mt-1">
-      Regions smaller than {mergeThreshold}px will be merged
-    </p>
-  </div>
-)}
-
-                  {/* Background Removal */}
-                  {SHOW_REMOVE_BACKGROUND && (
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-medium text-foreground">Remove Background</label>
-                      <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Noise Color Removal */}
-          {processed && (
-            <div className="p-4 border-b border-border">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> Clean Up Stray Beads
-              </h3>
-              <NoiseColorRemoval
-                colorStats={processed.colorStats}
-                palette={colorIndexRef.current}
-                threshold={10}
-                onRemoveColor={handleRemoveNoiseColor}
-                onRestoreColor={handleRestoreColor}
-                onRestoreAll={handleRestoreAll}
-                removedColors={removedColors}
-              />
-            </div>
-          )}
-
-          {/* Color Statistics */}
-          {processed && (
-            <div className="p-4 border-b border-border">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
-                <Layers className="w-3.5 h-3.5" /> Bead Count & Colors ({totalColors})
-              </h3>
-              <p className="text-[10px] text-muted-foreground mb-2">
-                Click to highlight · Right-click to exclude
-              </p>
-              <div className="space-y-0.5 max-h-72 overflow-y-auto mb-4">
-                {Array.from(processed.colorStats.entries())
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([code, count]) => {
+            )}
+            {processed && (
+              <div className="p-4 border-b border-border">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Sparkles className="w-3.5 h-3.5" /> Clean Up Stray Beads</h3>
+                <NoiseColorRemoval colorStats={processed.colorStats} palette={colorIndexRef.current} threshold={10} onRemoveColor={handleRemoveNoiseColor} onRestoreColor={handleRestoreColor} onRestoreAll={handleRestoreAll} removedColors={removedColors} />
+              </div>
+            )}
+            {processed && (
+              <div className="p-4 border-b border-border">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Layers className="w-3.5 h-3.5" /> Bead Count & Colors ({totalColors})</h3>
+                <p className="text-[10px] text-muted-foreground mb-2">Click to highlight · Right-click to exclude</p>
+                <div className="space-y-0.5 max-h-72 overflow-y-auto mb-4">
+                  {Array.from(processed.colorStats.entries()).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
                     const color = colorIndexRef.current.get(code);
                     const pct = totalBeads > 0 ? ((count / totalBeads) * 100).toFixed(1) : '0';
                     const isExcluded = excludedCodes.has(code);
                     const isHighlighted = highlightCode === code;
-
                     return (
-                      <div
-                        key={code}
-                        className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-                          isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-gray-50'
-                        } ${isExcluded ? 'opacity-40 line-through' : ''}`}
-                        onClick={() => handleHighlightColor(code)}
-                        onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}
-                      >
-                        {color && (
-                          <div className="w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: color.hex }} />
-                        )}
+                      <div key={code} className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-gray-50'} ${isExcluded ? 'opacity-40 line-through' : ''}`} onClick={() => handleHighlightColor(code)} onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}>
+                        {color && <div className="w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: color.hex }} />}
                         <span className="font-mono font-medium flex-shrink-0 w-8">{code}</span>
                         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${Math.max(2, parseFloat(pct))}%`, backgroundColor: color?.hex || '#999' }} />
@@ -1386,34 +754,84 @@ fileInput?.click();
                       </div>
                     );
                   })}
-              </div>
-
-              {/* Breakdown Copy Area */}
-              <div className="space-y-2 pt-2 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Quick Breakdown</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#9867DA]"
-                    onClick={handleCopyBreakdown}
-                  >
-                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    {copied ? 'Copied!' : 'Copy breakdown'}
-                  </Button>
                 </div>
-                <textarea
-                  readOnly
-                  value={breakdownText}
-                  className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none"
-                  placeholder="No beads to show"
-                />
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Quick Breakdown</span>
+                    <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#9867DA]" onClick={handleCopyBreakdown}>
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? 'Copied!' : 'Copy breakdown'}
+                    </Button>
+                  </div>
+                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none" placeholder="No beads to show" />
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </div>
         </div>
       </div>
+
+      {/* ============================================
+          Mobile Bottom Toolbar — lg:hidden only
+          ============================================ */}
+      {processed && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-lg">
+          {/* Row 1: Tool buttons */}
+          <div className="flex items-center justify-around px-1 pt-2 pb-1">
+            <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${isPreview ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+              <Eye className="w-5 h-5" /><span>Preview</span>
+            </button>
+            <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${activeTool === 'brush' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+              <Paintbrush className="w-5 h-5" /><span>Brush</span>
+            </button>
+            <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${activeTool === 'eraser' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+              <Eraser className="w-5 h-5" /><span>Eraser</span>
+            </button>
+            <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+              <Pipette className="w-5 h-5" /><span>Pick</span>
+            </button>
+            <button onClick={handleUndo} disabled={historyStack.length === 0} className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] text-gray-500 disabled:opacity-30">
+              <Undo2 className="w-5 h-5" /><span>Undo</span>
+            </button>
+            <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${paletteOpen ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+              {selectedColor
+                ? <div className="w-5 h-5 rounded border-2 border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
+                : <Palette className="w-5 h-5" />
+              }
+              <span>{selectedColor ? selectedColor.code : 'Color'}</span>
+            </button>
+            <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${isSidebarOpen ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+              <SlidersHorizontal className="w-5 h-5" /><span>Settings</span>
+            </button>
+          </div>
+
+          {/* Row 2: Brush size + Zoom */}
+          <div className="flex items-center gap-3 px-4 pb-3 pt-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-[10px] text-muted-foreground">Size</span>
+              <button onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} disabled={brushSize <= 1} className="w-6 h-6 flex items-center justify-center rounded border border-border disabled:opacity-30">
+                <Minus className="w-3 h-3" />
+              </button>
+              <span className="text-xs font-mono w-5 text-center">{brushSize}</span>
+              <button onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30} className="w-6 h-6 flex items-center justify-center rounded border border-border disabled:opacity-30">
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 flex-1">
+              <span className="text-[10px] text-muted-foreground flex-shrink-0">Zoom</span>
+              <Slider value={[pixelSize]} onValueChange={(v) => setPixelSize(v[0])} min={4} max={30} step={2} className="flex-1" />
+              <span className="text-[10px] font-mono text-muted-foreground w-8 flex-shrink-0 text-right">{pixelSize}px</span>
+            </div>
+          </div>
+
+          {/* Mobile Palette Popup */}
+          {paletteOpen && (
+            <div className="absolute bottom-full left-0 right-0 bg-white border-t border-border shadow-2xl z-50 p-3 max-h-72 overflow-y-auto">
+              <PalettePopupContent />
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
