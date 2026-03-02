@@ -149,21 +149,13 @@ export function exportFullPatternPNG(
         
         // Text next to logo - Vertically Centered
         const textStartX = 40 + logoWidth + 80; // 80px gap
-        const totalTextHeight = 84 + 30 + 48 + 25 + 42; // title + gap + subtitle + gap + link
+        const totalTextHeight = 48 + 25 + 42; // subtitle + gap + link
         let textY = currentY + (logoHeight - totalTextHeight) / 2;
         
-        // Note: PNG files don't support embedded hyperlinks. 
-        // The link is already visually present below the title.
-        
-        ctx.fillStyle = '#452F60';
-        ctx.font = 'bold 84px "Inter", sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText("Yaya's Creative Studio", textStartX, textY);
-        textY += 114; // 84 + 30 gap
-
         ctx.font = '500 48px "Inter", sans-serif';
         ctx.fillStyle = '#9867DA';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
         ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", textStartX, textY);
         textY += 73; // 48 + 25 gap
 
