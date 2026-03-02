@@ -521,8 +521,8 @@ const SHOW_REMOVE_BACKGROUND = false;
         <div className="flex-1 flex items-center gap-3">
           <img src="/logo.png" alt="Logo" className="h-16 sm:h-20 w-auto flex-shrink-0" />
           <div>
-            <h1 className="text-lg sm:text-xl font-semibold" style={{ color: '#452F60' }}>Yaya's Creative Studio</h1>
-            <p className="text-[10px] sm:text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight" style={{ color: '#452F60', fontFamily: 'Inter, sans-serif' }}>Yaya's Creative Studio</h1>
+            <p className="text-[10px] sm:text-xs font-medium" style={{ color: '#9867DA', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
           </div>
         </div>
         {processed && (

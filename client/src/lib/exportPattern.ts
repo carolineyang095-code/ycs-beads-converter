@@ -139,35 +139,56 @@ export function exportFullPatternPNG(
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, totalWidth, totalHeight);
 
-      // === HEADER ===
+      // === HEADER (Horizontal Layout) ===
       let currentY = 50;
+      const headerPadding = 60;
+      
       if (logoImg) {
-        const logoHeight = 240; // 3x of original 80
+        const logoHeight = 480; // 2x of previous 240
         const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
         ctx.drawImage(logoImg, 40, currentY, logoWidth, logoHeight);
-        currentY += logoHeight + 40;
+        
+        // Text next to logo
+        const textStartX = 40 + logoWidth + 60; // 60px gap
+        let textY = currentY + 40;
+        
+        ctx.fillStyle = '#452F60';
+        ctx.font = 'bold 84px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText("Yaya's Creative Studio", textStartX, textY);
+        textY += 110;
+
+        ctx.font = '500 48px "Inter", sans-serif';
+        ctx.fillStyle = '#9867DA';
+        ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", textStartX, textY);
+        textY += 70;
+
+        ctx.font = '400 42px "Inter", sans-serif';
+        ctx.fillStyle = '#9867DA';
+        ctx.fillText("https://tools.yayascreativestudio.com/", textStartX, textY);
       } else {
         ctx.fillStyle = '#452F60';
-        ctx.font = 'bold 84px "Klee One", sans-serif';
+        ctx.font = 'bold 84px "Inter", sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText("Yaya's Creative Studio", 40, currentY);
         currentY += 120;
+        
+        ctx.font = '500 48px "Inter", sans-serif';
+        ctx.fillStyle = '#9867DA';
+        ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 40, currentY);
+        currentY += 70;
+
+        ctx.font = '400 42px "Inter", sans-serif';
+        ctx.fillStyle = '#9867DA';
+        ctx.fillText("https://tools.yayascreativestudio.com/", 40, currentY);
       }
-
-      ctx.font = '48px "Klee One", sans-serif';
-      ctx.fillStyle = '#9867DA';
-      ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 40, currentY);
-      currentY += 70;
-
-      ctx.font = '42px "Klee One", sans-serif';
-      ctx.fillStyle = '#9867DA';
-      ctx.fillText("https://tools.yayascreativestudio.com/", 40, currentY);
 
       const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
       const totalColors = colorStats.size;
 
-      ctx.font = 'bold 48px "Klee One", sans-serif';
+      ctx.font = 'bold 48px "Inter", sans-serif';
       ctx.textAlign = 'right';
       ctx.fillStyle = '#9867DA';
       ctx.fillText(
@@ -294,7 +315,7 @@ export function exportFullPatternPNG(
         ctx.lineTo(totalWidth - 40, legendStartY - 40);
         ctx.stroke();
 
-        ctx.font = 'bold 48px "Klee One", sans-serif';
+        ctx.font = 'bold 48px "Inter", sans-serif';
         ctx.fillStyle = '#452F60';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
@@ -341,7 +362,7 @@ export function exportFullPatternPNG(
         }
 
         ctx.fillStyle = '#9867DA';
-        ctx.font = 'bold 40px "Klee One", sans-serif';
+        ctx.font = 'bold 40px "Inter", sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(
           `Total: ${totalBeads.toLocaleString()} beads`,
