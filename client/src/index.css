@@ -134,13 +134,13 @@
 }
 
 @layer base {
-  /* Typography System - Klee One */
+  /* Typography System - Inter */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Klee One', cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   body {
-    font-family: 'Klee One', cursive, sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 }
 
