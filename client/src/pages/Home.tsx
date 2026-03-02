@@ -1,6 +1,7 @@
 import HeroIntro from '@/components/HeroIntro';
 import type React from 'react';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useIsMobile } from '@/hooks/useMobile';
 import {
   Upload, Download, Paintbrush, Eraser,
   Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
@@ -66,7 +67,8 @@ const SHOW_REMOVE_BACKGROUND = false;
   const maxColors = MAX_COLOR_OPTIONS[maxColorIndex];
 
   const [isPreview, setIsPreview] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [brushSize, setBrushSize] = useState<number>(1);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -176,7 +178,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   };
 
   const handleCropConfirm = async (croppedCanvas: HTMLCanvasElement) => {
-    setCropImageSrc(null); setPendingCropFile(null);
+    setCropImageSrc(null); setPendingCropFile(null); setIsSidebarOpen(false);
     try {
       setIsProcessing(true); pushToHistory(processed);
       setSourceImage(croppedCanvas); setCanvasSource('image');
@@ -485,7 +487,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     <div className="h-screen flex flex-col bg-white overflow-hidden relative">
       {cropImageSrc && <CropModal imageSrc={cropImageSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
 
-      {isSidebarOpen && (
+      {isSidebarOpen && isMobile && (
         <div className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-opacity duration-300" onClick={() => setIsSidebarOpen(false)} />
       )}
 
