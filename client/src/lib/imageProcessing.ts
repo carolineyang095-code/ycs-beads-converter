@@ -465,6 +465,8 @@ export function drawPixelGrid(
   canvas.width = gridWidth * pixelSize;
   canvas.height = gridHeight * pixelSize;
 
+  // Draw fine-grained checkerboard background for transparent areas
+  const checkerSize = Math.max(1, Math.floor(pixelSize / 4)); // 细化棋盘格到像素格的 1/4
   for (let i = 0; i < pixels.length; i++) {
     const pixel = pixels[i];
     const x = (i % gridWidth) * pixelSize;
@@ -479,10 +481,14 @@ export function drawPixelGrid(
         ? '#F0F0F0' : '#E0E0E0';
       ctx.fillRect(x, y, pixelSize, pixelSize);
     } else if (isTransparent) {
-      // Draw checkerboard for transparent pixels
-      ctx.fillStyle = (Math.floor(i / gridWidth) + (i % gridWidth)) % 2 === 0
-        ? '#FFFFFF' : '#F0F0F0';
-      ctx.fillRect(x, y, pixelSize, pixelSize);
+      // Draw fine-grained checkerboard for transparent pixels
+      for (let cy = 0; cy < pixelSize; cy += checkerSize) {
+        for (let cx = 0; cx < pixelSize; cx += checkerSize) {
+          const isLight = (Math.floor((y + cy) / checkerSize) + Math.floor((x + cx) / checkerSize)) % 2 === 0;
+          ctx.fillStyle = isLight ? '#D3D3D3' : '#A9A9A9'; // 深灰和浅灰的更强对比
+          ctx.fillRect(x + cx, y + cy, checkerSize, checkerSize);
+        }
+      }
     } else {
       ctx.fillStyle = pixel.hex;
       ctx.fillRect(x, y, pixelSize, pixelSize);
