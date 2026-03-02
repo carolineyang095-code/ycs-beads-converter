@@ -68,7 +68,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const [isPreview, setIsPreview] = useState(false);
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
   const [brushSize, setBrushSize] = useState<number>(1);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -80,6 +80,11 @@ const SHOW_REMOVE_BACKGROUND = false;
   // Crop state
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (isMobile === undefined) return;
+    setIsSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   // Undo history state
   const [historyStack, setHistoryStack] = useState<ProcessedImage[]>([]);
@@ -178,7 +183,8 @@ const SHOW_REMOVE_BACKGROUND = false;
   };
 
   const handleCropConfirm = async (croppedCanvas: HTMLCanvasElement) => {
-    setCropImageSrc(null); setPendingCropFile(null); setIsSidebarOpen(false);
+    setCropImageSrc(null); setPendingCropFile(null);
+    if (isMobile) setIsSidebarOpen(false);
     try {
       setIsProcessing(true); pushToHistory(processed);
       setSourceImage(croppedCanvas); setCanvasSource('image');
@@ -191,7 +197,10 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
   };
 
-  const handleCropCancel = () => { setCropImageSrc(null); setPendingCropFile(null); };
+  const handleCropCancel = () => { 
+    setCropImageSrc(null); setPendingCropFile(null);
+    if (isMobile) setIsSidebarOpen(false);
+  };
 
   const handleRegenerateFromImage = () => {
     if (!sourceImage) return;
