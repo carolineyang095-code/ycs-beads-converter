@@ -27,7 +27,7 @@ const DEFAULT_OPTIONS: Required<ExportOptions> = {
   showCodes: true,
   showCoordinates: true,
   showLegend: true,
-  gridInterval: 10,
+  gridInterval: 5, // User requested 5
 };
 
 // Browser canvas size limits (conservative)
@@ -48,8 +48,8 @@ function calculateSafeCellSize(
   let cellSize = preferredCellSize;
 
   for (let attempt = 0; attempt < 20; attempt++) {
-    const totalWidth = gridWidth * cellSize + coordMargin + 40;
-    const totalHeight = headerHeight + coordMargin + gridHeight * cellSize + legendHeight + 40;
+    const totalWidth = gridWidth * cellSize + coordMargin * 2 + 80;
+    const totalHeight = headerHeight + coordMargin * 2 + gridHeight * cellSize + legendHeight + 80;
 
     if (
       totalWidth <= MAX_CANVAS_DIMENSION &&
@@ -92,41 +92,40 @@ export function exportFullPatternPNG(
     try {
       const opts = { ...DEFAULT_OPTIONS, ...options };
 
-      // High-definition cell size (increased from 24-60 to 40-80 for better clarity on iPad)
+      // High-definition cell size
       if (opts.cellSize === 0) {
-        // Target a larger canvas for high-density displays (e.g., 8000px instead of 4000px)
         opts.cellSize = Math.max(40, Math.min(80, Math.floor(8000 / Math.max(gridWidth, gridHeight))));
       }
 
-      const coordMargin = opts.showCoordinates ? 40 : 0;
-      const headerHeight = 150; // Increased for logo and additional text
+      const coordMargin = opts.showCoordinates ? 80 : 20; // Increased for 4-side coordinates
+      const headerHeight = 500; // Significantly increased to prevent overlap
 
-      // Calculate legend dimensions (Grid layout: 4 columns)
+      // Calculate legend dimensions
       const legendEntries = Array.from(colorStats.entries())
-        .filter(([code]) => code !== 'BG') // Exclude BG from legend
+        .filter(([code]) => code !== 'BG')
         .sort((a, b) => a[0].localeCompare(b[0]));
       
-      const legendItemWidth = 150; // Adjusted for new layout
-      const legendItemHeight = 40; // Adjusted for new layout
-      const legendCols = Math.floor((gridWidth * opts.cellSize + coordMargin) / legendItemWidth); // Dynamic columns based on grid width
-      const legendRows = Math.ceil(legendEntries.length / legendCols);
-      const legendPadding = 40;
-      const legendHeight = opts.showLegend ? (legendRows * legendItemHeight + legendPadding + 60) : 0;
-
+      const legendItemWidth = 280; // Enlarged
+      const legendItemHeight = 80; // Enlarged
+      
       // Calculate safe cell size
       const cellSize = calculateSafeCellSize(
         gridWidth, gridHeight,
         coordMargin, headerHeight,
-        legendHeight,
+        0, // Legend height calculated later
         opts.cellSize
       );
 
       const gridPixelWidth = gridWidth * cellSize;
       const gridPixelHeight = gridHeight * cellSize;
+      
+      const legendCols = Math.max(1, Math.floor((gridPixelWidth + coordMargin * 2) / legendItemWidth));
+      const legendRows = Math.ceil(legendEntries.length / legendCols);
+      const legendHeight = opts.showLegend ? (legendRows * legendItemHeight + 150) : 0;
 
       // Total canvas size
-      const totalWidth = Math.max(gridPixelWidth + coordMargin + 40, legendCols * legendItemWidth + 40);
-      const totalHeight = headerHeight + coordMargin + gridPixelHeight + legendHeight + 40;
+      const totalWidth = Math.max(gridPixelWidth + coordMargin * 2 + 100, legendCols * legendItemWidth + 100);
+      const totalHeight = headerHeight + gridPixelHeight + coordMargin * 2 + legendHeight + 100;
 
       const canvas = document.createElement('canvas');
       canvas.width = totalWidth;
@@ -134,87 +133,91 @@ export function exportFullPatternPNG(
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Failed to create canvas');
 
-      // Disable image smoothing for sharp pixel edges
-      ctx.imageSmoothingEnabled = false;
+      ctx.imageSmoothingEnabled = true; // Enable for logo clarity
 
-      // White background for the whole sheet
+      // White background
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, totalWidth, totalHeight);
 
       // === HEADER ===
-      let currentY = 20;
+      let currentY = 50;
       if (logoImg) {
-        const logoHeight = 120;
+        const logoHeight = 240; // 3x of original 80
         const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
-        ctx.drawImage(logoImg, 20, currentY, logoWidth, logoHeight);
-        currentY += logoHeight + 15;
+        ctx.drawImage(logoImg, 40, currentY, logoWidth, logoHeight);
+        currentY += logoHeight + 40;
       } else {
         ctx.fillStyle = '#452F60';
-        ctx.font = 'bold 28px "Klee One", sans-serif';
+        ctx.font = 'bold 84px "Klee One", sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText("Yaya's Creative Studio", 20, currentY);
-        currentY += 35;
+        ctx.fillText("Yaya's Creative Studio", 40, currentY);
+        currentY += 120;
       }
 
-      ctx.font = '16px "Klee One", sans-serif';
+      ctx.font = '48px "Klee One", sans-serif';
       ctx.fillStyle = '#9867DA';
-      ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 20, currentY);
-      currentY += 25;
+      ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 40, currentY);
+      currentY += 70;
 
-      ctx.font = '14px "Klee One", sans-serif';
+      ctx.font = '42px "Klee One", sans-serif';
       ctx.fillStyle = '#9867DA';
-      ctx.fillText("https://tools.yayascreativestudio.com/", 20, currentY);
-      currentY += 30; // Adjust for spacing
+      ctx.fillText("https://tools.yayascreativestudio.com/", 40, currentY);
 
       const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
       const totalColors = colorStats.size;
 
-      ctx.font = '16px "Klee One", sans-serif';
+      ctx.font = 'bold 48px "Klee One", sans-serif';
       ctx.textAlign = 'right';
       ctx.fillStyle = '#9867DA';
       ctx.fillText(
         `${totalColors} colors · ${totalBeads.toLocaleString()} beads · ${gridWidth}×${gridHeight}`,
-        totalWidth - 20,
-        40
+        totalWidth - 40,
+        80
       );
 
-      const gridStartX = coordMargin + 20;
-      const gridStartY = headerHeight + coordMargin;
+      const gridStartX = coordMargin + 40;
+      const gridStartY = headerHeight + 40;
 
-      // === COORDINATE AXES ===
+      // === COORDINATE AXES (All four sides) ===
       if (opts.showCoordinates) {
         ctx.fillStyle = '#718096';
-        ctx.font = '12px sans-serif';
+        ctx.font = 'bold 20px sans-serif';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
 
+        // Top and Bottom
         for (let x = 0; x < gridWidth; x++) {
           if (x % opts.gridInterval === 0 || x === gridWidth - 1) {
-            ctx.fillText(
-              String(x + 1),
-              gridStartX + x * cellSize + cellSize / 2,
-              gridStartY - 5
-            );
+            const label = String(x + 1);
+            const posX = gridStartX + x * cellSize + cellSize / 2;
+            // Top
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(label, posX, gridStartY - 15);
+            // Bottom
+            ctx.textBaseline = 'top';
+            ctx.fillText(label, posX, gridStartY + gridPixelHeight + 15);
           }
         }
 
-        ctx.textAlign = 'right';
+        // Left and Right
         ctx.textBaseline = 'middle';
         for (let y = 0; y < gridHeight; y++) {
           if (y % opts.gridInterval === 0 || y === gridHeight - 1) {
-            ctx.fillText(
-              String(y + 1),
-              gridStartX - 8,
-              gridStartY + y * cellSize + cellSize / 2
-            );
+            const label = String(y + 1);
+            const posY = gridStartY + y * cellSize + cellSize / 2;
+            // Left
+            ctx.textAlign = 'right';
+            ctx.fillText(label, gridStartX - 20, posY);
+            // Right
+            ctx.textAlign = 'left';
+            ctx.fillText(label, gridStartX + gridPixelWidth + 20, posY);
           }
         }
       }
 
       // === GRID CELLS ===
+      ctx.imageSmoothingEnabled = false; // Disable for sharp pixels
       const showCodeText = opts.showCodes && cellSize >= 18;
-      // Use thinner font for better clarity, adjusted for larger cell size
       const fontSize = Math.max(10, Math.min(24, Math.floor(cellSize * 0.38)));
 
       for (let i = 0; i < pixels.length; i++) {
@@ -225,9 +228,7 @@ export function exportFullPatternPNG(
         const y = gridStartY + row * cellSize;
         const isBg = backgroundIndices.has(i);
 
-        // Fill cell
         if (isBg || pixel.hex === 'transparent' || !pixel.code) {
-          // Background removal or erased area: clear to show transparency in PNG
           ctx.clearRect(x, y, cellSize, cellSize);
           if (isBg) {
             ctx.fillStyle = 'rgba(245, 245, 245, 0.3)';
@@ -238,22 +239,20 @@ export function exportFullPatternPNG(
           ctx.fillRect(x, y, cellSize, cellSize);
         }
 
-        // Draw color code inside cell
         if (showCodeText && !isBg) {
           const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
-          // Using thinner font weight (300 or 400) for clarity
-          ctx.font = `400 ${fontSize}px sans-serif`;
+          ctx.font = `bold ${fontSize}px sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(pixel.code, x + cellSize / 2, y + cellSize / 2);
         }
       }
 
-      // === GRID LINES ===
+      // === GRID LINES (Orange-Red) ===
       if (opts.showGrid) {
-        ctx.strokeStyle = '#E2E8F0';
-        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = '#FF4500'; // Orange-Red
+        ctx.lineWidth = 1.0;
 
         ctx.beginPath();
         for (let x = 0; x <= gridWidth; x++) {
@@ -266,9 +265,8 @@ export function exportFullPatternPNG(
         }
         ctx.stroke();
 
-        // Bold lines at intervals
-        ctx.strokeStyle = '#A0AEC0';
-        ctx.lineWidth = 1.2;
+        // Bold lines at intervals (Every 5 cells)
+        ctx.lineWidth = 3.0;
         ctx.beginPath();
         for (let x = 0; x <= gridWidth; x += opts.gridInterval) {
           ctx.moveTo(gridStartX + x * cellSize, gridStartY);
@@ -281,103 +279,77 @@ export function exportFullPatternPNG(
         ctx.stroke();
 
         // Border
-        ctx.strokeStyle = '#452F60';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 5;
         ctx.strokeRect(gridStartX, gridStartY, gridPixelWidth, gridPixelHeight);
       }
 
-      // === LEGEND (圆角矩形网格排版) ===
+      // === LEGEND ===
       if (opts.showLegend && legendEntries.length > 0) {
-        const legendStartY = gridStartY + gridPixelHeight + 40;
+        const legendStartY = gridStartY + gridPixelHeight + 100;
         
-        // Separator
-        ctx.strokeStyle = '#F0E6FF';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#FF4500';
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(20, legendStartY - 20);
-        ctx.lineTo(totalWidth - 20, legendStartY - 20);
+        ctx.moveTo(40, legendStartY - 40);
+        ctx.lineTo(totalWidth - 40, legendStartY - 40);
         ctx.stroke();
 
-        ctx.font = 'bold 18px "Klee One", sans-serif';
+        ctx.font = 'bold 48px "Klee One", sans-serif';
         ctx.fillStyle = '#452F60';
         ctx.textAlign = 'left';
-        ctx.fillText('Color Breakdown', 20, legendStartY);
+        ctx.textBaseline = 'top';
+        ctx.fillText('Color Breakdown', 40, legendStartY);
 
-        const legendGridStartX = 20;
-        const legendGridStartY = legendStartY + 20;
-
-        // Calculate actual columns based on available width
-        const availableLegendWidth = totalWidth - 40; // 20px padding on each side
-        const actualLegendCols = Math.max(1, Math.floor(availableLegendWidth / legendItemWidth));
+        const legendGridStartX = 40;
+        const legendGridStartY = legendStartY + 80;
 
         for (let i = 0; i < legendEntries.length; i++) {
           const [code, count] = legendEntries[i];
           const color = palette.get(code);
-          const col = i % actualLegendCols;
-          const row = Math.floor(i / actualLegendCols);
+          const col = i % legendCols;
+          const row = Math.floor(i / legendCols);
           
           const x = legendGridStartX + col * legendItemWidth;
           const y = legendGridStartY + row * legendItemHeight;
           
-          // Draw rounded rectangle background - Enlarged
-          const rectW = legendItemWidth - 20;
-          const rectH = legendItemHeight - 15;
+          const rectW = legendItemWidth - 30;
+          const rectH = legendItemHeight - 20;
           const radius = 12;
           
           ctx.fillStyle = color ? color.hex : '#F7F7F7';
           
-        // Draw rounded rect
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + rectW - radius, y);
-        ctx.quadraticCurveTo(x + rectW, y, x + rectW, y + radius);
-        ctx.lineTo(x + rectW, y + rectH - radius);
-        ctx.quadraticCurveTo(x + rectW, y + rectH, x + rectW - radius, y + rectH);
-        ctx.lineTo(x + radius, y + rectH);
-        ctx.quadraticCurveTo(x, y + rectH, x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-        
-        // Fill legend background with white first to ensure text is readable even on transparent PNG
-        ctx.save();
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
-        ctx.restore();
-        
-        ctx.fill();
+          ctx.beginPath();
+          ctx.roundRect(x, y, rectW, rectH, radius);
+          ctx.fill();
           
-          // Border for light colors
           const brightness = color ? (color.rgb.r * 299 + color.rgb.g * 587 + color.rgb.b * 114) / 1000 : 255;
           if (brightness > 220) {
             ctx.strokeStyle = '#E2E8F0';
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 2;
             ctx.stroke();
           }
 
-          // Text inside rounded rect - Enlarged
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
-          ctx.font = 'bold 24px sans-serif';
+          ctx.font = 'bold 28px sans-serif';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.fillText(code, x + 15, y + rectH / 2);
+          ctx.fillText(code, x + 20, y + rectH / 2);
           
-          ctx.font = '22px sans-serif';
+          ctx.font = '24px sans-serif';
           ctx.textAlign = 'right';
-          ctx.fillText(`(${count})`, x + rectW - 15, y + rectH / 2);
+          ctx.fillText(`(${count})`, x + rectW - 20, y + rectH / 2);
         }
 
-        // Footer Total - Enlarged
         ctx.fillStyle = '#9867DA';
-        ctx.font = 'bold 32px "Klee One", sans-serif';
+        ctx.font = 'bold 40px "Klee One", sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(
           `Total: ${totalBeads.toLocaleString()} beads`,
-          totalWidth - 20,
+          totalWidth - 40,
           legendGridStartY + legendRows * legendItemHeight + 40
         );
       }
 
-      // Download
       canvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
