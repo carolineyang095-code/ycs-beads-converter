@@ -430,7 +430,23 @@ const SHOW_REMOVE_BACKGROUND = false;
   const handleExportPatternPNG = () => {
     if (!processed || !dims) return;
     try {
-      exportFullPatternPNG(dims.width, dims.height, processed.pixels, processed.colorStats, colorIndexRef.current, processed.backgroundIndices, `perler-pattern-${dims.width}x${dims.height}.png`, { title: 'Bead Pattern' });
+      console.log('Exporting with options:', { gridInterval: 5 });
+      exportFullPatternPNG(
+        dims.width, 
+        dims.height, 
+        processed.pixels, 
+        processed.colorStats, 
+        colorIndexRef.current, 
+        processed.backgroundIndices, 
+        `perler-pattern-${dims.width}x${dims.height}.png`, 
+        { 
+          title: 'Bead Pattern',
+          gridInterval: 5,
+          showCoordinates: true,
+          showGrid: true,
+          showLegend: true
+        }
+      );
       toast.success('Exporting pattern...');
     } catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
   };
