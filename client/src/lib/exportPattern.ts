@@ -152,6 +152,9 @@ export function exportFullPatternPNG(
         const totalTextHeight = 84 + 30 + 48 + 25 + 42; // title + gap + subtitle + gap + link
         let textY = currentY + (logoHeight - totalTextHeight) / 2;
         
+        // Note: PNG files don't support embedded hyperlinks. 
+        // The link is already visually present below the title.
+        
         ctx.fillStyle = '#452F60';
         ctx.font = 'bold 84px "Inter", sans-serif';
         ctx.textAlign = 'left';

@@ -518,11 +518,13 @@ const SHOW_REMOVE_BACKGROUND = false;
 
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-3">
-        <div className="flex-1 flex items-center gap-3">
-          <img src="/logo.png" alt="Logo" className="h-16 sm:h-20 w-auto flex-shrink-0" />
+        <div className="flex-1 flex items-center gap-6">
+          <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
+            <img src="/logo.png" alt="Logo" className="h-32 sm:h-40 w-auto" />
+          </a>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight" style={{ color: '#452F60', fontFamily: 'Inter, sans-serif' }}>Yaya's Creative Studio</h1>
-            <p className="text-[10px] sm:text-xs font-medium" style={{ color: '#9867DA', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tight" style={{ color: '#452F60', fontFamily: 'Inter, sans-serif' }}>Yaya's Creative Studio</h1>
+            <p className="text-[10px] sm:text-sm font-medium" style={{ color: '#9867DA', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
           </div>
         </div>
         {processed && (
