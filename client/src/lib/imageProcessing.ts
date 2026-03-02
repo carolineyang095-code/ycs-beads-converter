@@ -457,7 +457,8 @@ export function drawPixelGrid(
   showGrid: boolean = true,
   highlightCode: string | null = null,
   backgroundIndices: Set<number> = new Set(),
-  showBackground: boolean = true
+  showBackground: boolean = true,
+  isPreview: boolean = false
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Failed to get canvas context');
@@ -481,12 +482,18 @@ export function drawPixelGrid(
         ? '#F0F0F0' : '#E0E0E0';
       ctx.fillRect(x, y, pixelSize, pixelSize);
     } else if (isTransparent) {
-      // Draw fine-grained checkerboard for transparent pixels
-      for (let cy = 0; cy < pixelSize; cy += checkerSize) {
-        for (let cx = 0; cx < pixelSize; cx += checkerSize) {
-          const isLight = (Math.floor((y + cy) / checkerSize) + Math.floor((x + cx) / checkerSize)) % 2 === 0;
-          ctx.fillStyle = isLight ? '#D3D3D3' : '#A9A9A9'; // 深灰和浅灰的更强对比
-          ctx.fillRect(x + cx, y + cy, checkerSize, checkerSize);
+      // In preview mode, show transparent areas as pure white; otherwise show checkerboard
+      if (isPreview) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(x, y, pixelSize, pixelSize);
+      } else {
+        // Draw fine-grained checkerboard for transparent pixels (editing mode)
+        for (let cy = 0; cy < pixelSize; cy += checkerSize) {
+          for (let cx = 0; cx < pixelSize; cx += checkerSize) {
+            const isLight = (Math.floor((y + cy) / checkerSize) + Math.floor((x + cx) / checkerSize)) % 2 === 0;
+            ctx.fillStyle = isLight ? '#D3D3D3' : '#A9A9A9';
+            ctx.fillRect(x + cx, y + cy, checkerSize, checkerSize);
+          }
         }
       }
     } else {

@@ -155,7 +155,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   useEffect(() => {
     if (!processed || !canvasRef.current) return;
     try {
-      drawPixelGrid(canvasRef.current, processed.gridWidth, processed.gridHeight, processed.pixels, pixelSize, !isPreview, highlightCode, processed.backgroundIndices, showBackground);
+      drawPixelGrid(canvasRef.current, processed.gridWidth, processed.gridHeight, processed.pixels, pixelSize, !isPreview, highlightCode, processed.backgroundIndices, showBackground, isPreview);
     } catch (err) { console.error('Draw error:', err); }
   }, [processed, pixelSize, highlightCode, showBackground, isPreview]);
 
