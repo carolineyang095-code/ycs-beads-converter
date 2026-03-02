@@ -490,25 +490,25 @@ const SHOW_REMOVE_BACKGROUND = false;
       )}
 
       {/* Header */}
-      <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-xl font-semibold" style={{ color: '#452F60' }}>Yaya's Creative Studio</h1>
-          <p className="text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+      <header className="border-b border-border bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-3">
+        <div className="flex-1">
+          <h1 className="text-lg sm:text-xl font-semibold" style={{ color: '#452F60' }}>Yaya's Creative Studio</h1>
+          <p className="text-[10px] sm:text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
         </div>
-        <div className="flex items-center gap-4">
-          {processed && (
-            <>
-              <div className="text-xs text-muted-foreground flex items-center gap-3">
-                <span>Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads</span>
-                <span>Colors: <span className="font-semibold">{totalColors}</span></span>
-              </div>
+        {processed && (
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <div className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-2 sm:gap-3">
+              <span>Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads</span>
+              <span>Colors: <span className="font-semibold">{totalColors}</span></span>
+            </div>
+            <div className="flex items-center gap-2 ml-auto sm:ml-0">
               <ShopifyIntegration colorStats={filteredColorStats} />
-              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-xs gap-1 border-[#9867DA] text-[#9867DA] hover:bg-purple-50 rounded-full px-4">
+              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[10px] sm:text-xs gap-1 border-[#9867DA] text-[#9867DA] hover:bg-purple-50 rounded-full px-3 sm:px-4 h-8">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {error && (
@@ -774,32 +774,32 @@ const SHOW_REMOVE_BACKGROUND = false;
           Mobile Bottom Toolbar — lg:hidden only
           ============================================ */}
       {processed && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-lg">
-          {/* Row 1: Tool buttons */}
-          <div className="flex items-center justify-around px-1 pt-2 pb-1">
-            <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${isPreview ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-lg pb-safe">
+          {/* Row 1: Tool buttons - Horizontal Scrollable for small screens */}
+          <div className="flex items-center justify-between px-2 pt-2 pb-1 overflow-x-auto no-scrollbar">
+            <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isPreview ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
               <Eye className="w-5 h-5" /><span>Preview</span>
             </button>
-            <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${activeTool === 'brush' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+            <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'brush' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
               <Paintbrush className="w-5 h-5" /><span>Brush</span>
             </button>
-            <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${activeTool === 'eraser' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+            <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eraser' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
               <Eraser className="w-5 h-5" /><span>Eraser</span>
             </button>
-            <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+            <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
               <Pipette className="w-5 h-5" /><span>Pick</span>
             </button>
-            <button onClick={handleUndo} disabled={historyStack.length === 0} className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] text-gray-500 disabled:opacity-30">
+            <button onClick={handleUndo} disabled={historyStack.length === 0} className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 text-gray-500 disabled:opacity-30">
               <Undo2 className="w-5 h-5" /><span>Undo</span>
             </button>
-            <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${paletteOpen ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+            <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${paletteOpen ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
               {selectedColor
                 ? <div className="w-5 h-5 rounded border-2 border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                 : <Palette className="w-5 h-5" />
               }
               <span>{selectedColor ? selectedColor.code : 'Color'}</span>
             </button>
-            <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[44px] ${isSidebarOpen ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
+            <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isSidebarOpen ? 'bg-purple-100 text-[#9867DA]' : 'text-gray-500'}`}>
               <SlidersHorizontal className="w-5 h-5" /><span>Settings</span>
             </button>
           </div>
