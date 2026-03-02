@@ -319,10 +319,10 @@ export function exportFullPatternPNG(
           const x = legendGridStartX + col * legendItemWidth;
           const y = legendGridStartY + row * legendItemHeight;
           
-          // Draw rounded rectangle background
-          const rectW = legendItemWidth - 15;
-          const rectH = legendItemHeight - 10;
-          const radius = 8;
+          // Draw rounded rectangle background - Enlarged
+          const rectW = legendItemWidth - 20;
+          const rectH = legendItemHeight - 15;
+          const radius = 12;
           
           ctx.fillStyle = color ? color.hex : '#F7F7F7';
           
@@ -350,30 +350,30 @@ export function exportFullPatternPNG(
           const brightness = color ? (color.rgb.r * 299 + color.rgb.g * 587 + color.rgb.b * 114) / 1000 : 255;
           if (brightness > 220) {
             ctx.strokeStyle = '#E2E8F0';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
           }
 
-          // Text inside rounded rect
+          // Text inside rounded rect - Enlarged
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
-          ctx.font = 'bold 14px sans-serif';
+          ctx.font = 'bold 24px sans-serif';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.fillText(code, x + 12, y + rectH / 2);
+          ctx.fillText(code, x + 15, y + rectH / 2);
           
-          ctx.font = '14px sans-serif';
+          ctx.font = '22px sans-serif';
           ctx.textAlign = 'right';
-          ctx.fillText(`(${count})`, x + rectW - 12, y + rectH / 2);
+          ctx.fillText(`(${count})`, x + rectW - 15, y + rectH / 2);
         }
 
-        // Footer Total
+        // Footer Total - Enlarged
         ctx.fillStyle = '#9867DA';
-        ctx.font = 'bold 16px "Klee One", sans-serif';
+        ctx.font = 'bold 32px "Klee One", sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(
           `Total: ${totalBeads.toLocaleString()} beads`,
           totalWidth - 20,
-          legendGridStartY + legendRows * legendItemHeight + 20
+          legendGridStartY + legendRows * legendItemHeight + 40
         );
       }
 
