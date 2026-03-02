@@ -493,9 +493,12 @@ const SHOW_REMOVE_BACKGROUND = false;
 
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between flex-shrink-0 gap-3">
-        <div className="flex-1">
-          <h1 className="text-lg sm:text-xl font-semibold" style={{ color: '#452F60' }}>Yaya's Creative Studio</h1>
-          <p className="text-[10px] sm:text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+        <div className="flex-1 flex items-center gap-3">
+          <img src="/logo.png" alt="Logo" className="h-12 sm:h-14 w-auto flex-shrink-0" />
+          <div>
+            <h1 className="text-lg sm:text-xl font-semibold" style={{ color: '#452F60' }}>Yaya's Creative Studio</h1>
+            <p className="text-[10px] sm:text-xs" style={{ color: '#9867DA' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+          </div>
         </div>
         {processed && (
           <div className="flex flex-wrap items-center gap-2 sm:gap-4">

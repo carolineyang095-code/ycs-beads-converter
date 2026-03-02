@@ -144,18 +144,18 @@ export function exportFullPatternPNG(
       // === HEADER ===
       let currentY = 20;
       if (logoImg) {
-        const logoHeight = 60;
+        const logoHeight = 80;
         const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
         ctx.drawImage(logoImg, 20, currentY, logoWidth, logoHeight);
-        currentY += logoHeight + 10;
+        currentY += logoHeight + 15;
+      } else {
+        ctx.fillStyle = '#452F60';
+        ctx.font = 'bold 28px "Klee One", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText("Yaya's Creative Studio", 20, currentY);
+        currentY += 35;
       }
-
-      ctx.fillStyle = '#452F60';
-      ctx.font = 'bold 28px "Klee One", sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText("Yaya's Creative Studio", 20, currentY);
-      currentY += 35;
 
       ctx.font = '16px "Klee One", sans-serif';
       ctx.fillStyle = '#9867DA';
