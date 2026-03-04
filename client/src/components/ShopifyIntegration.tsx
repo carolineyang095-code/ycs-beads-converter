@@ -43,7 +43,7 @@ export default function ShopifyIntegration({
       onClick={handleBuyAllBeads}
       variant="default"
       size="sm"
-      className="text-xs gap-1.5 bg-[#9867DA] hover:bg-[#8558C2] text-white border-none rounded-full px-4"
+      className="text-xs gap-1.5 bg-[#332847] hover:bg-[#2a1f38] text-white border-none rounded-full px-4"
     >
       <ShoppingCart className="w-3.5 h-3.5" />
       Buy All Beads for This Pattern ({totalBeads.toLocaleString()} pcs)
