@@ -80,7 +80,7 @@ export function exportFullPatternPNG(
 ): void {
   // Load logo first
   const logo = new Image();
-  logo.src = '/logo.png';
+  logo.src = '/yaya_logo_final.png';
   logo.onload = () => {
     renderPattern(logo);
   };
@@ -153,14 +153,14 @@ export function exportFullPatternPNG(
         let textY = currentY + (logoHeight - totalTextHeight) / 2;
         
         ctx.font = '500 48px "Inter", sans-serif';
-        ctx.fillStyle = '#9867DA';
+        ctx.fillStyle = '#332847';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", textStartX, textY);
         textY += 73; // 48 + 25 gap
 
         ctx.font = '400 42px "Inter", sans-serif';
-        ctx.fillStyle = '#9867DA';
+        ctx.fillStyle = '#332847';
         ctx.fillText("https://tools.yayascreativestudio.com/", textStartX, textY);
       } else {
         ctx.fillStyle = '#452F60';
@@ -171,12 +171,12 @@ export function exportFullPatternPNG(
         currentY += 120;
         
         ctx.font = '500 48px "Inter", sans-serif';
-        ctx.fillStyle = '#9867DA';
+        ctx.fillStyle = '#332847';
         ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 40, currentY);
         currentY += 70;
 
         ctx.font = '400 42px "Inter", sans-serif';
-        ctx.fillStyle = '#9867DA';
+        ctx.fillStyle = '#332847';
         ctx.fillText("https://tools.yayascreativestudio.com/", 40, currentY);
       }
 
@@ -185,7 +185,7 @@ export function exportFullPatternPNG(
 
       ctx.font = 'bold 48px "Inter", sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillStyle = '#9867DA';
+      ctx.fillStyle = '#332847';
       ctx.fillText(
         `${totalColors} colors · ${totalBeads.toLocaleString()} beads · ${gridWidth}×${gridHeight}`,
         totalWidth - 40,
@@ -356,7 +356,7 @@ export function exportFullPatternPNG(
           ctx.fillText(`(${count})`, x + rectW - 20, y + rectH / 2);
         }
 
-        ctx.fillStyle = '#9867DA';
+        ctx.fillStyle = '#332847';
         ctx.font = 'bold 40px "Inter", sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(
