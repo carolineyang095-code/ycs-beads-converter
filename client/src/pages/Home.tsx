@@ -537,6 +537,14 @@ const SHOW_REMOVE_BACKGROUND = false;
               <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[10px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-3 sm:px-4 h-8">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hidden lg:flex" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                    {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isSidebarOpen ? 'Hide' : 'Show'} Settings Panel</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         )}
@@ -677,10 +685,10 @@ const SHOW_REMOVE_BACKGROUND = false;
         <div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0 transition-all duration-300 ease-in-out group`}>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 bg-white border border-r-0 border-border rounded-l-md p-1 shadow-sm transition-opacity duration-200 ${isSidebarOpen ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 bg-white border border-r-0 border-border rounded-l-md p-1.5 shadow-sm hover:shadow-md transition-all duration-200 ${isSidebarOpen ? 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto' : 'opacity-100'}`}
             title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
-            {isSidebarOpen ? <PanelRightClose className="w-4 h-4 text-muted-foreground" /> : <PanelRightOpen className="w-4 h-4 text-muted-foreground" />}
+            {isSidebarOpen ? <PanelRightClose className="w-4 h-4 text-muted-foreground hover:text-foreground" /> : <PanelRightOpen className="w-4 h-4 text-muted-foreground hover:text-foreground" />}
           </button>
           <div className={`${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} transition-all duration-200 flex flex-col h-full w-80`}>
             <div className="p-4 border-b border-border" data-upload-panel="1">
