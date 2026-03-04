@@ -523,7 +523,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             <img src="/yaya_logo_final.png" alt="Logo" className="h-32 sm:h-40 w-auto" />
           </a>
           <div>
-            <p className="text-[10px] sm:text-sm font-medium" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+            <p className="text-[10px] sm:text-sm font-medium" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern</p>
           </div>
         </div>
         {processed && (

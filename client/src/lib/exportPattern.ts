@@ -156,7 +156,7 @@ export function exportFullPatternPNG(
         ctx.fillStyle = '#7B6A9B';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", textStartX, textY);
+        ctx.fillText("Turn Any Image into a Custom Bead Pattern", textStartX, textY);
         textY += 73; // 48 + 25 gap
 
         ctx.font = '400 42px "Inter", sans-serif';
