@@ -68,7 +68,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const [isPreview, setIsPreview] = useState(false);
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [brushSize, setBrushSize] = useState<number>(1);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -81,10 +81,20 @@ const SHOW_REMOVE_BACKGROUND = false;
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
 
+  // Auto-show sidebar when image is processed
   useEffect(() => {
-    if (isMobile === undefined) return;
-    setIsSidebarOpen(!isMobile);
-  }, [isMobile]);
+    if (processed && !isSidebarOpen) {
+      setIsSidebarOpen(true);
+    }
+  }, [processed]);
+
+  // Hide sidebar when crop modal is shown
+  useEffect(() => {
+    if (cropImageSrc && isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  }, [cropImageSrc]);
+
 
   // Undo history state
   const [historyStack, setHistoryStack] = useState<ProcessedImage[]>([]);
