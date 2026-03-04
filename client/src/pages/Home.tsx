@@ -527,29 +527,29 @@ const SHOW_REMOVE_BACKGROUND = false;
       )}
 
       {/* Header */}
-      <header className="border-b border-border bg-white px-4 py-3 flex flex-col gap-3 flex-shrink-0">
-        <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-2">
+      <header className="border-b border-border bg-white px-3 py-2 flex flex-col gap-1.5 flex-shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center md:gap-3 gap-1.5">
           <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
-            <img src="/yaya_logo_final.png" alt="Logo" className="h-32 sm:h-40 w-auto" />
+            <img src="/yaya_logo_final.png" alt="Logo" className="h-12 sm:h-16 w-auto" />
           </a>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] sm:text-sm font-medium break-words" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern</p>
+            <p className="text-[9px] sm:text-xs font-medium break-words" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern</p>
           </div>
         </div>
         {processed && (
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="text-[10px] sm:text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1.5">
+            <div className="text-[9px] sm:text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
               <span className="whitespace-nowrap">Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads</span>
               <span className="whitespace-nowrap">Colors: <span className="font-semibold">{totalColors}</span></span>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
               <ShopifyIntegration colorStats={filteredColorStats} />
-              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[10px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-3 sm:px-4 h-8 w-full sm:w-auto">
+              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7 w-full sm:w-auto">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hidden lg:flex" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden lg:flex" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
                   </Button>
                 </TooltipTrigger>
