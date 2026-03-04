@@ -1832,11 +1832,11 @@
   {
     "code": "H01",
     "name": "H01",
-    "hex": "#FDFBFF",
+    "hex": "#null",
     "rgb": {
-      "r": 253,
-      "g": 251,
-      "b": 255
+      "r": null,
+      "g": null,
+      "b": null
     }
   },
   {
