@@ -692,15 +692,16 @@ const SHOW_REMOVE_BACKGROUND = false;
         </div>
 
         {/* Right: Controls Panel */}
-        <div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-y-auto bg-white flex-shrink-0 transition-all duration-300 ease-in-out group`}>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-20 bg-white border border-r-0 border-border rounded-l-md p-1.5 shadow-sm hover:shadow-md transition-all duration-200 ${isSidebarOpen ? 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto' : 'opacity-100'}`}
-            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-          >
-            {isSidebarOpen ? <PanelRightClose className="w-4 h-4 text-muted-foreground hover:text-foreground" /> : <PanelRightOpen className="w-4 h-4 text-muted-foreground hover:text-foreground" />}
-          </button>
-          <div className={`${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} transition-all duration-200 flex flex-col h-full w-80`}>
+<div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-visible bg-white flex-shrink-0 transition-all duration-300 ease-in-out`}>
+  {/* Purple circle toggle — outside opacity div so always visible */}
+  <button
+    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+    title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+    className="absolute top-4 -left-3.5 z-30 w-7 h-7 rounded-full bg-[#7B6A9B] hover:bg-[#6a5a8a] active:bg-[#594a78] text-white shadow-md flex items-center justify-center transition-colors duration-150"
+  >
+    {isSidebarOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+  </button>
+  <div className={`${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} transition-all duration-200 flex flex-col h-full w-80 overflow-y-auto`}>
             <div className="p-4 border-b border-border" data-upload-panel="1">
               <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Canvas Source</h3>
               <div className="space-y-2">
