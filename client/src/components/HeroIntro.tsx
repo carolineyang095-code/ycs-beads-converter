@@ -11,7 +11,7 @@ export default function HeroIntro({ onUploadClick, shopUrl }: Props) {
         Yaya's Creative Studio
       </h1>
 
-      <h2 className="text-lg font-medium mb-2 text-[#332847]">
+      <h2 className="text-lg font-medium mb-2 text-[#7B6A9B]">
         Bead Pattern Converter Tool
       </h2>
 
@@ -26,7 +26,7 @@ export default function HeroIntro({ onUploadClick, shopUrl }: Props) {
       <div className="flex gap-4">
         <button
           onClick={onUploadClick}
-          className="px-6 py-2 rounded-lg bg-[#332847] text-white hover:opacity-90 transition"
+          className="px-6 py-2 rounded-lg bg-[#7B6A9B] text-white hover:opacity-90 transition"
         >
           Upload Image
         </button>
@@ -34,7 +34,7 @@ export default function HeroIntro({ onUploadClick, shopUrl }: Props) {
         <a
           href={shopUrl}
           target="_blank"
-          className="px-6 py-2 rounded-lg border border-[#332847] text-[#332847] hover:bg-[#332847]/10 transition"
+          className="px-6 py-2 rounded-lg border border-[#7B6A9B] text-[#7B6A9B] hover:bg-[#7B6A9B]/10 transition"
         >
           Visit Shop
         </a>

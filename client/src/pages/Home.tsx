@@ -523,7 +523,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             <img src="/yaya_logo_final.png" alt="Logo" className="h-32 sm:h-40 w-auto" />
           </a>
           <div>
-            <p className="text-[10px] sm:text-sm font-medium" style={{ color: '#332847', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
+            <p className="text-[10px] sm:text-sm font-medium" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order</p>
           </div>
         </div>
         {processed && (
@@ -534,7 +534,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             </div>
             <div className="flex items-center gap-2 ml-auto sm:ml-0">
               <ShopifyIntegration colorStats={filteredColorStats} />
-              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[10px] sm:text-xs gap-1 border-[#332847] text-[#332847] hover:bg-purple-50 rounded-full px-3 sm:px-4 h-8">
+              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[10px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-3 sm:px-4 h-8">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
             </div>
@@ -789,7 +789,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                 <div className="space-y-2 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Quick Breakdown</span>
-                    <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#332847]" onClick={handleCopyBreakdown}>
+                    <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#7B6A9B]" onClick={handleCopyBreakdown}>
                       {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? 'Copied!' : 'Copy breakdown'}
                     </Button>
                   </div>
@@ -808,29 +808,29 @@ const SHOW_REMOVE_BACKGROUND = false;
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-lg pb-safe">
           {/* Row 1: Tool buttons - Horizontal Scrollable for small screens */}
           <div className="flex items-center justify-between px-2 pt-2 pb-1 overflow-x-auto no-scrollbar">
-            <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isPreview ? 'bg-purple-100 text-[#332847]' : 'text-gray-500'}`}>
+            <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isPreview ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               <Eye className="w-5 h-5" /><span>Preview</span>
             </button>
-            <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'brush' ? 'bg-purple-100 text-[#332847]' : 'text-gray-500'}`}>
+            <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'brush' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               <Paintbrush className="w-5 h-5" /><span>Brush</span>
             </button>
-            <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eraser' ? 'bg-purple-100 text-[#332847]' : 'text-gray-500'}`}>
+            <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eraser' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               <Eraser className="w-5 h-5" /><span>Eraser</span>
             </button>
-            <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#332847]' : 'text-gray-500'}`}>
+            <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               <Pipette className="w-5 h-5" /><span>Pick</span>
             </button>
             <button onClick={handleUndo} disabled={historyStack.length === 0} className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 text-gray-500 disabled:opacity-30">
               <Undo2 className="w-5 h-5" /><span>Undo</span>
             </button>
-            <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${paletteOpen ? 'bg-purple-100 text-[#332847]' : 'text-gray-500'}`}>
+            <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${paletteOpen ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               {selectedColor
                 ? <div className="w-5 h-5 rounded border-2 border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                 : <Palette className="w-5 h-5" />
               }
               <span>{selectedColor ? selectedColor.code : 'Color'}</span>
             </button>
-            <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isSidebarOpen ? 'bg-purple-100 text-[#332847]' : 'text-gray-500'}`}>
+            <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isSidebarOpen ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               <SlidersHorizontal className="w-5 h-5" /><span>Settings</span>
             </button>
           </div>
