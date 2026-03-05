@@ -295,6 +295,9 @@ export function processImageToGrid(
     mode?: ProcessingMode;
   }
 ): ProcessedImage {
+  const effectiveExcludedCodes = new Set(excludedCodes);
+  effectiveExcludedCodes.add('H01');
+
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     throw new Error('Failed to get canvas context');
@@ -365,7 +368,7 @@ export function processImageToGrid(
         b: workB[idx],
       };
 
-      const closest = findClosestColor(oldColor, palette, excludedCodes);
+      const closest = findClosestColor(oldColor, palette, effectiveExcludedCodes);
       rawCodes[idx] = closest.code;
 
       if (!useDither) continue;

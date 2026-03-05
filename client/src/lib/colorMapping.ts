@@ -47,6 +47,8 @@ export function findClosestColor(
 
   for (let i = 0; i < palette.length; i++) {
     if (excludedCodes && excludedCodes.has(palette[i].code)) continue;
+    if (palette[i].code === 'H01') continue;
+    if (!palette[i].hex || palette[i].hex === '#null' || palette[i].hex === 'null') continue;
     const distance = euclideanDistance(targetColor, palette[i].rgb);
     if (distance < minDistance) {
       minDistance = distance;
