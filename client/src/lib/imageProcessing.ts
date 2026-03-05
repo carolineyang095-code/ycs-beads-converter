@@ -309,7 +309,12 @@ export function processImageToGrid(
   const effectiveMergeThreshold =
     mode === 'vivid' ? 0 :
     mode === 'soft'  ? Math.max(mergeThreshold, 4) :
-                       Math.max(mergeThreshold, 6); // clean
+    mode === 'clean' ? (
+      gridWidth <= 50 ? Math.max(mergeThreshold, 3) :
+      gridWidth <= 80 ? Math.max(mergeThreshold, 5) :
+      Math.max(mergeThreshold, 8)
+    ) :
+                       Math.max(mergeThreshold, 6);
 
   const effectiveDitherStrength =
     mode === 'clean' ? 0 : ditherStrength; // clean 强制无抖动
@@ -406,7 +411,11 @@ if (effectiveMergeThreshold > 1) {
       effectiveMergeThreshold,
       palette,
       paletteIndex,
-      35
+      mode === 'clean' ? (
+        gridWidth <= 50 ? 28 :
+        gridWidth <= 80 ? 35 :
+        45
+      ) : 35
   );
 }
 
