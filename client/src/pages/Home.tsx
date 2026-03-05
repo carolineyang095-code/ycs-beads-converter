@@ -547,9 +547,10 @@ const SHOW_REMOVE_BACKGROUND = false;
               <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7 w-full sm:w-auto">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
+              {/* 右上角收起侧边栏按钮（暂时隐藏，保留代码以备恢复） */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden lg:flex" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
                   </Button>
                 </TooltipTrigger>
