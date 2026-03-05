@@ -309,7 +309,7 @@ export function processImageToGrid(
   const effectiveMergeThreshold =
     mode === 'vivid' ? 0 :
     mode === 'soft'  ? Math.max(mergeThreshold, 4) :
-                       Math.max(mergeThreshold, 6); // clean
+                       Math.max(mergeThreshold, 8); // clean
 
   const effectiveDitherStrength =
     mode === 'clean' ? 0 : ditherStrength; // clean 强制无抖动
@@ -349,6 +349,18 @@ export function processImageToGrid(
       workR[idx] = r;
       workG[idx] = g;
       workB[idx] = b;
+    }
+  }
+
+  // Step 1.5: Posterization (color quantization) for clean mode
+  if (mode === 'clean') {
+    const levels = 4; // compress each channel into 4 levels
+    const step = 255 / (levels - 1);
+    for (let i = 0; i < gridWidth * gridHeight; i++) {
+      if (transparentMask[i]) continue;
+      workR[i] = Math.round(Math.round(workR[i] / step) * step);
+      workG[i] = Math.round(Math.round(workG[i] / step) * step);
+      workB[i] = Math.round(Math.round(workB[i] / step) * step);
     }
   }
 
@@ -406,12 +418,40 @@ if (effectiveMergeThreshold > 1) {
       effectiveMergeThreshold,
       palette,
       paletteIndex,
-      35
+      mode === 'clean' ? 45 : 35
   );
 }
 
 
 // vivid 不 merge
+
+  // Step 2.5: clean mode — two-pass isolated pixel elimination
+  if (mode === 'clean') {
+    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 0; i < mergedCodes.length; i++) {
+        const x = i % gridWidth;
+        const y = Math.floor(i / gridWidth);
+        const code = mergedCodes[i];
+
+        const neighborCounts = new Map<string, number>();
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= gridWidth || ny < 0 || ny >= gridHeight) continue;
+          const nc = mergedCodes[ny * gridWidth + nx];
+          if (nc !== code) neighborCounts.set(nc, (neighborCounts.get(nc) || 0) + 1);
+        }
+
+        // If 3 or more of the 4 neighbors share the same color, replace with that color
+        for (const [nc, count] of neighborCounts) {
+          if (count >= 3) {
+            mergedCodes[i] = nc;
+            break;
+          }
+        }
+      }
+    }
+  }
 
   // Step 3: Detect background if enabled
   let backgroundIndices = new Set<number>();
@@ -420,6 +460,21 @@ if (effectiveMergeThreshold > 1) {
     const bgResult = detectBackground(mergedCodes, gridWidth, gridHeight);
     backgroundIndices = bgResult.backgroundIndices;
     backgroundCode = bgResult.backgroundCode;
+    // Force all background cells to the dominant background color
+    if (backgroundCode) {
+      for (const idx of backgroundIndices) {
+        mergedCodes[idx] = backgroundCode;
+      }
+    }
+  } else if (mode === 'clean') {
+    // Even without background removal, detect and unify the background color to eliminate noise
+    const bgResult = detectBackground(mergedCodes, gridWidth, gridHeight);
+    if (bgResult.backgroundCode) {
+      for (const idx of bgResult.backgroundIndices) {
+        mergedCodes[idx] = bgResult.backgroundCode;
+      }
+    }
+    // backgroundIndices intentionally left empty: pixels are not marked as removed
   }
 
   // Step 4: Build final pixel array
