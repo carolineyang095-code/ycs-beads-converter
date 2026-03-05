@@ -79,7 +79,7 @@ export default function NoiseColorRemoval({
             return (
               <div
                 key={code}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 cursor-pointer transition-colors group"
+                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#EDE7DA] cursor-pointer transition-colors group"
                 onClick={() => handleRemove(code)}
                 title={`Click to replace ${code} with ${replacement || '?'}`}
               >
@@ -117,7 +117,7 @@ export default function NoiseColorRemoval({
         <div className="border-t border-border pt-2">
           <button
             onClick={() => setShowRemoved(!showRemoved)}
-            className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-foreground hover:bg-gray-50 rounded-md transition-colors"
+            className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-foreground hover:bg-[#EDE7DA] rounded-md transition-colors"
           >
             <span>Excluded Colors ({removedColors.size})</span>
             {showRemoved ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
