@@ -573,7 +573,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
           {/* Desktop Toolbar — hidden on mobile */}
           {processed && (
-            <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-[#EDE7DA]">
+            <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-[#E8E3F0]">
               <div className="flex items-center gap-2 border-r border-border pr-3">
                 <span className="text-xs font-medium text-muted-foreground">Preview</span>
                 <Switch checked={isPreview} onCheckedChange={setIsPreview} />
@@ -593,10 +593,10 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </TooltipTrigger><TooltipContent>Undo (Step Back)</TooltipContent></Tooltip>
               </div>
               <div className="flex items-center gap-1 border-l border-border pl-3">
-                <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Brush Size</span>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} disabled={brushSize <= 1}><Minus className="w-3.5 h-3.5" /></Button>
+                <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Size</span>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full border-2 border-[#E53E3E] text-[#E53E3E] hover:bg-[#E53E3E]/10" onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} disabled={brushSize <= 1}><Minus className="w-3.5 h-3.5" /></Button>
                 <span className="text-xs font-mono text-muted-foreground w-5 text-center">{brushSize}</span>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30}><Plus className="w-3.5 h-3.5" /></Button>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full border-2 border-[#38A169] text-[#38A169] hover:bg-[#38A169]/10" onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30}><Plus className="w-3.5 h-3.5" /></Button>
               </div>
               {selectedColor && (
                 <div className="relative flex items-center gap-1 border-x border-border px-3 cursor-pointer" onClick={() => setPaletteOpen((v: boolean) => !v)}>
