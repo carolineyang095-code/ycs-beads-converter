@@ -143,7 +143,7 @@ export function exportFullPatternPNG(
       let currentY = 50;
       
       if (logoImg) {
-        const logoHeight = 480; // 2x of previous 240
+        const logoHeight = 360; // 2x of previous 240
         const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
         ctx.drawImage(logoImg, 40, currentY, logoWidth, logoHeight);
         

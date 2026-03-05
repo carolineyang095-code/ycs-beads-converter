@@ -530,7 +530,7 @@ const SHOW_REMOVE_BACKGROUND = false;
       <header className="border-b border-border bg-white px-3 py-2 flex flex-col gap-1.5 flex-shrink-0">
         <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-3">
           <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
-            <img src="/yaya_logo_final.png" alt="Logo" className="h-12 sm:h-16 w-auto" />
+            <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
           </a>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] sm:text-sm font-medium break-words" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern</p>
