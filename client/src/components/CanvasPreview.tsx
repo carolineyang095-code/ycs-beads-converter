@@ -19,7 +19,7 @@ export default function CanvasPreview({
 }: CanvasPreviewProps) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="w-full bg-gray-50 rounded-lg p-4 border border-border overflow-auto max-h-96">
+      <div className="w-full bg-[#EDE7DA] rounded-lg p-4 border border-border overflow-auto max-h-96">
         {isProcessing ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">

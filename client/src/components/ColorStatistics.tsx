@@ -26,15 +26,15 @@ export default function ColorStatistics({
     <div className="space-y-4">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gray-50 rounded-lg p-4 border border-border">
+        <div className="bg-[#EDE7DA] rounded-lg p-4 border border-border">
           <p className="text-sm text-muted-foreground">Total Beads</p>
           <p className="text-2xl font-bold text-foreground">{totalBeads}</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4 border border-border">
+        <div className="bg-[#EDE7DA] rounded-lg p-4 border border-border">
           <p className="text-sm text-muted-foreground">Unique Colors</p>
           <p className="text-2xl font-bold text-foreground">{colorStats.size}</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4 border border-border">
+        <div className="bg-[#EDE7DA] rounded-lg p-4 border border-border">
           <p className="text-sm text-muted-foreground">Coverage</p>
           <p className="text-2xl font-bold text-foreground">100%</p>
         </div>
@@ -43,7 +43,7 @@ export default function ColorStatistics({
       {/* Color Table */}
       <div className="overflow-x-auto border border-border rounded-lg">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-border">
+          <thead className="bg-[#EDE7DA] border-b border-border">
             <tr>
               <th className="px-4 py-2 text-left font-semibold text-foreground">Color</th>
               <th className="px-4 py-2 text-left font-semibold text-foreground">Code</th>
@@ -61,7 +61,7 @@ export default function ColorStatistics({
               return (
                 <tr
                   key={code}
-                  className={`border-b border-border hover:bg-gray-50 cursor-pointer transition-colors ${
+                  className={`border-b border-border hover:bg-[#EDE7DA] cursor-pointer transition-colors ${
                     isHighlighted ? 'bg-primary/10' : ''
                   }`}
                   onMouseEnter={() => setHighlightedColor(code)}
