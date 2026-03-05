@@ -52,6 +52,7 @@ export async function loadImage(file: File): Promise<HTMLCanvasElement> {
           reject(new Error('Failed to get canvas context'));
           return;
         }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         resolve(canvas);
       };
@@ -327,6 +328,7 @@ export function processImageToGrid(
   const workR = new Float32Array(gridWidth * gridHeight);
   const workG = new Float32Array(gridWidth * gridHeight);
   const workB = new Float32Array(gridWidth * gridHeight);
+  const transparentMask = new Uint8Array(gridWidth * gridHeight);
 
   for (let y = 0; y < gridHeight; y++) {
     for (let x = 0; x < gridWidth; x++) {
@@ -336,8 +338,10 @@ export function processImageToGrid(
       const r = data[p];
       const g = data[p + 1];
       const b = data[p + 2];
+      const a = data[p + 3];
 
       originalRgbs[idx] = { r, g, b };
+      transparentMask[idx] = a < 128 ? 1 : 0;
 
       workR[idx] = r;
       workG[idx] = g;
@@ -349,6 +353,11 @@ export function processImageToGrid(
   for (let y = 0; y < gridHeight; y++) {
     for (let x = 0; x < gridWidth; x++) {
       const idx = y * gridWidth + x;
+
+      if (transparentMask[idx]) {
+        rawCodes[idx] = 'TRANSPARENT';
+        continue;
+      }
 
       const oldColor: RGB = {
         r: workR[idx],
@@ -417,12 +426,14 @@ if (effectiveMergeThreshold > 1) {
     const color = colorIndex.get(code);
     const isBackground = backgroundIndices.has(i);
 
+    const isTransparentPixel = transparentMask[i] === 1 || code === 'TRANSPARENT';
+
     pixels.push({
-      code,
-      hex: color?.hex || '#000000',
-      rgb: color?.rgb || { r: 0, g: 0, b: 0 },
+      code: isTransparentPixel ? '' : code,
+      hex: isTransparentPixel ? 'transparent' : (color?.hex || '#000000'),
+      rgb: isTransparentPixel ? { r: 0, g: 0, b: 0 } : (color?.rgb || { r: 0, g: 0, b: 0 }),
       originalRgb: originalRgbs[i],
-      isBackground,
+      isBackground: isBackground || isTransparentPixel,
     });
   }
 

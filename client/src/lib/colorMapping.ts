@@ -176,6 +176,7 @@ export function bfsMergeColors(
     if (visited[i]) continue;
 
     const code = pixels[i];
+    if (code === 'TRANSPARENT' || code === '') continue;
     const indices: number[] = [];
     const neighbors = new Set<string>();
     const queue: number[] = [i];
@@ -200,7 +201,10 @@ export function bfsMergeColors(
             queue.push(nIdx);
           }
         } else {
-          neighbors.add(pixels[nIdx]);
+          const nCode = pixels[nIdx];
+          if (nCode !== 'TRANSPARENT' && nCode !== '') {
+            neighbors.add(nCode);
+          }
         }
       }
     }
