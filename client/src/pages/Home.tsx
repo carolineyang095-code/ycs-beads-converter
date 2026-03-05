@@ -591,16 +591,6 @@ const SHOW_REMOVE_BACKGROUND = false;
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleUndo} disabled={historyStack.length === 0}><Undo2 className="w-4 h-4" /></Button>
                 </TooltipTrigger><TooltipContent>Undo (Step Back)</TooltipContent></Tooltip>
-                <div className="relative">
-                  <Tooltip><TooltipTrigger asChild>
-                    <Button size="sm" variant={paletteOpen ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setPaletteOpen((v: boolean) => !v)}><Palette className="w-4 h-4" /></Button>
-                  </TooltipTrigger><TooltipContent>Full Palette</TooltipContent></Tooltip>
-                  {paletteOpen && (
-                    <div className="absolute top-full left-0  w-96 mt-2 bg-[#F5EFE6] border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
-                      <PalettePopupContent />
-                    </div>
-                  )}
-                </div>
               </div>
               <div className="flex items-center gap-1 border-l border-border pl-3">
                 <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Brush Size</span>
@@ -609,9 +599,14 @@ const SHOW_REMOVE_BACKGROUND = false;
                 <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30}><Plus className="w-3.5 h-3.5" /></Button>
               </div>
               {selectedColor && (
-                <div className="flex items-center gap-1 border-x border-border px-3">
+                <div className="relative flex items-center gap-1 border-x border-border px-3 cursor-pointer" onClick={() => setPaletteOpen((v: boolean) => !v)}>
                   <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                   <span className="text-xs font-medium">{selectedColor.code}</span>
+                  {paletteOpen && (
+                    <div className="absolute top-full left-0 w-96 mt-2 bg-[#F5EFE6] border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
+                      <PalettePopupContent />
+                    </div>
+                  )}
                 </div>
               )}
               <div className="flex items-center gap-2 border-r border-border pr-3">
