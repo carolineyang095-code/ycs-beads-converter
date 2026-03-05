@@ -235,8 +235,7 @@ for (const region of regions) {
 
   const dist = euclideanDistance(regionColor.rgb, neighborColor.rgb);
 
-  const MAX_MERGE_DISTANCE = 28;
-  if (dist > MAX_MERGE_DISTANCE) return;
+  if (dist > maxMergeDistance) return;
 
   const lum = luminance(neighborColor.rgb);
   const darkBonus = (255 - lum) / 255;
