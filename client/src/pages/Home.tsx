@@ -732,6 +732,7 @@ const SHOW_REMOVE_BACKGROUND = false;
         </div>
 
         {/* Right: Controls Panel */}
+        {processed && (
 <div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-visible bg-[#F5EFE6] flex-shrink-0 transition-all duration-300 ease-in-out`}>
   {/* Purple circle toggle — outside opacity div so always visible */}
   <button
@@ -859,6 +860,7 @@ const SHOW_REMOVE_BACKGROUND = false;
           </div>
         </div>
       </div>
+        )}
 
       {/* ============================================
           Mobile Bottom Toolbar — lg:hidden only
