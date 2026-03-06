@@ -26,6 +26,8 @@ import {
 } from '@/lib/imageProcessing';
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
+import ProjectManager from '@/components/ProjectManager';
+import { saveProject, generateThumbnail, SavedProject } from '@/lib/projectStorage';
 
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
@@ -544,6 +546,48 @@ const SHOW_REMOVE_BACKGROUND = false;
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
               <ShopifyIntegration colorStats={filteredColorStats} />
+              <ProjectManager
+                hasActiveProject={!!processed}
+                onSave={(name) => {
+                  if (!processed) return;
+                  try {
+                    saveProject(name, {
+                      thumbnailDataUrl: generateThumbnail(canvasRef.current),
+                      gridWidth: processed.gridWidth,
+                      gridHeight: processed.gridHeight,
+                      pixelsJson: JSON.stringify(processed.pixels),
+                      colorStatsJson: JSON.stringify(Array.from(processed.colorStats.entries())),
+                      backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
+                      gridSize,
+                    });
+                    toast.success(`Project "${name}" saved`);
+                  } catch (e) {
+                    toast.error('Save failed, please try again');
+                  }
+                }}
+                onLoad={(project: SavedProject) => {
+                  try {
+                    const pixels = JSON.parse(project.pixelsJson);
+                    const colorStats = new Map<string, number>(JSON.parse(project.colorStatsJson));
+                    const backgroundIndices = new Set<number>(JSON.parse(project.backgroundIndicesJson));
+                    const loaded = {
+                      gridWidth: project.gridWidth,
+                      gridHeight: project.gridHeight,
+                      pixels,
+                      colorStats,
+                      backgroundCode: null,
+                      backgroundIndices,
+                    };
+                    setProcessed(loaded);
+                    setBaseProcessed(loaded);
+                    setDims({ width: project.gridWidth, height: project.gridHeight });
+                    setGridSize(project.gridSize);
+                    toast.success(`Loaded project "${project.name}"`);
+                  } catch (e) {
+                    toast.error('Failed to load project — data may be corrupted');
+                  }
+                }}
+              />
               <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7 w-full sm:w-auto">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
