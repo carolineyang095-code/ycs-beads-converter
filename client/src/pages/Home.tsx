@@ -121,6 +121,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
+  const hiddenFileInputRef = useRef<HTMLInputElement>(null);
 
   // Load palette — set default brush color to H07
   useEffect(() => {
@@ -522,6 +523,17 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   return (
     <div className="h-screen flex flex-col bg-[#F5EFE6] overflow-hidden relative">
+      <input
+        ref={hiddenFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleImageUpload(file);
+          e.target.value = '';
+        }}
+      />
       {cropImageSrc && <CropModal imageSrc={cropImageSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
 
       {isSidebarOpen && isMobile && (
@@ -709,14 +721,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               />
             ) : (
               <HeroIntro
-                onUploadClick={() => {
-                  const panel = document.querySelector('[data-upload-panel="1"]') as HTMLElement | null;
-                  panel?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  requestAnimationFrame(() => {
-                    const fileInput = (panel?.querySelector('input[type="file"]') as HTMLInputElement | null) ?? (document.querySelector('input[type="file"]') as HTMLInputElement | null);
-                    fileInput?.click();
-                  });
-                }}
+                onUploadClick={() => hiddenFileInputRef.current?.click()}
                 shopUrl="https://yayascreativestudio.com/"
               />
             )}
