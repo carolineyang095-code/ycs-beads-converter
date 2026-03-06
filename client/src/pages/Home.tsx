@@ -26,6 +26,8 @@ import {
 } from '@/lib/imageProcessing';
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
+import ProjectManager from '@/components/ProjectManager';
+import { autoSave, loadAutoSave, saveProject, generateThumbnail, SavedProject } from '@/lib/projectStorage';
 
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
@@ -120,6 +122,31 @@ const SHOW_REMOVE_BACKGROUND = false;
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
 
+  // Restore auto-saved session on first load
+  useEffect(() => {
+    const saved = loadAutoSave();
+    if (!saved) return;
+    try {
+      const pixels = JSON.parse(saved.pixelsJson);
+      const colorStats = new Map<string, number>(JSON.parse(saved.colorStatsJson));
+      const backgroundIndices = new Set<number>(JSON.parse(saved.backgroundIndicesJson));
+      const restoredProcessed = {
+        gridWidth: saved.gridWidth,
+        gridHeight: saved.gridHeight,
+        pixels,
+        colorStats,
+        backgroundCode: null,
+        backgroundIndices,
+      };
+      setProcessed(restoredProcessed);
+      setBaseProcessed(restoredProcessed);
+      setDims({ width: saved.gridWidth, height: saved.gridHeight });
+      setGridSize(saved.gridSize);
+    } catch (e) {
+      console.warn('[projectStorage] Failed to restore auto-save:', e);
+    }
+  }, []);
+
   // Load palette — set default brush color to H07
   useEffect(() => {
     const loadPalette = async () => {
@@ -168,6 +195,24 @@ const SHOW_REMOVE_BACKGROUND = false;
       drawPixelGrid(canvasRef.current, processed.gridWidth, processed.gridHeight, processed.pixels, pixelSize, !isPreview, highlightCode, processed.backgroundIndices, showBackground, isPreview);
     } catch (err) { console.error('Draw error:', err); }
   }, [processed, pixelSize, highlightCode, showBackground, isPreview]);
+
+  // Auto-save to localStorage whenever processed data or gridSize changes
+  useEffect(() => {
+    if (!processed) return;
+    try {
+      autoSave({
+        thumbnailDataUrl: generateThumbnail(canvasRef.current),
+        gridWidth: processed.gridWidth,
+        gridHeight: processed.gridHeight,
+        pixelsJson: JSON.stringify(processed.pixels),
+        colorStatsJson: JSON.stringify(Array.from(processed.colorStats.entries())),
+        backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
+        gridSize,
+      });
+    } catch (e) {
+      console.warn('[projectStorage] auto-save error:', e);
+    }
+  }, [processed, gridSize]);
 
   useEffect(() => {
     if (sourceImage && dims) {
@@ -544,6 +589,48 @@ const SHOW_REMOVE_BACKGROUND = false;
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
               <ShopifyIntegration colorStats={filteredColorStats} />
+              <ProjectManager
+                hasActiveProject={!!processed}
+                onSave={(name) => {
+                  if (!processed) return;
+                  try {
+                    saveProject(name, {
+                      thumbnailDataUrl: generateThumbnail(canvasRef.current),
+                      gridWidth: processed.gridWidth,
+                      gridHeight: processed.gridHeight,
+                      pixelsJson: JSON.stringify(processed.pixels),
+                      colorStatsJson: JSON.stringify(Array.from(processed.colorStats.entries())),
+                      backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
+                      gridSize,
+                    });
+                    toast.success(`项目"${name}"已保存`);
+                  } catch (e) {
+                    toast.error('保存失败，请重试');
+                  }
+                }}
+                onLoad={(project: SavedProject) => {
+                  try {
+                    const pixels = JSON.parse(project.pixelsJson);
+                    const colorStats = new Map<string, number>(JSON.parse(project.colorStatsJson));
+                    const backgroundIndices = new Set<number>(JSON.parse(project.backgroundIndicesJson));
+                    const loaded = {
+                      gridWidth: project.gridWidth,
+                      gridHeight: project.gridHeight,
+                      pixels,
+                      colorStats,
+                      backgroundCode: null,
+                      backgroundIndices,
+                    };
+                    setProcessed(loaded);
+                    setBaseProcessed(loaded);
+                    setDims({ width: project.gridWidth, height: project.gridHeight });
+                    setGridSize(project.gridSize);
+                    toast.success(`已加载项目"${project.name}"`);
+                  } catch (e) {
+                    toast.error('加载失败，项目数据可能已损坏');
+                  }
+                }}
+              />
               <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7 w-full sm:w-auto">
                 <Download className="w-3 h-3" /> Export Pattern
               </Button>
