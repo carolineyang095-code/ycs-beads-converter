@@ -859,8 +859,8 @@ const SHOW_REMOVE_BACKGROUND = false;
             )}
           </div>
         </div>
-      </div>
         )}
+      </div>
 
       {/* ============================================
           Mobile Bottom Toolbar — lg:hidden only
