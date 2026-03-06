@@ -1,9 +1,10 @@
 interface HeroIntroProps {
   onUploadClick: () => void;
   shopUrl: string;
+  fileInputId?: string;
 }
 
-export default function HeroIntro({ onUploadClick, shopUrl }: HeroIntroProps) {
+export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroIntroProps) {
   return (
     <>
       {/* ── Google Fonts ── */}
@@ -407,9 +408,15 @@ export default function HeroIntro({ onUploadClick, shopUrl }: HeroIntroProps) {
           </p>
 
           <div className="hero-buttons">
-            <button className="btn-primary" onClick={onUploadClick}>
-              ⬆️ Upload Image
-            </button>
+            {fileInputId ? (
+              <label htmlFor={fileInputId} className="btn-primary" style={{ cursor: 'pointer' }}>
+                ⬆️ Upload Image
+              </label>
+            ) : (
+              <button className="btn-primary" onClick={onUploadClick}>
+                ⬆️ Upload Image
+              </button>
+            )}
             <a className="btn-outline" href={shopUrl} target="_blank" rel="noopener noreferrer">
               🛍 Visit Shop
             </a>
@@ -498,9 +505,15 @@ export default function HeroIntro({ onUploadClick, shopUrl }: HeroIntroProps) {
         <div className="cta-section">
           <h2 className="cta-h2">Ready to start your next bead project?</h2>
           <p className="cta-p">Free to use · No sign-up · Works on any device</p>
-          <button className="btn-cta" onClick={onUploadClick}>
-            ⬆️ Upload Image Now
-          </button>
+          {fileInputId ? (
+            <label htmlFor={fileInputId} className="btn-cta" style={{ cursor: 'pointer' }}>
+              ⬆️ Upload Image Now
+            </label>
+          ) : (
+            <button className="btn-cta" onClick={onUploadClick}>
+              ⬆️ Upload Image Now
+            </button>
+          )}
         </div>
 
       </div>
