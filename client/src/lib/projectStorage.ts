@@ -56,9 +56,7 @@ export function deleteProject(id: string): void {
 
 export function formatSavedAt(iso: string): string {
   try {
-    const date = new Date(iso);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(date.getDate())}日 ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch {
     return iso;
   }

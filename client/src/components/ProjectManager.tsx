@@ -35,7 +35,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
   }, [open]);
 
   const handleSave = () => {
-    const name = projectName.trim() || `项目 ${new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
+    const name = projectName.trim() || `Project ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
     onSave(name);
     setProjectName('');
     // Refresh list after save with a tiny delay to let saveProject write
@@ -76,7 +76,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
-                placeholder="输入项目名称…"
+                placeholder="Project name (optional)"
                 className="flex-1 h-7 px-2 text-xs border border-border rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#7B6A9B]"
               />
               <Button
@@ -85,7 +85,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
                 className="h-7 text-[10px] gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded flex-shrink-0"
                 onClick={handleSave}
               >
-                <Save className="w-3 h-3" /> 保存
+                <Save className="w-3 h-3" /> Save
               </Button>
             </div>
           )}
@@ -93,7 +93,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
           {/* Project list */}
           <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
             {projects.length === 0 ? (
-              <p className="text-[10px] text-muted-foreground text-center py-4">暂无保存的项目</p>
+              <p className="text-[10px] text-muted-foreground text-center py-4">No saved projects yet</p>
             ) : (
               projects.map((project) => (
                 <div
@@ -111,7 +111,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
                         style={{ imageRendering: 'pixelated' }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[8px] text-muted-foreground">无图</div>
+                      <div className="w-full h-full flex items-center justify-center text-[8px] text-muted-foreground">n/a</div>
                     )}
                   </div>
 
@@ -126,7 +126,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
                   <button
                     className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                     onClick={(e) => handleDelete(e, project.id)}
-                    title="删除项目"
+                    title="Delete project"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

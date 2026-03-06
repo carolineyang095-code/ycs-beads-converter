@@ -560,9 +560,9 @@ const SHOW_REMOVE_BACKGROUND = false;
                       backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
                       gridSize,
                     });
-                    toast.success(`项目"${name}"已保存`);
+                    toast.success(`Project "${name}" saved`);
                   } catch (e) {
-                    toast.error('保存失败，请重试');
+                    toast.error('Save failed, please try again');
                   }
                 }}
                 onLoad={(project: SavedProject) => {
@@ -582,9 +582,9 @@ const SHOW_REMOVE_BACKGROUND = false;
                     setBaseProcessed(loaded);
                     setDims({ width: project.gridWidth, height: project.gridHeight });
                     setGridSize(project.gridSize);
-                    toast.success(`已加载项目"${project.name}"`);
+                    toast.success(`Loaded project "${project.name}"`);
                   } catch (e) {
-                    toast.error('加载失败，项目数据可能已损坏');
+                    toast.error('Failed to load project — data may be corrupted');
                   }
                 }}
               />
