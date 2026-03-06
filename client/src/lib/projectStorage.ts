@@ -1,4 +1,3 @@
-const AUTOSAVE_KEY = 'ycs_autosave_v1';
 const PROJECTS_KEY = 'ycs_projects_v1';
 const MAX_PROJECTS = 10;
 
@@ -13,35 +12,6 @@ export interface SavedProject {
   colorStatsJson: string;
   backgroundIndicesJson: string;
   gridSize: number;
-}
-
-interface AutoSaveData {
-  thumbnailDataUrl: string;
-  gridWidth: number;
-  gridHeight: number;
-  pixelsJson: string;
-  colorStatsJson: string;
-  backgroundIndicesJson: string;
-  gridSize: number;
-}
-
-export function autoSave(data: AutoSaveData): void {
-  try {
-    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
-  } catch (e) {
-    console.warn('[projectStorage] autoSave failed:', e);
-  }
-}
-
-export function loadAutoSave(): AutoSaveData | null {
-  try {
-    const raw = localStorage.getItem(AUTOSAVE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as AutoSaveData;
-  } catch (e) {
-    console.warn('[projectStorage] loadAutoSave failed:', e);
-    return null;
-  }
 }
 
 export function saveProject(name: string, data: Omit<SavedProject, 'id' | 'name' | 'savedAt'>): SavedProject {

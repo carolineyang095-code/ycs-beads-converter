@@ -27,7 +27,7 @@ import {
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
 import ProjectManager from '@/components/ProjectManager';
-import { autoSave, loadAutoSave, saveProject, generateThumbnail, SavedProject } from '@/lib/projectStorage';
+import { saveProject, generateThumbnail, SavedProject } from '@/lib/projectStorage';
 
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
@@ -122,31 +122,6 @@ const SHOW_REMOVE_BACKGROUND = false;
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
 
-  // Restore auto-saved session on first load
-  useEffect(() => {
-    const saved = loadAutoSave();
-    if (!saved) return;
-    try {
-      const pixels = JSON.parse(saved.pixelsJson);
-      const colorStats = new Map<string, number>(JSON.parse(saved.colorStatsJson));
-      const backgroundIndices = new Set<number>(JSON.parse(saved.backgroundIndicesJson));
-      const restoredProcessed = {
-        gridWidth: saved.gridWidth,
-        gridHeight: saved.gridHeight,
-        pixels,
-        colorStats,
-        backgroundCode: null,
-        backgroundIndices,
-      };
-      setProcessed(restoredProcessed);
-      setBaseProcessed(restoredProcessed);
-      setDims({ width: saved.gridWidth, height: saved.gridHeight });
-      setGridSize(saved.gridSize);
-    } catch (e) {
-      console.warn('[projectStorage] Failed to restore auto-save:', e);
-    }
-  }, []);
-
   // Load palette — set default brush color to H07
   useEffect(() => {
     const loadPalette = async () => {
@@ -195,24 +170,6 @@ const SHOW_REMOVE_BACKGROUND = false;
       drawPixelGrid(canvasRef.current, processed.gridWidth, processed.gridHeight, processed.pixels, pixelSize, !isPreview, highlightCode, processed.backgroundIndices, showBackground, isPreview);
     } catch (err) { console.error('Draw error:', err); }
   }, [processed, pixelSize, highlightCode, showBackground, isPreview]);
-
-  // Auto-save to localStorage whenever processed data or gridSize changes
-  useEffect(() => {
-    if (!processed) return;
-    try {
-      autoSave({
-        thumbnailDataUrl: generateThumbnail(canvasRef.current),
-        gridWidth: processed.gridWidth,
-        gridHeight: processed.gridHeight,
-        pixelsJson: JSON.stringify(processed.pixels),
-        colorStatsJson: JSON.stringify(Array.from(processed.colorStats.entries())),
-        backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
-        gridSize,
-      });
-    } catch (e) {
-      console.warn('[projectStorage] auto-save error:', e);
-    }
-  }, [processed, gridSize]);
 
   useEffect(() => {
     if (sourceImage && dims) {

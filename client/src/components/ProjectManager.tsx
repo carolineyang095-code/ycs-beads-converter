@@ -62,7 +62,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
         onClick={() => setOpen((v) => !v)}
       >
         <FolderOpen className="w-3 h-3" />
-        我的项目
+        My Projects
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </Button>
 
