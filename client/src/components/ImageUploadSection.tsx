@@ -1,23 +1,23 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Upload, Image as ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface ImageUploadSectionProps {
   onImageUpload: (file: File) => void;
   isProcessing?: boolean;
+  onTrigger?: () => void;
+  fileName?: string | null;
 }
 
 export default function ImageUploadSection({
   onImageUpload,
   isProcessing = false,
+  onTrigger,
+  fileName,
 }: ImageUploadSectionProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
     if (file.type.startsWith('image/')) {
-      setFileName(file.name);
       onImageUpload(file);
     }
   };
@@ -38,15 +38,8 @@ export default function ImageUploadSection({
       className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
         isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'
       }`}
-      onClick={() => fileInputRef.current?.click()}
+      onClick={() => onTrigger?.()}
     >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }}
-        className="hidden"
-      />
       {fileName ? (
         <div className="flex items-center gap-2 justify-center">
           <ImageIcon className="w-4 h-4 text-primary" />
