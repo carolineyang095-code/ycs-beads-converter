@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useIsMobile } from '@/hooks/useMobile';
 import {
   Upload, Download, Paintbrush, Eraser,
-  Pipette, Eye, EyeOff, RotateCcw, ZoomIn, ZoomOut,
+  Pipette, Eye, RotateCcw, ZoomIn, ZoomOut,
   SlidersHorizontal, Layers, Sparkles, Loader2, Palette, Copy, Check,
   PanelLeftClose, PanelRightClose, PanelRightOpen, Minus, Plus,
   Undo2, Trash2
@@ -672,13 +672,6 @@ const SHOW_REMOVE_BACKGROUND = false;
                   <Slider value={[pixelSize]} onValueChange={(v) => setPixelSize(v[0])} min={4} max={30} step={2} />
                 </div>
                 <span className="text-xs font-mono text-muted-foreground w-8 text-center">{pixelSize}px</span>
-              </div>
-              <div className="flex items-center gap-1 border-r border-border pr-3">
-                <Tooltip><TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setShowBackground(!showBackground)}>
-                    {showBackground ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </Button>
-                </TooltipTrigger><TooltipContent>{showBackground ? 'Hide' : 'Show'} Background</TooltipContent></Tooltip>
               </div>
               <div className="flex items-center gap-1 ml-auto border-l border-border pl-3">
                 <Tooltip><TooltipTrigger asChild>
