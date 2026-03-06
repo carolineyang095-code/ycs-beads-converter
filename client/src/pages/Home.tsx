@@ -528,10 +528,11 @@ const SHOW_REMOVE_BACKGROUND = false;
   return (
     <div className="h-screen flex flex-col bg-[#F5EFE6] overflow-hidden relative">
       <input
+        id="hero-file-input"
         ref={hiddenFileInputRef}
         type="file"
         accept="image/*"
-        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, left: '-9999px' }}
+        style={{ display: 'none' }}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleImageUpload(file);
@@ -721,6 +722,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               <HeroIntro
                 onUploadClick={() => hiddenFileInputRef.current?.click()}
                 shopUrl="https://yayascreativestudio.com/"
+                fileInputId="hero-file-input"
               />
             )}
           </div>
