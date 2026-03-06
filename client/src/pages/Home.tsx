@@ -83,6 +83,9 @@ const SHOW_REMOVE_BACKGROUND = false;
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
 
+  // Track last uploaded file name for ImageUploadSection display
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
   // Auto-show sidebar when image is processed
   useEffect(() => {
     if (processed && !isSidebarOpen) {
@@ -180,6 +183,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   }, [maxColors, processingMode]);
 
   const handleImageUpload = async (file: File) => {
+    setUploadedFileName(file.name);
     setError(null); setExcludedCodes(new Set()); setHighlightCode(null); setRemovedColors(new Map());
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -527,7 +531,7 @@ const SHOW_REMOVE_BACKGROUND = false;
         ref={hiddenFileInputRef}
         type="file"
         accept="image/*"
-        className="hidden"
+        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, left: '-9999px' }}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleImageUpload(file);
@@ -745,7 +749,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             <div className="p-4 border-b border-border" data-upload-panel="1">
               <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Canvas Source</h3>
               <div className="space-y-2">
-                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} />
+                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => hiddenFileInputRef.current?.click()} fileName={uploadedFileName} />
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> New Canvas</Button>
                   <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> Reset to Image</Button>
