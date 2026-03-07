@@ -86,9 +86,12 @@ const SHOW_REMOVE_BACKGROUND = false;
   // Track last uploaded file name for ImageUploadSection display
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
-  // Auto-show sidebar when image is processed
+  const hasAutoOpenedSidebar = useRef(false);
+
+  // Auto-show sidebar only on initial image load (not on brush strokes)
   useEffect(() => {
-    if (processed && !isSidebarOpen) {
+    if (processed && !hasAutoOpenedSidebar.current) {
+      hasAutoOpenedSidebar.current = true;
       setIsSidebarOpen(true);
     }
   }, [processed]);
