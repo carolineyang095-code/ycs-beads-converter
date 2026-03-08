@@ -420,6 +420,14 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
             <a className="btn-outline" href={shopUrl} target="_blank" rel="noopener noreferrer">
               🛍 Visit Shop
             </a>
+            <a
+              className="btn-outline"
+              href="https://yayascreativestudio.com/pages/pattern-converter-user-guide"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📖 User Guide
+            </a>
           </div>
 
           {/* Before / After — real images */}
