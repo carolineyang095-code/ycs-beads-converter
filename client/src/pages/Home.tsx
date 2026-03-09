@@ -87,6 +87,8 @@ const SHOW_REMOVE_BACKGROUND = false;
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
   // Replace Color modal state
+  const [selectedPalette, setSelectedPalette] = useState<'mard' | 'artkal'>('mard');
+  const [paletteModalOpen, setPaletteModalOpen] = useState(false);
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
   const [replaceTargetCode, setReplaceTargetCode] = useState<string | null>(null);
   const [replaceFamilyFilter, setReplaceFamilyFilter] = useState<string>('A');
@@ -138,13 +140,15 @@ const SHOW_REMOVE_BACKGROUND = false;
   useEffect(() => {
     const loadPalette = async () => {
       try {
-        const response = await fetch('/artkal_221.json');
+        const paletteFile = selectedPalette === 'artkal'
+          ? '/artkal_cmini.json'
+          : '/artkal_221.json';
+        const response = await fetch(paletteFile);
         if (!response.ok) throw new Error('Failed to load color palette');
         const data: ColorData[] = await response.json();
         setPalette(data);
         const index = createColorIndex(data);
         colorIndexRef.current = index;
-        // Default brush color: H07
         const defaultColor = index.get('H07');
         if (defaultColor) setSelectedColor(defaultColor);
       } catch (err) {
@@ -152,7 +156,7 @@ const SHOW_REMOVE_BACKGROUND = false;
       }
     };
     loadPalette();
-  }, []);
+  }, [selectedPalette]);
 
   const processImage = useCallback((
     canvas: HTMLCanvasElement, gridW: number, gridH: number,
@@ -528,7 +532,9 @@ const SHOW_REMOVE_BACKGROUND = false;
   const PalettePopupContent = () => (
     <>
       <div className="flex items-center justify-between mb-3 border-b pb-2">
-        <h4 className="text-sm font-semibold text-[#452F60]">Artkal 221 Palette</h4>
+        <h4 className="text-sm font-semibold text-[#452F60]">
+          {selectedPalette === 'artkal' ? 'Artkal C-Mini (173)' : 'MARD 221 Palette'}
+        </h4>
         <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setPaletteOpen(false)}>×</Button>
       </div>
       {Array.from(new Set(palette.map(c => c.code[0]))).sort().map(family => (
@@ -762,9 +768,9 @@ const SHOW_REMOVE_BACKGROUND = false;
               />
             ) : (
               <HeroIntro
-                onUploadClick={() => hiddenFileInputRef.current?.click()}
+                onUploadClick={() => setPaletteModalOpen(true)}
                 shopUrl="https://yayascreativestudio.com/"
-                fileInputId="hero-file-input"
+                fileInputId={undefined}
               />
             )}
           </div>
@@ -793,7 +799,13 @@ const SHOW_REMOVE_BACKGROUND = false;
             <div className="p-4 border-b border-border" data-upload-panel="1">
               <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Canvas Source</h3>
               <div className="space-y-2">
-                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => hiddenFileInputRef.current?.click()} fileName={uploadedFileName} />
+                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => {
+                      if (!processed) {
+                        setPaletteModalOpen(true);
+                      } else {
+                        hiddenFileInputRef.current?.click();
+                      }
+                    }} fileName={uploadedFileName} />
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> New Canvas</Button>
                   <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> Reset to Image</Button>
@@ -926,6 +938,103 @@ const SHOW_REMOVE_BACKGROUND = false;
         </div>
         )}
       </div>
+
+      {/* ── Palette Selection Modal ── */}
+      {paletteModalOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setPaletteModalOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[90vw] max-w-[480px] overflow-hidden">
+
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 text-center border-b border-gray-100">
+              <h3 className="text-lg font-bold text-[#452F60]">Choose your bead palette</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                You can only change this before uploading an image
+              </p>
+            </div>
+
+            {/* Cards */}
+            <div className="px-6 py-5 flex flex-col sm:flex-row gap-3">
+
+              {/* MARD */}
+              <button
+                onClick={() => setSelectedPalette('mard')}
+                className={`flex-1 flex flex-col items-start gap-1.5 p-4 rounded-xl border-2 text-left transition-all ${
+                  selectedPalette === 'mard'
+                    ? 'border-[#7B6A9B] bg-[#F3EFFB]'
+                    : 'border-gray-200 bg-white hover:border-[#7B6A9B]/50'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#7B6A9B]">
+                    ⭐ Recommended
+                  </span>
+                  {selectedPalette === 'mard' && (
+                    <span className="text-[#7B6A9B] font-bold text-sm">✓</span>
+                  )}
+                </div>
+                <span className="text-base font-bold text-[#452F60]">MARD</span>
+                <span className="text-[12px] text-gray-500 leading-snug">
+                  221 colors · Full color range<br />
+                  Best for detailed patterns
+                </span>
+                <span className="text-[11px] text-[#7B6A9B] font-semibold mt-1">
+                  Our shop beads use this palette
+                </span>
+              </button>
+
+              {/* ARTKAL */}
+              <button
+                onClick={() => setSelectedPalette('artkal')}
+                className={`flex-1 flex flex-col items-start gap-1.5 p-4 rounded-xl border-2 text-left transition-all ${
+                  selectedPalette === 'artkal'
+                    ? 'border-[#7B6A9B] bg-[#F3EFFB]'
+                    : 'border-gray-200 bg-white hover:border-[#7B6A9B]/50'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    C-Mini Series
+                  </span>
+                  {selectedPalette === 'artkal' && (
+                    <span className="text-[#7B6A9B] font-bold text-sm">✓</span>
+                  )}
+                </div>
+                <span className="text-base font-bold text-[#452F60]">ARTKAL</span>
+                <span className="text-[12px] text-gray-500 leading-snug">
+                  173 colors · Use your existing Artkal beads
+                </span>
+                <span className="text-[11px] text-green-600 font-semibold mt-1">
+                  ✓ Same melting point · Mix &amp; match freely
+                </span>
+              </button>
+
+            </div>
+
+            {/* Artkal hint */}
+            {selectedPalette === 'artkal' && (
+              <p className="px-6 pb-2 text-[11px] text-gray-400 text-center leading-relaxed">
+                Artkal C-Mini beads are produced using the MARD color system —
+                fully compatible with our beads, same melting point.
+              </p>
+            )}
+
+            {/* Continue button */}
+            <div className="px-6 pb-6 pt-2">
+              <button
+                onClick={() => {
+                  setPaletteModalOpen(false);
+                  hiddenFileInputRef.current?.click();
+                }}
+                className="w-full py-3 rounded-xl bg-[#452F60] hover:bg-[#3a2752] text-white font-bold text-sm transition-colors"
+              >
+                Continue → Select Image
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ── Replace Color Modal ── */}
       {replaceModalOpen && replaceTargetCode && (() => {
