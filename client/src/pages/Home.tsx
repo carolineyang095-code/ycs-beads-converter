@@ -89,7 +89,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   // Replace Color modal state
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
   const [replaceTargetCode, setReplaceTargetCode] = useState<string | null>(null);
-  const [replaceFamilyFilter, setReplaceFamilyFilter] = useState<string>('All');
+  const [replaceFamilyFilter, setReplaceFamilyFilter] = useState<string>('A');
 
   const hasAutoOpenedSidebar = useRef(false);
 
@@ -889,7 +889,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                             onClick={(e) => {
                               e.stopPropagation();
                               setReplaceTargetCode(code);
-                              setReplaceFamilyFilter('All');
+                              setReplaceFamilyFilter('A');
                               setReplaceModalOpen(true);
                             }}
                           >
@@ -919,10 +919,10 @@ const SHOW_REMOVE_BACKGROUND = false;
       {/* ── Replace Color Modal ── */}
       {replaceModalOpen && replaceTargetCode && (() => {
         const targetColor = colorIndexRef.current.get(replaceTargetCode);
-        const families = ['All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M'];
-        const filteredPalette = replaceFamilyFilter === 'All'
-          ? palette
-          : palette.filter(c => c.code.startsWith(replaceFamilyFilter) && !c.code.startsWith(replaceFamilyFilter + replaceFamilyFilter));
+        const families = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M'];
+        const filteredPalette = palette.filter(
+          c => c.code.startsWith(replaceFamilyFilter)
+        );
         return (
           <div className="fixed inset-0 z-[200] flex items-center justify-center">
             {/* Backdrop - clicking does NOT close modal */}
@@ -965,7 +965,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                         : 'bg-white text-gray-500 border-gray-200 hover:border-[#7B6A9B] hover:text-[#7B6A9B]'
                     }`}
                   >
-                    {f === 'All' ? 'All' : `Family ${f}`}
+                    {f}
                   </button>
                 ))}
               </div>
