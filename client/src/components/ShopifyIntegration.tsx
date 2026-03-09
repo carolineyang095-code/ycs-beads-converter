@@ -37,7 +37,7 @@ export default function ShopifyIntegration({
         statsForShopify = await convertArtkalToMardStats(colorStats);
       }
       const builderUrl = buildBeadBuilderUrl(statsForShopify);
-      window.location.href = builderUrl;
+      window.open(builderUrl, '_blank', 'noopener,noreferrer');
       toast.success('Redirecting to bead builder...');
     } catch (error) {
       toast.error(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
