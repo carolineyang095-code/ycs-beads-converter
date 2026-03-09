@@ -335,25 +335,36 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const handleMassReplace = useCallback((fromCode: string, toCode: string) => {
     if (!processed) return;
-    const toColor = colorIndexRef.current.get(toCode);
-    if (!toColor) return;
     pushToHistory(processed);
+    const isRemove = toCode === 'H01';
     const newPixels = processed.pixels.map((pixel) => {
       if (pixel.code === fromCode && !pixel.isBackground) {
+        if (isRemove) {
+          return { ...pixel, code: 'H01', hex: 'transparent', isBackground: true };
+        }
+        const toColor = colorIndexRef.current.get(toCode);
+        if (!toColor) return pixel;
         return { ...pixel, code: toColor.code, hex: toColor.hex, rgb: toColor.rgb };
       }
       return pixel;
     });
+    // Rebuild colorStats — H01/transparent pixels are excluded
     const newStats = new Map<string, number>();
     newPixels.forEach((p, i) => {
-      if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
+      if (!processed.backgroundIndices.has(i)
+          && !p.isBackground
+          && p.code && p.code !== 'BG'
+          && p.hex !== 'transparent') {
         newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
       }
     });
     setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
     setReplaceModalOpen(false);
     setReplaceTargetCode(null);
-    toast.success(`Replaced all ${fromCode} → ${toCode}`);
+    const msg = isRemove
+      ? `Removed all ${fromCode} beads (made transparent)`
+      : `Replaced all ${fromCode} → ${toCode}`;
+    toast.success(msg);
   }, [processed, pushToHistory]);
 
   const handleUndo = useCallback(() => {
@@ -973,8 +984,9 @@ const SHOW_REMOVE_BACKGROUND = false;
               {/* Color Grid */}
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-2">
-                  {filteredPalette.filter(c => c.hex && c.hex !== '#null').map(color => {
+                  {filteredPalette.filter(c => c.code === 'H01' || (c.hex && c.hex !== '#null')).map(color => {
                     const isCurrent = color.code === replaceTargetCode;
+                    const isTransparent = color.code === 'H01';
                     return (
                       <button
                         key={color.code}
@@ -986,7 +998,18 @@ const SHOW_REMOVE_BACKGROUND = false;
                         }`}
                         title={color.code}
                       >
-                        <div className="h-10 w-full" style={{ backgroundColor: color.hex }} />
+                        <div className="h-10 w-full relative" style={{ backgroundColor: isTransparent ? 'transparent' : color.hex }}>
+                          {isTransparent && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-full h-full" style={{
+                                backgroundImage: 'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)',
+                                backgroundSize: '8px 8px',
+                                backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+                              }} />
+                              <span className="absolute text-[9px] font-bold text-gray-400">∅</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="bg-white px-1 py-0.5 text-center relative">
                           <span className="text-[10px] font-mono font-medium text-gray-700 leading-tight block truncate">
                             {color.code}
@@ -1004,7 +1027,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               {/* Footer hint */}
               <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
                 <p className="text-[11px] text-gray-400">★ = current color &nbsp;·&nbsp; Click any swatch to replace all matching beads</p>
-                <p className="text-[11px] text-gray-400">{filteredPalette.filter(c => c.hex && c.hex !== '#null').length} colors</p>
+                <p className="text-[11px] text-gray-400">{filteredPalette.filter(c => c.code === 'H01' || (c.hex && c.hex !== '#null')).length} colors</p>
               </div>
             </div>
           </div>
