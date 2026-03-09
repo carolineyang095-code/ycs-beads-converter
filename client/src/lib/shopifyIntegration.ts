@@ -51,8 +51,34 @@ export function getTotalBeadCount(colorStats: Map<string, number>): number {
  *   /cart/add?id={variantId}&quantity={total}&properties[Breakdown]={breakdown}
  */
 /**
+ * Convert Artkal colorStats to MARD colorStats using artkal_mard_map.json
+ * Merges counts if two Artkal codes map to the same MARD code.
+ */
+export async function convertArtkalToMardStats(
+  colorStats: Map<string, number>
+): Promise<Map<string, number>> {
+  const response = await fetch('/artkal_mard_map.json');
+  if (!response.ok) throw new Error('Failed to load Artkal→MARD mapping');
+  // artkal_mard_map.json is an object: { "AC01": { artkalCode, mardCode, ... }, ... }
+  const mapData: Record<string, { artkalCode: string; mardCode: string }> = await response.json();
+  const mardStats = new Map<string, number>();
+
+  colorStats.forEach((count, artkalCode) => {
+    if (artkalCode === 'BG' || count === 0) return;
+    const entry = mapData[artkalCode];
+    if (entry && entry.mardCode) {
+      mardStats.set(entry.mardCode, (mardStats.get(entry.mardCode) || 0) + count);
+    } else {
+      // No mapping found — keep original code as fallback
+      mardStats.set(artkalCode, (mardStats.get(artkalCode) || 0) + count);
+    }
+  });
+  return mardStats;
+}
+
+/**
  * Build a redirect URL to the Shopify bead-builder page with encoded selections
- * 
+ *
  * Payload format:
  *   { v: 1, selections: { A01: 25, A02: 6, ... } }
  * 

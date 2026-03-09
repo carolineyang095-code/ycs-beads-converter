@@ -4,11 +4,13 @@ import { toast } from 'sonner';
 import {
   buildBeadBuilderUrl,
   getTotalBeadCount,
+  convertArtkalToMardStats,
   ShopifyConfig,
 } from '@/lib/shopifyIntegration';
 
 interface ShopifyIntegrationProps {
   colorStats: Map<string, number>;
+  paletteType?: 'mard' | 'artkal';
 }
 
 // Fixed Shopify configuration as requested
@@ -19,18 +21,22 @@ const FIXED_CONFIG: ShopifyConfig = {
 
 export default function ShopifyIntegration({
   colorStats,
+  paletteType = 'mard',
 }: ShopifyIntegrationProps) {
   const totalBeads = getTotalBeadCount(colorStats);
 
-  const handleBuyAllBeads = () => {
+  const handleBuyAllBeads = async () => {
     if (totalBeads === 0) {
       toast.error('No beads to buy');
       return;
     }
 
     try {
-      const builderUrl = buildBeadBuilderUrl(colorStats);
-      // Same-tab navigation for smoother flow
+      let statsForShopify = colorStats;
+      if (paletteType === 'artkal') {
+        statsForShopify = await convertArtkalToMardStats(colorStats);
+      }
+      const builderUrl = buildBeadBuilderUrl(statsForShopify);
       window.location.href = builderUrl;
       toast.success('Redirecting to bead builder...');
     } catch (error) {

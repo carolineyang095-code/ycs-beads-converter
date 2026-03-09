@@ -76,8 +76,12 @@ export function exportFullPatternPNG(
   palette: Map<string, ColorData>,
   backgroundIndices: Set<number>,
   fileName: string,
-  options?: ExportOptions
+  options?: ExportOptions,
+  paletteType: 'mard' | 'artkal' = 'mard'
 ): void {
+  const displayCode = (code: string): string =>
+    paletteType === 'artkal' && code.startsWith('A') ? code.slice(1) : code;
+
   // Load logo first
   const logo = new Image();
   logo.src = '/yaya_logo_final.png';
@@ -261,7 +265,7 @@ export function exportFullPatternPNG(
           ctx.font = `bold ${fontSize}px sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(pixel.code, x + cellSize / 2, y + cellSize / 2);
+          ctx.fillText(displayCode(pixel.code), x + cellSize / 2, y + cellSize / 2);
         }
       }
 
@@ -349,7 +353,7 @@ export function exportFullPatternPNG(
           ctx.font = 'bold 28px sans-serif';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.fillText(code, x + 20, y + rectH / 2);
+          ctx.fillText(displayCode(code), x + 20, y + rectH / 2);
           
           ctx.font = '24px sans-serif';
           ctx.textAlign = 'right';
