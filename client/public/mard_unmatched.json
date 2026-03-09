@@ -1,0 +1,257 @@
+[
+  {
+    "mardCode": "A02",
+    "mardHex": "#FFFFD5",
+    "closestArtkalDist": 42
+  },
+  {
+    "mardCode": "A03",
+    "mardHex": "#FEFF8B",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "A16",
+    "mardHex": "#FFFF9F",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "B01",
+    "mardHex": "#E6EE31",
+    "closestArtkalDist": 44
+  },
+  {
+    "mardCode": "B02",
+    "mardHex": "#63F347",
+    "closestArtkalDist": 50
+  },
+  {
+    "mardCode": "B03",
+    "mardHex": "#9EF780",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "B04",
+    "mardHex": "#5DE035",
+    "closestArtkalDist": 40
+  },
+  {
+    "mardCode": "B05",
+    "mardHex": "#35E352",
+    "closestArtkalDist": 65
+  },
+  {
+    "mardCode": "B06",
+    "mardHex": "#65E2A6",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "B07",
+    "mardHex": "#3DAF80",
+    "closestArtkalDist": 58
+  },
+  {
+    "mardCode": "B08",
+    "mardHex": "#1C9C4F",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "B12",
+    "mardHex": "#166F41",
+    "closestArtkalDist": 31
+  },
+  {
+    "mardCode": "B13",
+    "mardHex": "#CAEB7B",
+    "closestArtkalDist": 34
+  },
+  {
+    "mardCode": "B14",
+    "mardHex": "#ADE946",
+    "closestArtkalDist": 58
+  },
+  {
+    "mardCode": "B16",
+    "mardHex": "#C5ED9C",
+    "closestArtkalDist": 38
+  },
+  {
+    "mardCode": "B19",
+    "mardHex": "#24B88C",
+    "closestArtkalDist": 45
+  },
+  {
+    "mardCode": "B20",
+    "mardHex": "#C2F0CC",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "B22",
+    "mardHex": "#0B3C43",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "B28",
+    "mardHex": "#9EE5B9",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "B29",
+    "mardHex": "#C5E254",
+    "closestArtkalDist": 31
+  },
+  {
+    "mardCode": "B32",
+    "mardHex": "#9CAB5A",
+    "closestArtkalDist": 34
+  },
+  {
+    "mardCode": "C01",
+    "mardHex": "#E8FFE7",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "C02",
+    "mardHex": "#A9F9FC",
+    "closestArtkalDist": 36
+  },
+  {
+    "mardCode": "C04",
+    "mardHex": "#41CCFF",
+    "closestArtkalDist": 39
+  },
+  {
+    "mardCode": "C14",
+    "mardHex": "#D5FDFF",
+    "closestArtkalDist": 41
+  },
+  {
+    "mardCode": "C17",
+    "mardHex": "#04D1F6",
+    "closestArtkalDist": 51
+  },
+  {
+    "mardCode": "D04",
+    "mardHex": "#182A84",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "D10",
+    "mardHex": "#361851",
+    "closestArtkalDist": 31
+  },
+  {
+    "mardCode": "D15",
+    "mardHex": "#2F1F90",
+    "closestArtkalDist": 35
+  },
+  {
+    "mardCode": "D20",
+    "mardHex": "#9C32B2",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "D21",
+    "mardHex": "#9A009B",
+    "closestArtkalDist": 31
+  },
+  {
+    "mardCode": "D23",
+    "mardHex": "#EBDAFC",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "E07",
+    "mardHex": "#C63478",
+    "closestArtkalDist": 35
+  },
+  {
+    "mardCode": "E13",
+    "mardHex": "#B5006D",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "E22",
+    "mardHex": "#B785A1",
+    "closestArtkalDist": 34
+  },
+  {
+    "mardCode": "F02",
+    "mardHex": "#FC3D46",
+    "closestArtkalDist": 34
+  },
+  {
+    "mardCode": "F04",
+    "mardHex": "#FC283C",
+    "closestArtkalDist": 50
+  },
+  {
+    "mardCode": "F10",
+    "mardHex": "#8A4526",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "F14",
+    "mardHex": "#FFA9AD",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "F25",
+    "mardHex": "#E54B4F",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "G13",
+    "mardHex": "#B7714A",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "G15",
+    "mardHex": "#FCF9E0",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "G17",
+    "mardHex": "#78524B",
+    "closestArtkalDist": 33
+  },
+  {
+    "mardCode": "H09",
+    "mardHex": "#EDEDED",
+    "closestArtkalDist": 31
+  },
+  {
+    "mardCode": "H10",
+    "mardHex": "#EEE9EA",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "H13",
+    "mardHex": "#F5ECD2",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "H16",
+    "mardHex": "#1D1414",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "H19",
+    "mardHex": "#F6EFE2",
+    "closestArtkalDist": 34
+  },
+  {
+    "mardCode": "H21",
+    "mardHex": "#FFFBE1",
+    "closestArtkalDist": 30
+  },
+  {
+    "mardCode": "M03",
+    "mardHex": "#697D80",
+    "closestArtkalDist": 32
+  },
+  {
+    "mardCode": "M15",
+    "mardHex": "#757D78",
+    "closestArtkalDist": 32
+  }
+]

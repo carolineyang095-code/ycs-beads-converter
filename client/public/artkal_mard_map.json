@@ -1,0 +1,1386 @@
+{
+  "AC01": {
+    "artkalCode": "AC01",
+    "mardCode": "H02",
+    "artkalHex": "#FFFFFF",
+    "mardHex": "#FEFFFF",
+    "distance": 1,
+    "quality": "good"
+  },
+  "AC02": {
+    "artkalCode": "AC02",
+    "mardCode": "H07",
+    "artkalHex": "#000000",
+    "mardHex": "#000000",
+    "distance": 0,
+    "quality": "exact"
+  },
+  "AC03": {
+    "artkalCode": "AC03",
+    "mardCode": "G06",
+    "artkalHex": "#FF8200",
+    "mardHex": "#E99C17",
+    "distance": 41,
+    "quality": "ok"
+  },
+  "AC04": {
+    "artkalCode": "AC04",
+    "mardCode": "A07",
+    "artkalHex": "#FF7F41",
+    "mardHex": "#FE8B4C",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC05": {
+    "artkalCode": "AC05",
+    "mardCode": "F05",
+    "artkalHex": "#E4002B",
+    "mardHex": "#E7002F",
+    "distance": 5,
+    "quality": "good"
+  },
+  "AC06": {
+    "artkalCode": "AC06",
+    "mardCode": "F08",
+    "artkalHex": "#BA0C2F",
+    "mardHex": "#BC0028",
+    "distance": 14,
+    "quality": "good"
+  },
+  "AC07": {
+    "artkalCode": "AC07",
+    "mardCode": "E12",
+    "artkalHex": "#EF95CF",
+    "mardHex": "#F78FC3",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC08": {
+    "artkalCode": "AC08",
+    "mardCode": "E05",
+    "artkalHex": "#F04E98",
+    "mardHex": "#F551A2",
+    "distance": 12,
+    "quality": "good"
+  },
+  "AC09": {
+    "artkalCode": "AC09",
+    "mardCode": "E06",
+    "artkalHex": "#E24585",
+    "mardHex": "#F13D74",
+    "distance": 24,
+    "quality": "ok"
+  },
+  "AC10": {
+    "artkalCode": "AC10",
+    "mardCode": "A21",
+    "artkalHex": "#F8E08E",
+    "mardHex": "#FFE395",
+    "distance": 10,
+    "quality": "good"
+  },
+  "AC11": {
+    "artkalCode": "AC11",
+    "mardCode": "A26",
+    "artkalHex": "#FFC72C",
+    "mardHex": "#FFC830",
+    "distance": 4,
+    "quality": "good"
+  },
+  "AC12": {
+    "artkalCode": "AC12",
+    "mardCode": "B31",
+    "artkalHex": "#9BE198",
+    "mardHex": "#B0E792",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC13": {
+    "artkalCode": "AC13",
+    "mardCode": "B17",
+    "artkalHex": "#93C90E",
+    "mardHex": "#9BB13A",
+    "distance": 51,
+    "quality": "review"
+  },
+  "AC14": {
+    "artkalCode": "AC14",
+    "mardCode": "B08",
+    "artkalHex": "#009A44",
+    "mardHex": "#1C9C4F",
+    "distance": 30,
+    "quality": "ok"
+  },
+  "AC15": {
+    "artkalCode": "AC15",
+    "mardCode": "B21",
+    "artkalHex": "#007862",
+    "mardHex": "#156A6B",
+    "distance": 27,
+    "quality": "ok"
+  },
+  "AC16": {
+    "artkalCode": "AC16",
+    "mardCode": "A10",
+    "artkalHex": "#FF6A39",
+    "mardHex": "#F77C31",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC17": {
+    "artkalCode": "AC17",
+    "mardCode": "A14",
+    "artkalHex": "#FF5C39",
+    "mardHex": "#FD543D",
+    "distance": 9,
+    "quality": "good"
+  },
+  "AC18": {
+    "artkalCode": "AC18",
+    "mardCode": "C24",
+    "artkalHex": "#8DC8E8",
+    "mardHex": "#7CC4FF",
+    "distance": 29,
+    "quality": "ok"
+  },
+  "AC19": {
+    "artkalCode": "AC19",
+    "mardCode": "C06",
+    "artkalHex": "#56B7E6",
+    "mardHex": "#50AAF0",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC20": {
+    "artkalCode": "AC20",
+    "mardCode": "C05",
+    "artkalHex": "#0090DA",
+    "mardHex": "#01ACEB",
+    "distance": 33,
+    "quality": "ok"
+  },
+  "AC21": {
+    "artkalCode": "AC21",
+    "mardCode": "C16",
+    "artkalHex": "#004EA8",
+    "mardHex": "#1557A8",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC22": {
+    "artkalCode": "AC22",
+    "mardCode": "E18",
+    "artkalHex": "#F7CED7",
+    "mardHex": "#FFC7DB",
+    "distance": 11,
+    "quality": "good"
+  },
+  "AC23": {
+    "artkalCode": "AC23",
+    "mardCode": "G09",
+    "artkalHex": "#EAA794",
+    "mardHex": "#E6B483",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC24": {
+    "artkalCode": "AC24",
+    "mardCode": "G03",
+    "artkalHex": "#EFD19F",
+    "mardHex": "#F4C3A5",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC25": {
+    "artkalCode": "AC25",
+    "mardCode": "D06",
+    "artkalHex": "#A388D8",
+    "mardHex": "#AC7BDE",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC26": {
+    "artkalCode": "AC26",
+    "mardCode": "D18",
+    "artkalHex": "#9569BE",
+    "mardHex": "#A45EC7",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC27": {
+    "artkalCode": "AC27",
+    "mardCode": "D22",
+    "artkalHex": "#483698",
+    "mardHex": "#333A95",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC28": {
+    "artkalCode": "AC28",
+    "mardCode": "F18",
+    "artkalHex": "#C67D30",
+    "mardHex": "#D37C46",
+    "distance": 26,
+    "quality": "ok"
+  },
+  "AC29": {
+    "artkalCode": "AC29",
+    "mardCode": "G07",
+    "artkalHex": "#A4493D",
+    "mardHex": "#9D5B3E",
+    "distance": 19,
+    "quality": "good"
+  },
+  "AC30": {
+    "artkalCode": "AC30",
+    "mardCode": "F06",
+    "artkalHex": "#93262C",
+    "mardHex": "#943630",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC31": {
+    "artkalCode": "AC31",
+    "mardCode": "M09",
+    "artkalHex": "#A37F74",
+    "mardHex": "#A58767",
+    "distance": 15,
+    "quality": "good"
+  },
+  "AC32": {
+    "artkalCode": "AC32",
+    "mardCode": "G08",
+    "artkalHex": "#683431",
+    "mardHex": "#753832",
+    "distance": 14,
+    "quality": "good"
+  },
+  "AC33": {
+    "artkalCode": "AC33",
+    "mardCode": "H15",
+    "artkalHex": "#A7A8AA",
+    "mardHex": "#98A6A8",
+    "distance": 15,
+    "quality": "good"
+  },
+  "AC34": {
+    "artkalCode": "AC34",
+    "mardCode": "H04",
+    "artkalHex": "#888B8D",
+    "mardHex": "#89858C",
+    "distance": 6,
+    "quality": "good"
+  },
+  "AC36": {
+    "artkalCode": "AC36",
+    "mardCode": "F24",
+    "artkalHex": "#E68699",
+    "mardHex": "#E698AA",
+    "distance": 25,
+    "quality": "ok"
+  },
+  "AC37": {
+    "artkalCode": "AC37",
+    "mardCode": "C08",
+    "artkalHex": "#0067B9",
+    "mardHex": "#0F54C0",
+    "distance": 25,
+    "quality": "ok"
+  },
+  "AC38": {
+    "artkalCode": "AC38",
+    "mardCode": "C07",
+    "artkalHex": "#418FDE",
+    "mardHex": "#3677D2",
+    "distance": 29,
+    "quality": "ok"
+  },
+  "AC39": {
+    "artkalCode": "AC39",
+    "mardCode": "C25",
+    "artkalHex": "#A4DBE8",
+    "mardHex": "#A9E5E5",
+    "distance": 12,
+    "quality": "good"
+  },
+  "AC40": {
+    "artkalCode": "AC40",
+    "mardCode": "B18",
+    "artkalHex": "#E1D555",
+    "mardHex": "#E6EE49",
+    "distance": 28,
+    "quality": "ok"
+  },
+  "AC41": {
+    "artkalCode": "AC41",
+    "mardCode": "A20",
+    "artkalHex": "#FBDB65",
+    "mardHex": "#FFD568",
+    "distance": 8,
+    "quality": "good"
+  },
+  "AC42": {
+    "artkalCode": "AC42",
+    "mardCode": "A08",
+    "artkalHex": "#FFC845",
+    "mardHex": "#FFDA45",
+    "distance": 18,
+    "quality": "good"
+  },
+  "AC43": {
+    "artkalCode": "AC43",
+    "mardCode": "F08",
+    "artkalHex": "#A30034",
+    "mardHex": "#BC0028",
+    "distance": 28,
+    "quality": "ok"
+  },
+  "AC44": {
+    "artkalCode": "AC44",
+    "mardCode": "A19",
+    "artkalHex": "#FF808B",
+    "mardHex": "#FD7C72",
+    "distance": 25,
+    "quality": "ok"
+  },
+  "AC45": {
+    "artkalCode": "AC45",
+    "mardCode": "B25",
+    "artkalHex": "#4A7C68",
+    "mardHex": "#4E846D",
+    "distance": 10,
+    "quality": "good"
+  },
+  "AC46": {
+    "artkalCode": "AC46",
+    "mardCode": "A22",
+    "artkalHex": "#F0EC74",
+    "mardHex": "#F4F57D",
+    "distance": 13,
+    "quality": "good"
+  },
+  "AC47": {
+    "artkalCode": "AC47",
+    "mardCode": "A23",
+    "artkalHex": "#ECC3B2",
+    "mardHex": "#E6C9B7",
+    "distance": 10,
+    "quality": "good"
+  },
+  "AC48": {
+    "artkalCode": "AC48",
+    "mardCode": "A06",
+    "artkalHex": "#FFB549",
+    "mardHex": "#FEAC4C",
+    "distance": 10,
+    "quality": "good"
+  },
+  "AC49": {
+    "artkalCode": "AC49",
+    "mardCode": "E12",
+    "artkalHex": "#EC86D0",
+    "mardHex": "#F78FC3",
+    "distance": 19,
+    "quality": "good"
+  },
+  "AC50": {
+    "artkalCode": "AC50",
+    "mardCode": "D11",
+    "artkalHex": "#C5B4E3",
+    "mardHex": "#B9BAE1",
+    "distance": 14,
+    "quality": "good"
+  },
+  "AC51": {
+    "artkalCode": "AC51",
+    "mardCode": "A11",
+    "artkalHex": "#F5E1A4",
+    "mardHex": "#FFDD99",
+    "distance": 15,
+    "quality": "good"
+  },
+  "AC52": {
+    "artkalCode": "AC52",
+    "mardCode": "D25",
+    "artkalHex": "#5949A7",
+    "mardHex": "#494FC7",
+    "distance": 36,
+    "quality": "ok"
+  },
+  "AC53": {
+    "artkalCode": "AC53",
+    "mardCode": "B01",
+    "artkalHex": "#C4D600",
+    "mardHex": "#E6EE31",
+    "distance": 64,
+    "quality": "review"
+  },
+  "AC54": {
+    "artkalCode": "AC54",
+    "mardCode": "B19",
+    "artkalHex": "#00B2A9",
+    "mardHex": "#24B88C",
+    "distance": 47,
+    "quality": "ok"
+  },
+  "AC55": {
+    "artkalCode": "AC55",
+    "mardCode": "B04",
+    "artkalHex": "#6CC24A",
+    "mardHex": "#5DE035",
+    "distance": 40,
+    "quality": "ok"
+  },
+  "AC56": {
+    "artkalCode": "AC56",
+    "mardCode": "H23",
+    "artkalHex": "#97999B",
+    "mardHex": "#9A9D94",
+    "distance": 9,
+    "quality": "good"
+  },
+  "AC57": {
+    "artkalCode": "AC57",
+    "mardCode": "F15",
+    "artkalHex": "#D50032",
+    "mardHex": "#D30022",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC58": {
+    "artkalCode": "AC58",
+    "mardCode": "C12",
+    "artkalHex": "#2C2D65",
+    "mardHex": "#1C334D",
+    "distance": 29,
+    "quality": "ok"
+  },
+  "AC59": {
+    "artkalCode": "AC59",
+    "mardCode": "F07",
+    "artkalHex": "#861F41",
+    "mardHex": "#971937",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC60": {
+    "artkalCode": "AC60",
+    "mardCode": "C28",
+    "artkalHex": "#BBDDE6",
+    "mardHex": "#BBCFED",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC61": {
+    "artkalCode": "AC61",
+    "mardCode": "G16",
+    "artkalHex": "#F1E6B2",
+    "mardHex": "#F2D9BA",
+    "distance": 15,
+    "quality": "good"
+  },
+  "AC62": {
+    "artkalCode": "AC62",
+    "mardCode": "F12",
+    "artkalHex": "#FF585D",
+    "mardHex": "#FD4E6A",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC63": {
+    "artkalCode": "AC63",
+    "mardCode": "E03",
+    "artkalHex": "#F1A7DC",
+    "mardHex": "#FFB7E7",
+    "distance": 24,
+    "quality": "ok"
+  },
+  "AC64": {
+    "artkalCode": "AC64",
+    "mardCode": "E13",
+    "artkalHex": "#CE0058",
+    "mardHex": "#B5006D",
+    "distance": 33,
+    "quality": "ok"
+  },
+  "AC65": {
+    "artkalCode": "AC65",
+    "mardCode": "F23",
+    "artkalHex": "#E3775E",
+    "mardHex": "#F67E66",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC66": {
+    "artkalCode": "AC66",
+    "mardCode": "E04",
+    "artkalHex": "#F67599",
+    "mardHex": "#E8649E",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC67": {
+    "artkalCode": "AC67",
+    "mardCode": "D05",
+    "artkalHex": "#B14EB5",
+    "mardHex": "#B843C5",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC68": {
+    "artkalCode": "AC68",
+    "mardCode": "C06",
+    "artkalHex": "#62B5E5",
+    "mardHex": "#50AAF0",
+    "distance": 24,
+    "quality": "ok"
+  },
+  "AC69": {
+    "artkalCode": "AC69",
+    "mardCode": "H05",
+    "artkalHex": "#333F48",
+    "mardHex": "#48464E",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC70": {
+    "artkalCode": "AC70",
+    "mardCode": "H06",
+    "artkalHex": "#183028",
+    "mardHex": "#2F2B2F",
+    "distance": 25,
+    "quality": "ok"
+  },
+  "AC71": {
+    "artkalCode": "AC71",
+    "mardCode": "G06",
+    "artkalHex": "#FFA300",
+    "mardHex": "#E99C17",
+    "distance": 33,
+    "quality": "ok"
+  },
+  "AC72": {
+    "artkalCode": "AC72",
+    "mardCode": "A06",
+    "artkalHex": "#FFB25B",
+    "mardHex": "#FEAC4C",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC73": {
+    "artkalCode": "AC73",
+    "mardCode": "G20",
+    "artkalHex": "#B86125",
+    "mardHex": "#A94023",
+    "distance": 36,
+    "quality": "ok"
+  },
+  "AC74": {
+    "artkalCode": "AC74",
+    "mardCode": "F20",
+    "artkalHex": "#D5A286",
+    "mardHex": "#CD9391",
+    "distance": 20,
+    "quality": "ok"
+  },
+  "AC75": {
+    "artkalCode": "AC75",
+    "mardCode": "M09",
+    "artkalHex": "#AA8066",
+    "mardHex": "#A58767",
+    "distance": 9,
+    "quality": "good"
+  },
+  "AC76": {
+    "artkalCode": "AC76",
+    "mardCode": "A19",
+    "artkalHex": "#FF6D6A",
+    "mardHex": "#FD7C72",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC77": {
+    "artkalCode": "AC77",
+    "mardCode": "F19",
+    "artkalHex": "#B04A5A",
+    "mardHex": "#C1444A",
+    "distance": 24,
+    "quality": "ok"
+  },
+  "AC78": {
+    "artkalCode": "AC78",
+    "mardCode": "F06",
+    "artkalHex": "#862633",
+    "mardHex": "#943630",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC79": {
+    "artkalCode": "AC79",
+    "mardCode": "C03",
+    "artkalHex": "#99D6EA",
+    "mardHex": "#A0E2FB",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC80": {
+    "artkalCode": "AC80",
+    "mardCode": "C19",
+    "artkalHex": "#00968F",
+    "mardHex": "#1887A2",
+    "distance": 34,
+    "quality": "ok"
+  },
+  "AC81": {
+    "artkalCode": "AC81",
+    "mardCode": "C26",
+    "artkalHex": "#48A9C5",
+    "mardHex": "#3CAED8",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC82": {
+    "artkalCode": "AC82",
+    "mardCode": "C19",
+    "artkalHex": "#009CBD",
+    "mardHex": "#1887A2",
+    "distance": 42,
+    "quality": "ok"
+  },
+  "AC83": {
+    "artkalCode": "AC83",
+    "mardCode": "C19",
+    "artkalHex": "#0085AD",
+    "mardHex": "#1887A2",
+    "distance": 26,
+    "quality": "ok"
+  },
+  "AC84": {
+    "artkalCode": "AC84",
+    "mardCode": "B17",
+    "artkalHex": "#ABAD23",
+    "mardHex": "#9BB13A",
+    "distance": 28,
+    "quality": "ok"
+  },
+  "AC85": {
+    "artkalCode": "AC85",
+    "mardCode": "B17",
+    "artkalHex": "#999B30",
+    "mardHex": "#9BB13A",
+    "distance": 24,
+    "quality": "ok"
+  },
+  "AC86": {
+    "artkalCode": "AC86",
+    "mardCode": "B12",
+    "artkalHex": "#008522",
+    "mardHex": "#166F41",
+    "distance": 44,
+    "quality": "ok"
+  },
+  "AC87": {
+    "artkalCode": "AC87",
+    "mardCode": "H14",
+    "artkalHex": "#D9D9D6",
+    "mardHex": "#CFD7D3",
+    "distance": 11,
+    "quality": "good"
+  },
+  "AC88": {
+    "artkalCode": "AC88",
+    "mardCode": "H22",
+    "artkalHex": "#C8C9C7",
+    "mardHex": "#CACAD4",
+    "distance": 13,
+    "quality": "good"
+  },
+  "AC89": {
+    "artkalCode": "AC89",
+    "mardCode": "H03",
+    "artkalHex": "#B1B3B3",
+    "mardHex": "#B6B1BA",
+    "distance": 9,
+    "quality": "good"
+  },
+  "AC90": {
+    "artkalCode": "AC90",
+    "mardCode": "H05",
+    "artkalHex": "#53565A",
+    "mardHex": "#48464E",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC91": {
+    "artkalCode": "AC91",
+    "mardCode": "G10",
+    "artkalHex": "#D69A2D",
+    "mardHex": "#D98C39",
+    "distance": 19,
+    "quality": "good"
+  },
+  "AC92": {
+    "artkalCode": "AC92",
+    "mardCode": "G03",
+    "artkalHex": "#F1C6A7",
+    "mardHex": "#F4C3A5",
+    "distance": 5,
+    "quality": "good"
+  },
+  "AC93": {
+    "artkalCode": "AC93",
+    "mardCode": "F24",
+    "artkalHex": "#DCA59C",
+    "mardHex": "#E698AA",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC94": {
+    "artkalCode": "AC94",
+    "mardCode": "F23",
+    "artkalHex": "#F18070",
+    "mardHex": "#F67E66",
+    "distance": 11,
+    "quality": "good"
+  },
+  "AC95": {
+    "artkalCode": "AC95",
+    "mardCode": "F01",
+    "artkalHex": "#FA9370",
+    "mardHex": "#FD957B",
+    "distance": 12,
+    "quality": "good"
+  },
+  "AC96": {
+    "artkalCode": "AC96",
+    "mardCode": "G06",
+    "artkalHex": "#EA7600",
+    "mardHex": "#E99C17",
+    "distance": 44,
+    "quality": "ok"
+  },
+  "AC97": {
+    "artkalCode": "AC97",
+    "mardCode": "C06",
+    "artkalHex": "#6CACE4",
+    "mardHex": "#50AAF0",
+    "distance": 31,
+    "quality": "ok"
+  },
+  "AC98": {
+    "artkalCode": "AC98",
+    "mardCode": "C24",
+    "artkalHex": "#71C5E8",
+    "mardHex": "#7CC4FF",
+    "distance": 26,
+    "quality": "ok"
+  },
+  "AC99": {
+    "artkalCode": "AC99",
+    "mardCode": "C22",
+    "artkalHex": "#63B1BC",
+    "mardHex": "#67B4BE",
+    "distance": 5,
+    "quality": "good"
+  },
+  "AC100": {
+    "artkalCode": "AC100",
+    "mardCode": "C05",
+    "artkalHex": "#00A3E1",
+    "mardHex": "#01ACEB",
+    "distance": 13,
+    "quality": "good"
+  },
+  "AC101": {
+    "artkalCode": "AC101",
+    "mardCode": "C08",
+    "artkalHex": "#0076CF",
+    "mardHex": "#0F54C0",
+    "distance": 40,
+    "quality": "ok"
+  },
+  "AC102": {
+    "artkalCode": "AC102",
+    "mardCode": "C08",
+    "artkalHex": "#0057B8",
+    "mardHex": "#0F54C0",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC103": {
+    "artkalCode": "AC103",
+    "mardCode": "C19",
+    "artkalHex": "#007D9B",
+    "mardHex": "#1887A2",
+    "distance": 27,
+    "quality": "ok"
+  },
+  "AC104": {
+    "artkalCode": "AC104",
+    "mardCode": "C19",
+    "artkalHex": "#007D8A",
+    "mardHex": "#1887A2",
+    "distance": 35,
+    "quality": "ok"
+  },
+  "AC105": {
+    "artkalCode": "AC105",
+    "mardCode": "C16",
+    "artkalHex": "#006A8E",
+    "mardHex": "#1557A8",
+    "distance": 38,
+    "quality": "ok"
+  },
+  "AC106": {
+    "artkalCode": "AC106",
+    "mardCode": "C20",
+    "artkalHex": "#007096",
+    "mardHex": "#176DAF",
+    "distance": 34,
+    "quality": "ok"
+  },
+  "AC107": {
+    "artkalCode": "AC107",
+    "mardCode": "M05",
+    "artkalHex": "#D5CB9F",
+    "mardHex": "#D0CCAA",
+    "distance": 12,
+    "quality": "good"
+  },
+  "AC108": {
+    "artkalCode": "AC108",
+    "mardCode": "G11",
+    "artkalHex": "#CFC493",
+    "mardHex": "#E0C593",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC109": {
+    "artkalCode": "AC109",
+    "mardCode": "B32",
+    "artkalHex": "#C0B561",
+    "mardHex": "#9CAB5A",
+    "distance": 38,
+    "quality": "ok"
+  },
+  "AC110": {
+    "artkalCode": "AC110",
+    "mardCode": "B26",
+    "artkalHex": "#998542",
+    "mardHex": "#8D7A35",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC111": {
+    "artkalCode": "AC111",
+    "mardCode": "B26",
+    "artkalHex": "#897630",
+    "mardHex": "#8D7A35",
+    "distance": 8,
+    "quality": "good"
+  },
+  "AC112": {
+    "artkalCode": "AC112",
+    "mardCode": "M05",
+    "artkalHex": "#CAC7A7",
+    "mardHex": "#D0CCAA",
+    "distance": 8,
+    "quality": "good"
+  },
+  "AC113": {
+    "artkalCode": "AC113",
+    "mardCode": "M07",
+    "artkalHex": "#BFBB98",
+    "mardHex": "#B4A497",
+    "distance": 26,
+    "quality": "ok"
+  },
+  "AC114": {
+    "artkalCode": "AC114",
+    "mardCode": "M06",
+    "artkalHex": "#B0AA7E",
+    "mardHex": "#B0A782",
+    "distance": 5,
+    "quality": "good"
+  },
+  "AC115": {
+    "artkalCode": "AC115",
+    "mardCode": "M09",
+    "artkalHex": "#899064",
+    "mardHex": "#A58767",
+    "distance": 30,
+    "quality": "ok"
+  },
+  "AC116": {
+    "artkalCode": "AC116",
+    "mardCode": "G14",
+    "artkalHex": "#7A7256",
+    "mardHex": "#8D614C",
+    "distance": 27,
+    "quality": "ok"
+  },
+  "AC117": {
+    "artkalCode": "AC117",
+    "mardCode": "B11",
+    "artkalHex": "#5B792F",
+    "mardHex": "#5D722A",
+    "distance": 9,
+    "quality": "good"
+  },
+  "AC118": {
+    "artkalCode": "AC118",
+    "mardCode": "C25",
+    "artkalHex": "#9CDBD9",
+    "mardHex": "#A9E5E5",
+    "distance": 20,
+    "quality": "ok"
+  },
+  "AC119": {
+    "artkalCode": "AC119",
+    "mardCode": "B10",
+    "artkalHex": "#7AE1BF",
+    "mardHex": "#95D3C2",
+    "distance": 31,
+    "quality": "ok"
+  },
+  "AC120": {
+    "artkalCode": "AC120",
+    "mardCode": "B06",
+    "artkalHex": "#77C19A",
+    "mardHex": "#65E2A6",
+    "distance": 39,
+    "quality": "ok"
+  },
+  "AC121": {
+    "artkalCode": "AC121",
+    "mardCode": "B08",
+    "artkalHex": "#00B467",
+    "mardHex": "#1C9C4F",
+    "distance": 44,
+    "quality": "ok"
+  },
+  "AC122": {
+    "artkalCode": "AC122",
+    "mardCode": "B04",
+    "artkalHex": "#37C400",
+    "mardHex": "#5DE035",
+    "distance": 71,
+    "quality": "review"
+  },
+  "AC123": {
+    "artkalCode": "AC123",
+    "mardCode": "B12",
+    "artkalHex": "#257226",
+    "mardHex": "#166F41",
+    "distance": 31,
+    "quality": "ok"
+  },
+  "AC124": {
+    "artkalCode": "AC124",
+    "mardCode": "B21",
+    "artkalHex": "#008675",
+    "mardHex": "#156A6B",
+    "distance": 36,
+    "quality": "ok"
+  },
+  "AC125": {
+    "artkalCode": "AC125",
+    "mardCode": "B21",
+    "artkalHex": "#007367",
+    "mardHex": "#156A6B",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC126": {
+    "artkalCode": "AC126",
+    "mardCode": "E24",
+    "artkalHex": "#DFC8E7",
+    "mardHex": "#E1BCE8",
+    "distance": 12,
+    "quality": "good"
+  },
+  "AC127": {
+    "artkalCode": "AC127",
+    "mardCode": "D12",
+    "artkalHex": "#D48BC8",
+    "mardHex": "#DE9AD4",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC128": {
+    "artkalCode": "AC128",
+    "mardCode": "E24",
+    "artkalHex": "#EABEDB",
+    "mardHex": "#E1BCE8",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC129": {
+    "artkalCode": "AC129",
+    "mardCode": "E04",
+    "artkalHex": "#DD74A1",
+    "mardHex": "#E8649E",
+    "distance": 20,
+    "quality": "good"
+  },
+  "AC130": {
+    "artkalCode": "AC130",
+    "mardCode": "D11",
+    "artkalHex": "#C1A0DA",
+    "mardHex": "#B9BAE1",
+    "distance": 28,
+    "quality": "ok"
+  },
+  "AC131": {
+    "artkalCode": "AC131",
+    "mardCode": "F09",
+    "artkalHex": "#FB637E",
+    "mardHex": "#E2677A",
+    "distance": 26,
+    "quality": "ok"
+  },
+  "AC132": {
+    "artkalCode": "AC132",
+    "mardCode": "D13",
+    "artkalHex": "#C800A1",
+    "mardHex": "#B90095",
+    "distance": 19,
+    "quality": "good"
+  },
+  "AC133": {
+    "artkalCode": "AC133",
+    "mardCode": "D14",
+    "artkalHex": "#87189D",
+    "mardHex": "#8B279B",
+    "distance": 16,
+    "quality": "good"
+  },
+  "AC134": {
+    "artkalCode": "AC134",
+    "mardCode": "D01",
+    "artkalHex": "#AAB7E8",
+    "mardHex": "#AEB4F2",
+    "distance": 11,
+    "quality": "good"
+  },
+  "AC135": {
+    "artkalCode": "AC135",
+    "mardCode": "D11",
+    "artkalHex": "#B9B7E7",
+    "mardHex": "#B9BAE1",
+    "distance": 7,
+    "quality": "good"
+  },
+  "AC136": {
+    "artkalCode": "AC136",
+    "mardCode": "D02",
+    "artkalHex": "#7BA2E1",
+    "mardHex": "#858EDD",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC137": {
+    "artkalCode": "AC137",
+    "mardCode": "D24",
+    "artkalHex": "#5F8DDA",
+    "mardHex": "#7786E5",
+    "distance": 27,
+    "quality": "ok"
+  },
+  "AC138": {
+    "artkalCode": "AC138",
+    "mardCode": "C07",
+    "artkalHex": "#5576D1",
+    "mardHex": "#3677D2",
+    "distance": 31,
+    "quality": "ok"
+  },
+  "AC139": {
+    "artkalCode": "AC139",
+    "mardCode": "D25",
+    "artkalHex": "#485CC7",
+    "mardHex": "#494FC7",
+    "distance": 13,
+    "quality": "good"
+  },
+  "AC140": {
+    "artkalCode": "AC140",
+    "mardCode": "C07",
+    "artkalHex": "#476ACD",
+    "mardHex": "#3677D2",
+    "distance": 22,
+    "quality": "ok"
+  },
+  "AC141": {
+    "artkalCode": "AC141",
+    "mardCode": "D03",
+    "artkalHex": "#365ABD",
+    "mardHex": "#2F54AF",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC142": {
+    "artkalCode": "AC142",
+    "mardCode": "D03",
+    "artkalHex": "#3448AA",
+    "mardHex": "#2F54AF",
+    "distance": 14,
+    "quality": "good"
+  },
+  "AC143": {
+    "artkalCode": "AC143",
+    "mardCode": "D04",
+    "artkalHex": "#002D72",
+    "mardHex": "#182A84",
+    "distance": 30,
+    "quality": "ok"
+  },
+  "AC144": {
+    "artkalCode": "AC144",
+    "mardCode": "A22",
+    "artkalHex": "#E9E186",
+    "mardHex": "#F4F57D",
+    "distance": 25,
+    "quality": "ok"
+  },
+  "AC145": {
+    "artkalCode": "AC145",
+    "mardCode": "F07",
+    "artkalHex": "#A6192E",
+    "mardHex": "#971937",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC146": {
+    "artkalCode": "AC146",
+    "mardCode": "B10",
+    "artkalHex": "#86C8BC",
+    "mardHex": "#95D3C2",
+    "distance": 20,
+    "quality": "good"
+  },
+  "AC147": {
+    "artkalCode": "AC147",
+    "mardCode": "G14",
+    "artkalHex": "#866761",
+    "mardHex": "#8D614C",
+    "distance": 23,
+    "quality": "ok"
+  },
+  "AC148": {
+    "artkalCode": "AC148",
+    "mardCode": "G16",
+    "artkalHex": "#EFDBB2",
+    "mardHex": "#F2D9BA",
+    "distance": 9,
+    "quality": "good"
+  },
+  "AC149": {
+    "artkalCode": "AC149",
+    "mardCode": "D02",
+    "artkalHex": "#8B84D7",
+    "mardHex": "#858EDD",
+    "distance": 13,
+    "quality": "good"
+  },
+  "AC150": {
+    "artkalCode": "AC150",
+    "mardCode": "B23",
+    "artkalHex": "#3E4827",
+    "mardHex": "#303A21",
+    "distance": 21,
+    "quality": "ok"
+  },
+  "AC151": {
+    "artkalCode": "AC151",
+    "mardCode": "D11",
+    "artkalHex": "#C0AEE4",
+    "mardHex": "#B9BAE1",
+    "distance": 14,
+    "quality": "good"
+  },
+  "AC152": {
+    "artkalCode": "AC152",
+    "mardCode": "D17",
+    "artkalHex": "#BDC7FF",
+    "mardHex": "#C4D4F6",
+    "distance": 17,
+    "quality": "good"
+  },
+  "AC153": {
+    "artkalCode": "AC153",
+    "mardCode": "G16",
+    "artkalHex": "#F3CFB3",
+    "mardHex": "#F2D9BA",
+    "distance": 12,
+    "quality": "good"
+  },
+  "AC154": {
+    "artkalCode": "AC154",
+    "mardCode": "M13",
+    "artkalHex": "#C58B68",
+    "mardHex": "#D19066",
+    "distance": 13,
+    "quality": "good"
+  },
+  "AC155": {
+    "artkalCode": "AC155",
+    "mardCode": "M03",
+    "artkalHex": "#63666A",
+    "mardHex": "#697D80",
+    "distance": 32,
+    "quality": "ok"
+  },
+  "AC156": {
+    "artkalCode": "AC156",
+    "mardCode": "H05",
+    "artkalHex": "#4B4F54",
+    "mardHex": "#48464E",
+    "distance": 11,
+    "quality": "good"
+  },
+  "AC157": {
+    "artkalCode": "AC157",
+    "mardCode": "H06",
+    "artkalHex": "#1D252D",
+    "mardHex": "#2F2B2F",
+    "distance": 19,
+    "quality": "good"
+  },
+  "ACE01": {
+    "artkalCode": "ACE01",
+    "mardCode": "H14",
+    "artkalHex": "#D1DDE6",
+    "mardHex": "#CFD7D3",
+    "distance": 20,
+    "quality": "ok"
+  },
+  "ACE02": {
+    "artkalCode": "ACE02",
+    "mardCode": "B10",
+    "artkalHex": "#9BB8D3",
+    "mardHex": "#95D3C2",
+    "distance": 32,
+    "quality": "ok"
+  },
+  "ACE03": {
+    "artkalCode": "ACE03",
+    "mardCode": "C24",
+    "artkalHex": "#6AD1E3",
+    "mardHex": "#7CC4FF",
+    "distance": 36,
+    "quality": "ok"
+  },
+  "ACE04": {
+    "artkalCode": "ACE04",
+    "mardCode": "C15",
+    "artkalHex": "#03C1AA",
+    "mardHex": "#22C4C6",
+    "distance": 42,
+    "quality": "ok"
+  },
+  "ACE05": {
+    "artkalCode": "ACE05",
+    "mardCode": "C15",
+    "artkalHex": "#2CD5C4",
+    "mardHex": "#22C4C6",
+    "distance": 20,
+    "quality": "good"
+  },
+  "ACE06": {
+    "artkalCode": "ACE06",
+    "mardCode": "C07",
+    "artkalHex": "#147BD1",
+    "mardHex": "#3677D2",
+    "distance": 34,
+    "quality": "ok"
+  },
+  "ACE07": {
+    "artkalCode": "ACE07",
+    "mardCode": "M10",
+    "artkalHex": "#BFA5B8",
+    "mardHex": "#C5B2BC",
+    "distance": 15,
+    "quality": "good"
+  },
+  "ACE08": {
+    "artkalCode": "ACE08",
+    "mardCode": "M11",
+    "artkalHex": "#9B7793",
+    "mardHex": "#9F7594",
+    "distance": 5,
+    "quality": "good"
+  },
+  "ACE09": {
+    "artkalCode": "ACE09",
+    "mardCode": "M12",
+    "artkalHex": "#693C5E",
+    "mardHex": "#644749",
+    "distance": 24,
+    "quality": "ok"
+  },
+  "ACE10": {
+    "artkalCode": "ACE10",
+    "mardCode": "E09",
+    "artkalHex": "#C964CF",
+    "mardHex": "#E970CC",
+    "distance": 34,
+    "quality": "ok"
+  },
+  "ACE11": {
+    "artkalCode": "ACE11",
+    "mardCode": "D20",
+    "artkalHex": "#AD1AAC",
+    "mardHex": "#9C32B2",
+    "distance": 30,
+    "quality": "ok"
+  },
+  "ACE12": {
+    "artkalCode": "ACE12",
+    "mardCode": "A18",
+    "artkalHex": "#FFC27B",
+    "mardHex": "#FEBE7D",
+    "distance": 5,
+    "quality": "good"
+  },
+  "ACE13": {
+    "artkalCode": "ACE13",
+    "mardCode": "G05",
+    "artkalHex": "#E6A65D",
+    "mardHex": "#EDB045",
+    "distance": 27,
+    "quality": "ok"
+  },
+  "ACE14": {
+    "artkalCode": "ACE14",
+    "mardCode": "G10",
+    "artkalHex": "#D38235",
+    "mardHex": "#D98C39",
+    "distance": 12,
+    "quality": "good"
+  },
+  "ACE15": {
+    "artkalCode": "ACE15",
+    "mardCode": "G19",
+    "artkalHex": "#C16C18",
+    "mardHex": "#E07935",
+    "distance": 44,
+    "quality": "ok"
+  },
+  "ACE16": {
+    "artkalCode": "ACE16",
+    "mardCode": "F21",
+    "artkalHex": "#F5B6CD",
+    "mardHex": "#F7B4C6",
+    "distance": 8,
+    "quality": "good"
+  },
+  "ACE17": {
+    "artkalCode": "ACE17",
+    "mardCode": "F11",
+    "artkalHex": "#5D2A2C",
+    "mardHex": "#5A2121",
+    "distance": 15,
+    "quality": "good"
+  }
+}
