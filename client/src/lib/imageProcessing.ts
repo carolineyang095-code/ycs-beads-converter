@@ -632,8 +632,12 @@ export function exportGridWithCodesPNG(
 export function exportStatsAsCSV(
   colorStats: Map<string, number>,
   palette: Map<string, ColorData>,
-  fileName: string = 'perler-stats.csv'
+  fileName: string = 'perler-stats.csv',
+  paletteType: 'mard' | 'artkal' = 'mard'
 ): void {
+  const displayCode = (code: string): string =>
+    paletteType === 'artkal' && code.startsWith('A') ? code.slice(1) : code;
+
   const rows: string[] = ['code,name,hex,count'];
   const sortedCodes = Array.from(colorStats.keys()).sort();
 
@@ -641,7 +645,7 @@ export function exportStatsAsCSV(
     const count = colorStats.get(code) || 0;
     const color = palette.get(code);
     if (color) {
-      rows.push(`${code},${color.name},${color.hex},${count}`);
+      rows.push(`${displayCode(code)},${color.name},${color.hex},${count}`);
     }
   }
 

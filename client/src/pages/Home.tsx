@@ -495,20 +495,21 @@ const SHOW_REMOVE_BACKGROUND = false;
     try {
       console.log('Exporting with options:', { gridInterval: 5 });
       exportFullPatternPNG(
-        dims.width, 
-        dims.height, 
-        processed.pixels, 
-        processed.colorStats, 
-        colorIndexRef.current, 
-        processed.backgroundIndices, 
-        `perler-pattern-${dims.width}x${dims.height}.png`, 
-        { 
+        dims.width,
+        dims.height,
+        processed.pixels,
+        processed.colorStats,
+        colorIndexRef.current,
+        processed.backgroundIndices,
+        `perler-pattern-${dims.width}x${dims.height}.png`,
+        {
           title: 'Bead Pattern',
           gridInterval: 5,
           showCoordinates: true,
           showGrid: true,
           showLegend: true
-        }
+        },
+        selectedPalette
       );
       toast.success('Exporting pattern...');
     } catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
@@ -516,7 +517,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const handleExportCSV = () => {
     if (!processed || !dims) return;
-    try { exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`); toast.success('CSV exported'); }
+    try { exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`, selectedPalette); toast.success('CSV exported'); }
     catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
   };
 
