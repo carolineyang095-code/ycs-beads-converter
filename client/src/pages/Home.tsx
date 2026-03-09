@@ -86,6 +86,11 @@ const SHOW_REMOVE_BACKGROUND = false;
   // Track last uploaded file name for ImageUploadSection display
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
+  // Replace Color modal state
+  const [replaceModalOpen, setReplaceModalOpen] = useState(false);
+  const [replaceTargetCode, setReplaceTargetCode] = useState<string | null>(null);
+  const [replaceFamilyFilter, setReplaceFamilyFilter] = useState<string>('All');
+
   const hasAutoOpenedSidebar = useRef(false);
 
   // Auto-show sidebar only on initial image load (not on brush strokes)
@@ -327,6 +332,29 @@ const SHOW_REMOVE_BACKGROUND = false;
     if (!baseProcessed) return; pushToHistory(processed);
     setProcessed({ ...baseProcessed }); setRemovedColors(new Map());
   };
+
+  const handleMassReplace = useCallback((fromCode: string, toCode: string) => {
+    if (!processed) return;
+    const toColor = colorIndexRef.current.get(toCode);
+    if (!toColor) return;
+    pushToHistory(processed);
+    const newPixels = processed.pixels.map((pixel) => {
+      if (pixel.code === fromCode && !pixel.isBackground) {
+        return { ...pixel, code: toColor.code, hex: toColor.hex, rgb: toColor.rgb };
+      }
+      return pixel;
+    });
+    const newStats = new Map<string, number>();
+    newPixels.forEach((p, i) => {
+      if (!processed.backgroundIndices.has(i) && p.code && p.code !== 'BG' && p.hex !== 'transparent') {
+        newStats.set(p.code, (newStats.get(p.code) || 0) + 1);
+      }
+    });
+    setProcessed({ ...processed, pixels: newPixels, colorStats: newStats });
+    setReplaceModalOpen(false);
+    setReplaceTargetCode(null);
+    toast.success(`Replaced all ${fromCode} → ${toCode}`);
+  }, [processed, pushToHistory]);
 
   const handleUndo = useCallback(() => {
     if (historyStack.length === 0) return;
@@ -834,7 +862,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             {processed && (
               <div className="p-4 border-b border-border">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Layers className="w-3.5 h-3.5" /> Bead Count & Colors ({totalColors})</h3>
-                <p className="text-[10px] text-muted-foreground mb-2">Click to highlight · Right-click to exclude</p>
+                <p className="text-[10px] text-muted-foreground mb-2">Click to highlight · ✏️ to replace</p>
                 <div className="space-y-0.5 max-h-72 overflow-y-auto mb-4">
                   {Array.from(processed.colorStats.entries()).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
                     const color = colorIndexRef.current.get(code);
@@ -842,14 +870,32 @@ const SHOW_REMOVE_BACKGROUND = false;
                     const isExcluded = excludedCodes.has(code);
                     const isHighlighted = highlightCode === code;
                     return (
-                      <div key={code} className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-gray-50'} ${isExcluded ? 'opacity-40 line-through' : ''}`} onClick={() => handleHighlightColor(code)} onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}>
-                        {color && <div className="w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: color.hex }} />}
-                        <span className="font-mono font-medium flex-shrink-0 w-8">{code}</span>
-                        <div className="flex-1 h-1.5 bg-[#D9D0C4] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${Math.max(2, parseFloat(pct))}%`, backgroundColor: color?.hex || '#999' }} />
+                      <div key={code} className="relative group">
+                        <div
+                          className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-gray-50'} ${isExcluded ? 'opacity-40 line-through' : ''}`}
+                          onClick={() => handleHighlightColor(code)}
+                          onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}
+                        >
+                          {color && <div className="w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: color.hex }} />}
+                          <span className="font-mono font-medium flex-shrink-0 w-8">{code}</span>
+                          <div className="flex-1 h-1.5 bg-[#D9D0C4] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.max(2, parseFloat(pct))}%`, backgroundColor: color?.hex || '#999' }} />
+                          </div>
+                          <span className="text-muted-foreground flex-shrink-0 w-10 text-right font-mono">{count}</span>
+                          <span className="text-muted-foreground flex-shrink-0 w-10 text-right">{pct}%</span>
+                          <button
+                            className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0 w-5 h-5 rounded flex items-center justify-center hover:bg-purple-100 text-[#7B6A9B]"
+                            title={`Replace all ${code} beads`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReplaceTargetCode(code);
+                              setReplaceFamilyFilter('All');
+                              setReplaceModalOpen(true);
+                            }}
+                          >
+                            ✏️
+                          </button>
                         </div>
-                        <span className="text-muted-foreground flex-shrink-0 w-10 text-right font-mono">{count}</span>
-                        <span className="text-muted-foreground flex-shrink-0 w-10 text-right">{pct}%</span>
                       </div>
                     );
                   })}
@@ -869,6 +915,101 @@ const SHOW_REMOVE_BACKGROUND = false;
         </div>
         )}
       </div>
+
+      {/* ── Replace Color Modal ── */}
+      {replaceModalOpen && replaceTargetCode && (() => {
+        const targetColor = colorIndexRef.current.get(replaceTargetCode);
+        const families = ['All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M'];
+        const filteredPalette = replaceFamilyFilter === 'All'
+          ? palette
+          : palette.filter(c => c.code.startsWith(replaceFamilyFilter) && !c.code.startsWith(replaceFamilyFilter + replaceFamilyFilter));
+        return (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center">
+            {/* Backdrop - clicking does NOT close modal */}
+            <div className="absolute inset-0 bg-black/40" />
+
+            {/* Modal */}
+            <div className="relative bg-white rounded-2xl shadow-2xl w-[90vw] max-w-[640px] max-h-[85vh] flex flex-col overflow-hidden">
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div>
+                  <h3 className="font-bold text-sm text-gray-800">🎨 Choose a Replacement Color</h3>
+                  <p className="text-[11px] text-gray-400 mt-0.5">All beads of this color will be replaced instantly</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {targetColor && (
+                    <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-lg">
+                      <div className="w-4 h-4 rounded border border-gray-200 flex-shrink-0" style={{ backgroundColor: targetColor.hex }} />
+                      <span className="text-xs font-bold text-[#7B6A9B]">Replacing: {replaceTargetCode}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => { setReplaceModalOpen(false); setReplaceTargetCode(null); }}
+                    className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors text-sm font-medium"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Family Filter Tabs */}
+              <div className="px-4 py-3 border-b border-gray-100 flex flex-wrap gap-1.5">
+                {families.map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setReplaceFamilyFilter(f)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${
+                      replaceFamilyFilter === f
+                        ? 'bg-[#7B6A9B] text-white border-[#7B6A9B]'
+                        : 'bg-white text-gray-500 border-gray-200 hover:border-[#7B6A9B] hover:text-[#7B6A9B]'
+                    }`}
+                  >
+                    {f === 'All' ? 'All' : `Family ${f}`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Color Grid */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-2">
+                  {filteredPalette.filter(c => c.hex && c.hex !== '#null').map(color => {
+                    const isCurrent = color.code === replaceTargetCode;
+                    return (
+                      <button
+                        key={color.code}
+                        onClick={() => handleMassReplace(replaceTargetCode, color.code)}
+                        className={`rounded-xl overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-md ${
+                          isCurrent
+                            ? 'border-[#7B6A9B] shadow-md ring-2 ring-[#7B6A9B]/30'
+                            : 'border-transparent hover:border-[#7B6A9B]'
+                        }`}
+                        title={color.code}
+                      >
+                        <div className="h-10 w-full" style={{ backgroundColor: color.hex }} />
+                        <div className="bg-white px-1 py-0.5 text-center relative">
+                          <span className="text-[10px] font-mono font-medium text-gray-700 leading-tight block truncate">
+                            {color.code}
+                          </span>
+                          {isCurrent && (
+                            <span className="absolute -top-1.5 right-0.5 text-[8px] text-[#7B6A9B] font-bold">★</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Footer hint */}
+              <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+                <p className="text-[11px] text-gray-400">★ = current color &nbsp;·&nbsp; Click any swatch to replace all matching beads</p>
+                <p className="text-[11px] text-gray-400">{filteredPalette.filter(c => c.hex && c.hex !== '#null').length} colors</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ============================================
           Mobile Bottom Toolbar — lg:hidden only
