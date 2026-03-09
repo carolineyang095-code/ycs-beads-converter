@@ -386,8 +386,13 @@ const SHOW_REMOVE_BACKGROUND = false;
     const entries = Array.from(processed.colorStats.entries())
       .filter(([code]) => { const color = colorIndexRef.current.get(code); return code && code !== 'BG' && !excludedCodes.has(code) && color && color.hex !== 'transparent'; })
       .sort((a, b) => a[0].localeCompare(b[0]));
-    return entries.map(([code, count]) => `${code}:${count}`).join('; ');
-  }, [processed, excludedCodes]);
+    return entries.map(([code, count]) => {
+      const displayCode = selectedPalette === 'artkal' && code.startsWith('A')
+        ? code.slice(1)
+        : code;
+      return `${displayCode}:${count}`;
+    }).join('; ');
+  }, [processed, excludedCodes, selectedPalette]);
 
   const [copied, setCopied] = useState(false);
   const handleCopyBreakdown = () => {
@@ -611,7 +616,10 @@ const SHOW_REMOVE_BACKGROUND = false;
           </div>
           {processed && (
             <div className="flex items-center gap-1.5">
-              <ShopifyIntegration colorStats={filteredColorStats} />
+              <ShopifyIntegration
+                colorStats={filteredColorStats}
+                paletteType={selectedPalette}
+              />
               <ProjectManager
                 hasActiveProject={!!processed}
                 onSave={(name) => {
