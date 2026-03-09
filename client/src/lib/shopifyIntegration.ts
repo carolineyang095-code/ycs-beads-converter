@@ -59,19 +59,15 @@ export async function convertArtkalToMardStats(
 ): Promise<Map<string, number>> {
   const response = await fetch('/artkal_mard_map.json');
   if (!response.ok) throw new Error('Failed to load Artkal→MARD mapping');
-  const mapData: Array<{ artkalCode: string; mardCode: string }> = await response.json();
-  // Build a lookup: artkalCode → mardCode
-  const lookup = new Map<string, string>();
-  for (const entry of mapData) {
-    lookup.set(entry.artkalCode, entry.mardCode);
-  }
+  // artkal_mard_map.json is an object: { "AC01": { artkalCode, mardCode, ... }, ... }
+  const mapData: Record<string, { artkalCode: string; mardCode: string }> = await response.json();
   const mardStats = new Map<string, number>();
+
   colorStats.forEach((count, artkalCode) => {
     if (artkalCode === 'BG' || count === 0) return;
-    const mardCode = lookup.get(artkalCode);
-    if (mardCode) {
-      // Merge counts if multiple Artkal codes map to same MARD code
-      mardStats.set(mardCode, (mardStats.get(mardCode) || 0) + count);
+    const entry = mapData[artkalCode];
+    if (entry && entry.mardCode) {
+      mardStats.set(entry.mardCode, (mardStats.get(entry.mardCode) || 0) + count);
     } else {
       // No mapping found — keep original code as fallback
       mardStats.set(artkalCode, (mardStats.get(artkalCode) || 0) + count);
