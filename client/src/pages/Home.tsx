@@ -549,22 +549,22 @@ const SHOW_REMOVE_BACKGROUND = false;
       )}
 
       {/* Header */}
-      <header className="border-b border-border bg-[#F5EFE6] px-3 py-2 flex flex-col gap-1.5 flex-shrink-0">
-        <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-3">
-          <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
-            <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
-          </a>
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] sm:text-sm font-medium break-words" style={{ color: '#7B6A9B', fontFamily: 'Inter, sans-serif' }}>Turn Any Image into a Custom Bead Pattern</p>
+      <header className="border-b border-border bg-white px-3 py-2 flex-shrink-0">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
+              <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
+            </a>
+            {processed && (
+              <div className="hidden sm:flex text-[10px] sm:text-xs text-muted-foreground items-center gap-2">
+                <span className="whitespace-nowrap">Total: <span className="font-semibold text-foreground">{totalBeads.toLocaleString()}</span> beads</span>
+                <span className="text-border">·</span>
+                <span className="whitespace-nowrap">Colors: <span className="font-semibold text-foreground">{totalColors}</span></span>
+              </div>
+            )}
           </div>
-        </div>
-        {processed && (
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1.5">
-            <div className="text-[9px] sm:text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
-              <span className="whitespace-nowrap">Total: <span className="font-semibold">{totalBeads.toLocaleString()}</span> beads</span>
-              <span className="whitespace-nowrap">Colors: <span className="font-semibold">{totalColors}</span></span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
+          {processed && (
+            <div className="flex items-center gap-1.5">
               <ShopifyIntegration colorStats={filteredColorStats} />
               <ProjectManager
                 hasActiveProject={!!processed}
@@ -621,8 +621,8 @@ const SHOW_REMOVE_BACKGROUND = false;
                 <TooltipContent>{isSidebarOpen ? 'Hide' : 'Show'} Settings Panel</TooltipContent>
               </Tooltip>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
       {error && (
@@ -638,7 +638,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
           {/* Desktop Toolbar — hidden on mobile */}
           {processed && (
-            <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-[#E8E3F0]">
+            <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-white">
               <div className="flex items-center gap-2 border-r border-border pr-3">
                 <span className="text-xs font-medium text-muted-foreground">Preview</span>
                 <Switch checked={isPreview} onCheckedChange={setIsPreview} />
@@ -732,7 +732,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
           {/* Status bar */}
           {dims && processed && (
-            <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-[#EDE7DA] flex-shrink-0">
+            <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-white flex-shrink-0">
               <span>Grid: {dims.width} x {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
               <span>Total: {totalBeads.toLocaleString()} beads | Colors: {totalColors}</span>
             </div>
@@ -741,7 +741,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
         {/* Right: Controls Panel */}
         {processed && (
-<div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-visible bg-[#F5EFE6] flex-shrink-0 transition-all duration-300 ease-in-out`}>
+<div className={`${isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0'} fixed lg:relative right-0 top-0 bottom-0 z-50 lg:z-0 border-l border-border flex flex-col overflow-visible bg-white flex-shrink-0 transition-all duration-300 ease-in-out`}>
   {/* Purple circle toggle — outside opacity div so always visible */}
   <button
     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -779,7 +779,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                         <label className="text-xs font-medium text-foreground">Processing Mode</label>
                         <span className="text-xs font-mono text-muted-foreground">{processingMode}</span>
                       </div>
-                      <select value={processingMode} onChange={(e) => handleModeChange(e.target.value)} className="w-full h-9 px-2 text-xs border border-border rounded-md bg-[#F5EFE6]">
+                      <select value={processingMode} onChange={(e) => handleModeChange(e.target.value)} className="w-full h-9 px-2 text-xs border border-border rounded-md bg-white">
                         <option value="clean">Clean Cartoon</option>
                         <option value="vivid">Vivid Game</option>
                         <option value="soft">Soft Illustration</option>
@@ -842,7 +842,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                     const isExcluded = excludedCodes.has(code);
                     const isHighlighted = highlightCode === code;
                     return (
-                      <div key={code} className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-[#EDE7DA]'} ${isExcluded ? 'opacity-40 line-through' : ''}`} onClick={() => handleHighlightColor(code)} onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}>
+                      <div key={code} className={`flex items-center gap-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${isHighlighted ? 'bg-purple-50 ring-1 ring-purple-300' : 'hover:bg-gray-50'} ${isExcluded ? 'opacity-40 line-through' : ''}`} onClick={() => handleHighlightColor(code)} onContextMenu={(e) => { e.preventDefault(); handleExcludeColor(code); }}>
                         {color && <div className="w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: color.hex }} />}
                         <span className="font-mono font-medium flex-shrink-0 w-8">{code}</span>
                         <div className="flex-1 h-1.5 bg-[#D9D0C4] rounded-full overflow-hidden">
@@ -861,7 +861,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                       {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? 'Copied!' : 'Copy breakdown'}
                     </Button>
                   </div>
-                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-[#EDE7DA] border border-border rounded resize-none focus:outline-none" placeholder="No beads to show" />
+                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none" placeholder="No beads to show" />
                 </div>
               </div>
             )}
@@ -874,7 +874,7 @@ const SHOW_REMOVE_BACKGROUND = false;
           Mobile Bottom Toolbar — lg:hidden only
           ============================================ */}
       {processed && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#F5EFE6] border-t border-border shadow-lg pb-safe">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-lg pb-safe">
           {/* Row 1: Tool buttons - Horizontal Scrollable for small screens */}
           <div className="flex items-center justify-between px-2 pt-2 pb-1 overflow-x-auto no-scrollbar">
             <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isPreview ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
@@ -925,7 +925,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
           {/* Mobile Palette Popup */}
           {paletteOpen && (
-            <div className="absolute bottom-full left-0 right-0 bg-[#F5EFE6] border-t border-border shadow-2xl z-50 p-3 max-h-72 overflow-y-auto">
+            <div className="absolute bottom-full left-0 right-0 bg-white border-t border-border shadow-2xl z-50 p-3 max-h-72 overflow-y-auto">
               <PalettePopupContent />
             </div>
           )}
