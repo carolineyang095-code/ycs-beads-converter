@@ -601,7 +601,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
       {/* Header */}
       <header className="border-b border-border bg-white px-3 py-2 flex-shrink-0">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
               <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
@@ -615,7 +615,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             )}
           </div>
           {processed && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-around sm:justify-end">
               <ShopifyIntegration
                 colorStats={filteredColorStats}
                 paletteType={selectedPalette}
@@ -662,8 +662,8 @@ const SHOW_REMOVE_BACKGROUND = false;
                   }
                 }}
               />
-              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7 w-full sm:w-auto">
-                <Download className="w-3 h-3" /> Export Pattern
+              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7">
+                <Download className="w-3 h-3" /><span className="hidden sm:inline"> Export Pattern</span>
               </Button>
               {/* 右上角收起侧边栏按钮（暂时隐藏，保留代码以备恢复） */}
               <Tooltip>
@@ -678,6 +678,11 @@ const SHOW_REMOVE_BACKGROUND = false;
           )}
         </div>
       </header>
+
+      {/* Info Banner */}
+      <div className="w-full bg-[#F5EFE6] text-[#332847] text-xs sm:text-sm text-center px-3 py-1 sm:px-4 sm:py-2 flex-shrink-0">
+        🧩 Our beads are 2.6mm mini fuse beads, produced by the same factory as Artkal. We use the MARD 221 color system — a wider palette, fully compatible with Artkal mini beads.
+      </div>
 
       {error && (
         <div className="mx-4 mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex-shrink-0">
