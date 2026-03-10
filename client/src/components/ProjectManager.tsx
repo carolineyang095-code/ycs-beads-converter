@@ -67,7 +67,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
       </Button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-[#F5EFE6] border border-border rounded-lg shadow-xl z-50 p-3 flex flex-col gap-3">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 max-w-[90vw] sm:left-auto sm:right-0 sm:translate-x-0 sm:w-80 bg-[#F5EFE6] border border-border rounded-lg shadow-xl z-50 p-3 flex flex-col gap-3">
           {/* Save section */}
           {hasActiveProject && (
             <div className="flex gap-2">
