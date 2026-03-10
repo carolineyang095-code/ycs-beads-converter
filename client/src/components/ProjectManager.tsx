@@ -62,7 +62,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
         onClick={() => setOpen((v) => !v)}
       >
         <FolderOpen className="w-3 h-3" />
-        My Projects
+        <span className="hidden sm:inline">My Projects</span>
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </Button>
 

@@ -52,8 +52,8 @@ export default function ShopifyIntegration({
       className="text-xs gap-1.5 bg-[#7B6A9B] hover:bg-[#6d5c8a] text-white border-none rounded-full px-4"
     >
       <ShoppingCart className="w-3.5 h-3.5" />
-      Buy All Beads for This Pattern ≈ €{Math.round(totalBeads * 0.02)}
-      <ExternalLink className="w-3 h-3 opacity-70" />
+      <span className="hidden sm:inline">Buy All Beads for This Pattern ≈ €{Math.round(totalBeads * 0.02)}</span>
+      <ExternalLink className="w-3 h-3 opacity-70 hidden sm:inline" />
     </Button>
   );
 }
