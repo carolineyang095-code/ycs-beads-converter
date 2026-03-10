@@ -916,7 +916,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                           <span className="text-muted-foreground flex-shrink-0 w-10 text-right font-mono">{count}</span>
                           <span className="text-muted-foreground flex-shrink-0 w-10 text-right">{pct}%</span>
                           <button
-                            className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0 w-5 h-5 rounded flex items-center justify-center hover:bg-purple-100 text-[#7B6A9B]"
+                            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0 p-2 sm:p-0 sm:w-5 sm:h-5 rounded flex items-center justify-center hover:bg-purple-100 active:bg-purple-100 text-[#7B6A9B]"
                             title={`Replace all ${code} beads`}
                             onClick={(e) => {
                               e.stopPropagation();
