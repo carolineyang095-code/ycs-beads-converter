@@ -606,6 +606,9 @@ const SHOW_REMOVE_BACKGROUND = false;
             <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
               <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
             </a>
+            <a href="/patterns/" className="text-xs font-semibold text-[#7B6A9B] hover:text-[#452F60] transition-colors whitespace-nowrap">
+              Pattern Library
+            </a>
             {processed && (
               <div className="hidden sm:flex text-[10px] sm:text-xs text-muted-foreground items-center gap-2">
                 <span className="whitespace-nowrap">Total: <span className="font-semibold text-foreground">{totalBeads.toLocaleString()}</span> beads</span>
