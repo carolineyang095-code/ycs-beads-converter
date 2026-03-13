@@ -731,7 +731,7 @@
 
       <div class="hero-stats" role="list" aria-label="Library statistics">
         <div class="hero-stat" role="listitem">
-          <span class="hero-stat-value">0</span>
+          <span class="hero-stat-value" id="pattern-count">0</span>
           <span class="hero-stat-label">Patterns</span>
         </div>
         <div class="hero-stat" role="listitem">
@@ -759,24 +759,28 @@
         <p class="section-eyebrow">Browse All</p>
         <h2 class="section-title">Pattern Library</h2>
       </div>
-      <span class="section-count">Showing 6 placeholders</span>
+      <span class="section-count" id="section-count">Loading...</span>
     </div>
 
     <!-- Filter chips -->
     <div class="filter-bar" role="group" aria-label="Filter patterns by category">
-      <button class="filter-chip active" type="button">All</button>
-      <button class="filter-chip" type="button">Animals</button>
-      <button class="filter-chip" type="button">Characters</button>
-      <button class="filter-chip" type="button">Nature</button>
-      <button class="filter-chip" type="button">Abstract</button>
-      <button class="filter-chip" type="button">Beginner</button>
+      <button class="filter-chip active" type="button" data-filter="all">All</button>
+      <button class="filter-chip" type="button" data-filter="animals">Animals</button>
+      <button class="filter-chip" type="button" data-filter="characters">Characters</button>
+      <button class="filter-chip" type="button" data-filter="nature">Nature</button>
+      <button class="filter-chip" type="button" data-filter="abstract">Abstract</button>
+      <button class="filter-chip" type="button" data-filter="beginner">Beginner</button>
+      <button class="filter-chip" type="button" data-filter="food">Food</button>
+      <button class="filter-chip" type="button" data-filter="kawaii">Kawaii</button>
+      <button class="filter-chip" type="button" data-filter="seasonal">Seasonal</button>
+      <button class="filter-chip" type="button" data-filter="ocean">Ocean</button>
     </div>
 
     <!-- Pattern cards grid -->
     <div class="pattern-grid" role="list" aria-label="Pattern library">
 
       <!-- ── Kawaii Strawberry Card ── -->
-      <a class="pattern-card" href="kawaii-strawberry.html" role="listitem" aria-label="View Kawaii Strawberry pattern">
+      <a class="pattern-card" data-category="kawaii" href="kawaii-strawberry.html" role="listitem" aria-label="View Kawaii Strawberry pattern">
         <div class="card-preview" aria-hidden="true">
           <div style="position:absolute;inset:0;background:#c47a9a;"></div>
           <div class="card-preview-dots" style="opacity:0.15;"></div>
@@ -1166,8 +1170,14 @@
   </footer>
 
   <script>
-    // Inject current year into footer
     document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+    // Count only real (non-coming-soon) pattern cards and update counters
+    const realCards = document.querySelectorAll('.pattern-card:not(.card-coming-soon)');
+    const totalReal = realCards.length;
+    document.getElementById('pattern-count').textContent = totalReal;
+    document.getElementById('section-count').textContent =
+      totalReal === 0 ? 'Coming soon' : 'Showing ' + totalReal + ' pattern' + (totalReal !== 1 ? 's' : '');
 
     // Filter chip interaction
     document.querySelectorAll('.filter-chip').forEach(function(chip) {
@@ -1176,6 +1186,16 @@
           c.classList.remove('active');
         });
         chip.classList.add('active');
+
+        const filter = chip.getAttribute('data-filter');
+        document.querySelectorAll('.pattern-card').forEach(function(card) {
+          if (filter === 'all') {
+            card.style.display = '';
+          } else {
+            const cat = card.getAttribute('data-category') || '';
+            card.style.display = cat === filter ? '' : 'none';
+          }
+        });
       });
     });
   </script>
