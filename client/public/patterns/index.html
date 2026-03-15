@@ -780,7 +780,7 @@
     <div class="pattern-grid" role="list" aria-label="Pattern library">
 
       <!-- ── Kawaii Strawberry Card ── -->
-      <a class="pattern-card" data-category="kawaii" href="kawaii-strawberry.html" role="listitem" aria-label="View Kawaii Strawberry pattern">
+      <a class="pattern-card" data-category="kawaii" href="kawaii-strawberry.html" role="listitem" aria-label="View Kawaii Strawberry pattern" data-hidden="true" style="display:none;">
         <div class="card-preview" aria-hidden="true">
           <div style="position:absolute;inset:0;background:#c47a9a;"></div>
           <div class="card-preview-dots" style="opacity:0.15;"></div>
@@ -872,7 +872,7 @@
       </a>
 
       <!-- ── Usagi Psyduck Card ── -->
-      <a class="pattern-card" data-category="animals" href="psyduck-usagi.html" role="listitem" aria-label="View Usagi Psyduck pattern">
+      <a class="pattern-card" data-category="characters" href="psyduck-usagi.html" role="listitem" aria-label="View Usagi Psyduck pattern">
         <div class="card-preview" aria-hidden="true">
           <img src="/assets/patterns/psyduck-usagi-fuse-beads-preview.jpeg" alt="Usagi Psyduck fuse bead pattern preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;">
         </div>
@@ -904,7 +904,7 @@
             </span>
           </div>
           <div class="card-footer">
-            <span class="card-tag">Animals</span>
+            <span class="card-tag">Characters</span>
             <div class="card-arrow" aria-hidden="true">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M3 6h6M6.5 3.5L9 6l-2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1259,9 +1259,9 @@
   <script>
     document.getElementById('footer-year').textContent = new Date().getFullYear();
 
-    // Count only real (non-coming-soon) pattern cards and update counters
+    // Count only real (non-coming-soon, non-hidden) pattern cards and update counters
     const realCards = document.querySelectorAll('.pattern-card:not(.card-coming-soon)');
-    const totalReal = realCards.length;
+    const totalReal = Array.from(realCards).filter(c => !c.hasAttribute('data-hidden')).length;
     document.getElementById('pattern-count').textContent = totalReal;
     document.getElementById('section-count').textContent =
       totalReal === 0 ? 'Coming soon' : 'Showing ' + totalReal + ' pattern' + (totalReal !== 1 ? 's' : '');
@@ -1276,6 +1276,7 @@
 
         const filter = chip.getAttribute('data-filter');
         document.querySelectorAll('.pattern-card').forEach(function(card) {
+          if (card.hasAttribute('data-hidden')) return;
           if (filter === 'all') {
             card.style.display = '';
           } else {
