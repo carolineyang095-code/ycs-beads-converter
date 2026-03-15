@@ -140,10 +140,10 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
           background: white;
           border: 1.5px solid #DDD5EC;
           border-radius: 20px;
-          padding: 20px 28px;
+          padding: 24px 32px;
           box-shadow: 0 8px 32px rgba(69,47,96,0.10);
           animation: heroFadeUp 0.5s 0.32s ease both;
-          max-width: 560px;
+          max-width: 640px;
           width: 100%;
         }
 
@@ -157,11 +157,12 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
 
         .ba-img {
           width: 100%;
-          max-width: 200px;
-          aspect-ratio: 1;
+          max-width: 240px;
+          aspect-ratio: 3 / 4;
           border-radius: 12px;
-          object-fit: cover;
+          object-fit: contain;
           border: 1px solid #EDE7DA;
+          background: white;
         }
 
         .ba-label {
@@ -434,8 +435,8 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
           <div className="ba-card">
             <div className="ba-side">
               <img
-                src="/hero-cat-original.png"
-                alt="Original pixel art cat illustration"
+                src="/hero-cat-original.jpeg"
+                alt="Art nouveau white cat illustration"
                 className="ba-img"
               />
               <span className="ba-label">Your Image</span>
@@ -450,6 +451,74 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
               <span className="ba-label">Bead Pattern</span>
             </div>
           </div>
+        </section>
+
+        <div className="hero-divider" />
+
+        {/* ══ PATTERN LIBRARY BANNER ══ */}
+        <section style={{
+          background: 'linear-gradient(135deg, #452F60 0%, #7B6A9B 100%)',
+          padding: '48px 24px',
+          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.07) 1.5px, transparent 1.5px)',
+            backgroundSize: '22px 22px',
+          }} />
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.6)',
+            marginBottom: '10px',
+            position: 'relative',
+          }}>Free Downloads</p>
+          <h2 style={{
+            fontFamily: 'Playfair Display, serif',
+            fontSize: 'clamp(1.4rem, 3vw, 2rem)',
+            color: 'white',
+            marginBottom: '12px',
+            position: 'relative',
+            lineHeight: 1.25,
+          }}>
+            Browse Our Free Pattern Library
+          </h2>
+          <p style={{
+            color: 'rgba(255,255,255,0.7)',
+            fontSize: '14px',
+            maxWidth: '420px',
+            margin: '0 auto 28px',
+            lineHeight: 1.6,
+            position: 'relative',
+          }}>
+            Kawaii, animals, food, seasonal — dozens of ready-to-use bead patterns, completely free.
+          </p>
+          <a
+            href="https://tools.yayascreativestudio.com/patterns/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: '#F5EFE6',
+              color: '#452F60',
+              borderRadius: '99px',
+              padding: '14px 32px',
+              fontSize: '14px',
+              fontWeight: 700,
+              fontFamily: 'Inter, sans-serif',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              position: 'relative',
+            }}
+          >
+            🧩 Explore the Pattern Library →
+          </a>
         </section>
 
         <div className="hero-divider" />
