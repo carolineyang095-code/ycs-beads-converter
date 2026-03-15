@@ -434,8 +434,8 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
           <div className="ba-card">
             <div className="ba-side">
               <img
-                src="/hero-cat-original.png"
-                alt="Original pixel art cat illustration"
+                src="/hero-cat-original.jpeg"
+                alt="Art nouveau white cat illustration"
                 className="ba-img"
               />
               <span className="ba-label">Your Image</span>
