@@ -74,6 +74,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   const [brushSize, setBrushSize] = useState<number>(1);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const isPointerDownRef = useRef(false);
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
@@ -478,6 +479,35 @@ const SHOW_REMOVE_BACKGROUND = false;
   };
   const handleTouchEnd = () => { setIsPinching(false); lastPinchDistRef.current = null; };
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!processed || !canvasRef.current) return;
+    // Let two-finger pinch be handled by touch handlers; only act on primary pointer
+    if (e.pointerType === 'touch' && isPinching) return;
+    if (activeTool === 'brush' || activeTool === 'eraser') pushToHistory(processed);
+    isPointerDownRef.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
+    const y = Math.floor((e.clientY - rect.top) * (canvasRef.current.height / rect.height) / pixelSize);
+    if (x >= 0 && y >= 0 && x < processed.gridWidth && y < processed.gridHeight) handleCanvasAction(x, y);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isPointerDownRef.current || !processed || !canvasRef.current) return;
+    // Skip if two-finger pinch is active
+    if (e.pointerType === 'touch' && isPinching) return;
+    if (activeTool !== 'brush' && activeTool !== 'eraser') return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
+    const y = Math.floor((e.clientY - rect.top) * (canvasRef.current.height / rect.height) / pixelSize);
+    if (x >= 0 && x < processed.gridWidth && y >= 0 && y < processed.gridHeight) {
+      handleCanvasAction(x, y);
+    }
+  };
+
+  const handlePointerUp = () => { isPointerDownRef.current = false; };
+  const handlePointerCancel = () => { isPointerDownRef.current = false; };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); } };
     window.addEventListener('keydown', handleKeyDown);
@@ -774,7 +804,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               <canvas
                 ref={canvasRef}
                 className="border border-border shadow-sm bg-white"
-                style={{ imageRendering: 'pixelated', cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
+                style={{ imageRendering: 'pixelated', touchAction: 'none', cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseDown={handleCanvasMouseDown}
                 onMouseUp={handleCanvasMouseUp}
@@ -782,6 +812,10 @@ const SHOW_REMOVE_BACKGROUND = false;
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
               />
             ) : (
               <HeroIntro
