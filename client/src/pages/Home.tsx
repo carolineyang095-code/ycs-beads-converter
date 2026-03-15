@@ -74,6 +74,8 @@ const SHOW_REMOVE_BACKGROUND = false;
   const [brushSize, setBrushSize] = useState<number>(1);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isSpaceHeld, setIsSpaceHeld] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
 
   // Noise color removal state
   const [removedColors, setRemovedColors] = useState<Map<string, string>>(new Map());
@@ -135,6 +137,11 @@ const SHOW_REMOVE_BACKGROUND = false;
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isSpaceHeldRef = useRef(false);
+  const isPanningRef = useRef(false);
+  const panStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lastTouchMidRef = useRef<{ x: number; y: number } | null>(null);
 
   // Load palette — set default brush color to H07
   useEffect(() => {
@@ -467,22 +474,92 @@ const SHOW_REMOVE_BACKGROUND = false;
   const handleCanvasMouseLeave = () => setHoveredPixel(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) { setIsPinching(true); lastPinchDistRef.current = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
+    if (e.touches.length === 2) {
+      setIsPinching(true);
+      lastPinchDistRef.current = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+      lastTouchMidRef.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+    }
   };
   const handleTouchMove = (e: React.TouchEvent) => {
     if (isPinching && e.touches.length === 2 && lastPinchDistRef.current !== null) {
       const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
       const delta = dist - lastPinchDistRef.current;
       if (Math.abs(delta) > 2) { setPixelSize(prev => Math.max(4, Math.min(100, prev + (delta > 0 ? 1 : -1)))); lastPinchDistRef.current = dist; }
+      if (lastTouchMidRef.current && containerRef.current) {
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        containerRef.current.scrollLeft -= midX - lastTouchMidRef.current.x;
+        containerRef.current.scrollTop -= midY - lastTouchMidRef.current.y;
+        lastTouchMidRef.current = { x: midX, y: midY };
+      }
     }
   };
-  const handleTouchEnd = () => { setIsPinching(false); lastPinchDistRef.current = null; };
+  const handleTouchEnd = () => { setIsPinching(false); lastPinchDistRef.current = null; lastTouchMidRef.current = null; };
+
+  // Spacebar + drag pan handlers (capture phase to intercept before canvas mouse handlers)
+  const handlePanMouseDown = (e: React.MouseEvent) => {
+    if (!isSpaceHeldRef.current) return;
+    e.stopPropagation();
+    isPanningRef.current = true;
+    setIsPanning(true);
+    panStartRef.current = { x: e.clientX, y: e.clientY };
+    const stopPan = () => {
+      isPanningRef.current = false;
+      setIsPanning(false);
+      panStartRef.current = null;
+      document.removeEventListener('mouseup', stopPan);
+    };
+    document.addEventListener('mouseup', stopPan);
+  };
+  const handlePanMouseMove = (e: React.MouseEvent) => {
+    if (!isPanningRef.current || !panStartRef.current || !containerRef.current) return;
+    e.stopPropagation();
+    containerRef.current.scrollLeft -= e.clientX - panStartRef.current.x;
+    containerRef.current.scrollTop -= e.clientY - panStartRef.current.y;
+    panStartRef.current = { x: e.clientX, y: e.clientY };
+  };
+  const handlePanMouseUp = (e: React.MouseEvent) => {
+    if (!isPanningRef.current) return;
+    e.stopPropagation();
+    isPanningRef.current = false;
+    setIsPanning(false);
+    panStartRef.current = null;
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); } };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo]);
+
+  // Space-to-pan keyboard listeners
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat && !isSpaceHeldRef.current) {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          isSpaceHeldRef.current = true;
+          setIsSpaceHeld(true);
+        }
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        isSpaceHeldRef.current = false;
+        setIsSpaceHeld(false);
+        isPanningRef.current = false;
+        setIsPanning(false);
+        panStartRef.current = null;
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => { window.removeEventListener('keydown', onKeyDown); window.removeEventListener('keyup', onKeyUp); };
+  }, []);
 
   const handleReset = () => {
     if (confirm("This will clear the entire canvas and cannot be undone. Continue?")) {
@@ -764,7 +841,14 @@ const SHOW_REMOVE_BACKGROUND = false;
           )}
 
           {/* Canvas */}
-          <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#F5EFE6]">
+          <div
+            ref={containerRef}
+            className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#F5EFE6]"
+            style={{ cursor: isPanning ? 'grabbing' : isSpaceHeld ? 'grab' : undefined }}
+            onMouseDownCapture={handlePanMouseDown}
+            onMouseMoveCapture={handlePanMouseMove}
+            onMouseUpCapture={handlePanMouseUp}
+          >
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-[#F5EFE6]/60 z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" />Processing...</div>
@@ -774,7 +858,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               <canvas
                 ref={canvasRef}
                 className="border border-border shadow-sm bg-white"
-                style={{ imageRendering: 'pixelated', cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
+                style={{ imageRendering: 'pixelated', cursor: isPanning ? 'grabbing' : isSpaceHeld ? 'grab' : activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseDown={handleCanvasMouseDown}
                 onMouseUp={handleCanvasMouseUp}
