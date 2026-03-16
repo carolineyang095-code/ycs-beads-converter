@@ -18,18 +18,15 @@ async function startServer() {
 
   app.use(express.static(staticPath));
 
-  // ✅ 新增：Sitemap route（必须在 * 路由之前）
+  // Sitemap routes (must be before the * catch-all)
   app.get("/sitemap.xml", (_req, res) => {
     res.header("Content-Type", "application/xml");
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://tools.yayascreativestudio.com/</loc>
-    <lastmod>2026-03-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>`);
+    res.sendFile(path.join(staticPath, "sitemap.xml"));
+  });
+
+  app.get("/patterns-sitemap.xml", (_req, res) => {
+    res.header("Content-Type", "application/xml");
+    res.sendFile(path.join(staticPath, "patterns-sitemap.xml"));
   });
 
   // Handle client-side routing - serve index.html for all routes

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tools.yayascreativestudio.com/sitemap.xml
+Sitemap: https://tools.yayascreativestudio.com/patterns-sitemap.xml
