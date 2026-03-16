@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/((?!sitemap\\.xml$).*)", "destination": "/index.html" }
+    { "source": "/((?!sitemap\\.xml$|patterns-sitemap\\.xml$).*)", "destination": "/index.html" }
   ]
 }
