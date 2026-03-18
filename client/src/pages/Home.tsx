@@ -56,6 +56,7 @@ export default function Home() {
   const [pixelSize, setPixelSize] = useState(8);
   const [isPinching, setIsPinching] = useState(false);
   const lastPinchDistRef = useRef<number | null>(null);
+  const activePointersRef = useRef<Map<number, {x: number, y: number}>>(new Map());
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number; pixel: PixelGridCell } | null>(null);
   const [ditherStrength, setDitherStrength] = useState<number>(30);
   const [processingMode, setProcessingMode] = useState<ProcessingMode>('clean');
@@ -405,7 +406,33 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const handleHighlightColor = (code: string | null) => setHighlightCode(prev => prev === code ? null : code);
 
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    activePointersRef.current.set(e.pointerId, { x: e.pageX, y: e.pageY });
+    if (activePointersRef.current.size === 2) {
+      setIsPinching(true);
+      const pts = Array.from(activePointersRef.current.values());
+      lastPinchDistRef.current = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      return;
+    }
+    if (!processed || !canvasRef.current) return;
+    if (activeTool === 'brush' || activeTool === 'eraser') pushToHistory(processed);
+    setIsDrawing(true);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
+    const y = Math.floor((e.clientY - rect.top) * (canvasRef.current.height / rect.height) / pixelSize);
+    if (x >= 0 && y >= 0 && x < processed.gridWidth && y < processed.gridHeight) handleCanvasAction(x, y);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    activePointersRef.current.set(e.pointerId, { x: e.pageX, y: e.pageY });
+    if (isPinching && activePointersRef.current.size === 2 && lastPinchDistRef.current !== null) {
+      const pts = Array.from(activePointersRef.current.values());
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const delta = dist - lastPinchDistRef.current;
+      if (Math.abs(delta) > 2) { setPixelSize(prev => Math.max(4, Math.min(100, prev + (delta > 0 ? 1 : -1)))); lastPinchDistRef.current = dist; }
+      return;
+    }
     if (!processed || !canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
@@ -415,6 +442,18 @@ const SHOW_REMOVE_BACKGROUND = false;
       if (pixel) setHoveredPixel({ x, y, pixel });
       if (isDrawing && (activeTool === 'brush' || activeTool === 'eraser')) handleCanvasAction(x, y);
     } else { setHoveredPixel(null); }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) { setIsPinching(false); lastPinchDistRef.current = null; }
+    setIsDrawing(false);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) { setIsPinching(false); lastPinchDistRef.current = null; }
+    setIsDrawing(false);
   };
 
   function applyBrush(pixels: PixelGridCell[], gridW: number, gridH: number, x: number, y: number, size: number, color: ColorData | null) {
@@ -453,30 +492,6 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
   }, [processed, dims, activeTool, selectedColor, brushSize, palette]);
 
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!processed || !canvasRef.current) return;
-    if (activeTool === 'brush' || activeTool === 'eraser') pushToHistory(processed);
-    setIsDrawing(true);
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
-    const y = Math.floor((e.clientY - rect.top) * (canvasRef.current.height / rect.height) / pixelSize);
-    if (x >= 0 && y >= 0 && x < processed.gridWidth && y < processed.gridHeight) handleCanvasAction(x, y);
-  };
-
-  const handleCanvasMouseUp = () => setIsDrawing(false);
-  const handleCanvasMouseLeave = () => setHoveredPixel(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) { setIsPinching(true); lastPinchDistRef.current = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
-  };
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (isPinching && e.touches.length === 2 && lastPinchDistRef.current !== null) {
-      const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-      const delta = dist - lastPinchDistRef.current;
-      if (Math.abs(delta) > 2) { setPixelSize(prev => Math.max(4, Math.min(100, prev + (delta > 0 ? 1 : -1)))); lastPinchDistRef.current = dist; }
-    }
-  };
-  const handleTouchEnd = () => { setIsPinching(false); lastPinchDistRef.current = null; };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); } };
@@ -774,14 +789,12 @@ const SHOW_REMOVE_BACKGROUND = false;
               <canvas
                 ref={canvasRef}
                 className="border border-border shadow-sm bg-white"
-                style={{ imageRendering: 'pixelated', cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
-                onMouseMove={handleCanvasMouseMove}
-                onMouseDown={handleCanvasMouseDown}
-                onMouseUp={handleCanvasMouseUp}
-                onMouseLeave={() => { handleCanvasMouseLeave(); handleCanvasMouseUp(); }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
+                style={{ imageRendering: 'pixelated', touchAction: 'none', cursor: activeTool === 'brush' ? 'crosshair' : activeTool === 'eraser' ? 'cell' : activeTool === 'eyedropper' ? 'copy' : 'default' }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
+                onPointerLeave={() => setHoveredPixel(null)}
               />
             ) : (
               <HeroIntro
