@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ditto Transforming into Lapras Fuse Bead Pattern — YCS Beads</title>
+  <meta name="description" content="Free Ditto x Lapras fuse bead pattern. 353 beads, 19 colors. Pokémon pixel art compatible with Artkal &amp; MARD palette. Copy the full bead list and order instantly." />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="../favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg:       #F5EFE6;
+      --color-dark:     #332847;
+      --color-purple:   #452F60;
+      --color-accent:   #7B6A9B;
+      --color-light:    #9B8FB0;
+      --color-teal:     #4db8a0;
+      --color-pink:     #c47a9a;
+      --color-border:   #DDD5EC;
+      --color-border2:  #C4B8D9;
+      --color-surface:  #E8E3F0;
+      --color-white:    #ffffff;
+      --font-serif:     'Playfair Display', Georgia, serif;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --radius-card:    18px;
+      --shadow-card:    0 4px 20px rgba(51, 40, 71, 0.08);
+      --shadow-card-hover: 0 10px 32px rgba(51, 40, 71, 0.14);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(245, 239, 230, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      height: 60px;
+      display: flex;
+      align-items: center;
+    }
+
+    .topbar-inner {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .topbar-logo img {
+      height: 32px;
+      width: auto;
+      display: block;
+    }
+
+    .topbar-logo-text {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-purple);
+      white-space: nowrap;
+    }
+
+    .topbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-accent);
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 1.5px solid var(--color-border2);
+      border-radius: 99px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-back:hover {
+      background: var(--color-surface);
+      color: var(--color-purple);
+    }
+
+    .nav-back svg { flex-shrink: 0; }
+
+    .topbar-breadcrumb {
+      font-size: 12px;
+      color: var(--color-light);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topbar-breadcrumb a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .topbar-breadcrumb a:hover { text-decoration: underline; }
+
+    /* ── Main Content ── */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    /* ── Pattern Hero (two-col) ── */
+    .pattern-hero {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 56px;
+      align-items: start;
+      margin-bottom: 64px;
+    }
+
+    /* Preview image placeholder */
+    .pattern-preview {
+      width: 400px;
+      height: 400px;
+      background: #c47a9a;
+      border-radius: var(--radius-card);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pattern-preview-inner {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.18) 2px, transparent 2px);
+      background-size: 18px 18px;
+      pointer-events: none;
+    }
+
+    .pattern-preview-label {
+      position: relative;
+      z-index: 1;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.18);
+      padding: 6px 14px;
+      border-radius: 99px;
+    }
+
+    /* Pattern info panel */
+    .pattern-info {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding-top: 8px;
+    }
+
+    .pattern-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-surface);
+      color: var(--color-accent);
+      border: 1px solid var(--color-border2);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .pattern-eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-pink);
+      flex-shrink: 0;
+    }
+
+    .pattern-title {
+      font-family: var(--font-serif);
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 700;
+      color: var(--color-purple);
+      line-height: 1.15;
+    }
+
+    .pattern-desc {
+      font-size: 0.975rem;
+      color: var(--color-light);
+      line-height: 1.75;
+      max-width: 480px;
+    }
+
+    /* Stats row */
+    .pattern-stats {
+      display: flex;
+      gap: 0;
+      background: var(--color-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .pattern-stat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 18px 16px;
+      border-right: 1px solid var(--color-border);
+    }
+
+    .pattern-stat:last-child { border-right: none; }
+
+    .pattern-stat-value {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-purple);
+      line-height: 1;
+    }
+
+    .pattern-stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--color-light);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      text-align: center;
+    }
+
+    /* Color swatch strip */
+    .pattern-swatch-strip {
+      display: flex;
+      height: 8px;
+      border-radius: 99px;
+      overflow: hidden;
+      gap: 2px;
+    }
+
+    .pattern-swatch-strip-item {
+      flex: 1;
+      border-radius: 99px;
+    }
+
+    /* Action buttons */
+    .pattern-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--color-purple);
+      color: var(--color-white);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 13px 24px;
+      border-radius: 99px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+      box-shadow: 0 4px 16px rgba(69, 47, 96, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(69, 47, 96, 0.32);
+      filter: brightness(1.08);
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--color-accent);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 99px;
+      border: 1.5px solid var(--color-border2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .btn-outline:hover {
+      background: var(--color-surface);
+      color: var(--color-purple);
+      border-color: var(--color-accent);
+    }
+
+    /* ── Bead Breakdown Section ── */
+    .section-header {
+      margin-bottom: 28px;
+    }
+
+    .section-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 6px;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+      font-weight: 700;
+      color: var(--color-purple);
+      line-height: 1.2;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+      margin: 48px 0;
+    }
+
+    /* Bead breakdown box */
+    .breakdown-box {
+      background: var(--color-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 24px 28px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .breakdown-text {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.9;
+      color: var(--color-dark);
+      word-break: break-word;
+    }
+
+    .breakdown-text strong {
+      color: var(--color-accent);
+    }
+
+    .breakdown-total {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--color-border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-light);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .breakdown-total span {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: var(--color-purple);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* Copy button */
+    .btn-copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-accent);
+      background: transparent;
+      border: 1.5px solid var(--color-border2);
+      border-radius: 99px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-copy:hover {
+      background: var(--color-surface);
+      color: var(--color-purple);
+      border-color: var(--color-accent);
+    }
+
+    .btn-copy.copied {
+      color: var(--color-teal);
+      border-color: var(--color-teal);
+    }
+
+    .section-header-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Related Patterns ── */
+    .related-section {
+      margin-top: 72px;
+    }
+
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    /* ── Pattern Card (copied from index.html) ── */
+    .pattern-card {
+      background: var(--color-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .pattern-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card-hover);
+      border-color: var(--color-border2);
+    }
+
+    .card-preview {
+      aspect-ratio: 1;
+      background: var(--color-surface);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-preview-dots {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, var(--color-border2) 2px, transparent 2px);
+      background-size: 14px 14px;
+      opacity: 0.5;
+    }
+
+    .card-preview-placeholder {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-preview-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--color-white);
+      border: 1.5px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-preview-icon svg { opacity: 0.4; }
+
+    .card-preview-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-light);
+    }
+
+    .card-swatches {
+      display: flex;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .card-swatch { flex: 1; }
+
+    .card-body {
+      padding: 16px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .card-name {
+      font-family: var(--font-serif);
+      font-size: 1.0rem;
+      font-weight: 700;
+      color: var(--color-purple);
+      line-height: 1.3;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-light);
+    }
+
+    .card-meta-item svg { flex-shrink: 0; opacity: 0.7; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid #F0EBF8;
+      margin-top: auto;
+    }
+
+    .card-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: var(--color-surface);
+      color: var(--color-accent);
+    }
+
+    .card-arrow {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-purple);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .pattern-card:hover .card-arrow { background: var(--color-teal); }
+
+    .card-coming-soon .card-preview { background: #F9F6FF; }
+    .card-coming-soon .card-name { color: var(--color-light); }
+
+    .coming-soon-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      background: var(--color-white);
+      color: var(--color-accent);
+      border: 1.5px solid var(--color-border2);
+      border-radius: 99px;
+      padding: 3px 9px;
+      z-index: 2;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid var(--color-border);
+      padding: 40px 24px;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-brand img {
+      height: 28px;
+      width: auto;
+      opacity: 0.75;
+    }
+
+    .footer-brand-text {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-light);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-link:hover { color: var(--color-accent); }
+
+    .footer-copy {
+      font-size: 12px;
+      color: var(--color-light);
+      text-align: right;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .pattern-hero {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .pattern-preview {
+        width: 100%;
+        height: 320px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .topbar-breadcrumb { display: none; }
+      .pattern-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .footer-copy { text-align: left; }
+      .pattern-actions { flex-direction: column; }
+      .btn-primary, .btn-outline { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       STICKY TOPBAR
+  ══════════════════════════════════ -->
+  <header class="topbar" role="banner">
+    <div class="topbar-inner">
+      <a href="../" class="topbar-logo" aria-label="YCS Beads home">
+        <img src="/yaya_logo_final.png" alt="YCS Beads" style="height: 48px;">
+      </a>
+
+      <nav class="topbar-breadcrumb" aria-label="Breadcrumb">
+        <a href="../">Tools</a>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M4.5 2.5L7.5 6l-3 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <a href="./">Pattern Library</a>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M4.5 2.5L7.5 6l-3 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Ditto Transforming into Lapras</span>
+      </nav>
+
+      <nav class="topbar-nav" aria-label="Main navigation">
+        <a href="./" class="nav-back">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 11.5L4.5 7 9 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Pattern Library
+        </a>
+      </nav>
+    </div>
+  </header>
+
+
+  <!-- ══════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════ -->
+  <main class="main" id="pattern-detail">
+
+    <!-- ── Pattern Hero ── -->
+    <section class="pattern-hero" aria-labelledby="pattern-title">
+
+      <!-- Preview image placeholder -->
+      <div class="pattern-preview" role="img" aria-label="Ditto Transforming into Lapras pattern preview">
+        <div class="pattern-preview-inner"></div>
+        <img src="/assets/patterns/ditto-transforming-into-lapras.png" alt="Ditto Transforming into Lapras fuse bead pattern preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;">
+      </div>
+
+      <!-- Pattern details -->
+      <div class="pattern-info">
+        <span class="pattern-eyebrow">
+          <span class="pattern-eyebrow-dot"></span>
+          Free Pattern · Games
+        </span>
+
+        <h1 class="pattern-title" id="pattern-title">Ditto Transforming into Lapras Fuse Bead Pattern</h1>
+
+        <p class="pattern-desc">
+          Ditto caught mid-transformation — taking on Lapras's iconic silhouette in shades of icy blue and soft purple. 353 beads in 19 colors, perfect for Pokémon fans and mini fuse bead crafters. Compatible with MARD and Artkal palettes.
+        </p>
+
+        <!-- Stats -->
+        <div class="pattern-stats" role="list" aria-label="Pattern statistics">
+          <div class="pattern-stat" role="listitem">
+            <span class="pattern-stat-value">353</span>
+            <span class="pattern-stat-label">Total Beads</span>
+          </div>
+          <div class="pattern-stat" role="listitem">
+            <span class="pattern-stat-value">19</span>
+            <span class="pattern-stat-label">Colors</span>
+          </div>
+          <div class="pattern-stat" role="listitem">
+            <span class="pattern-stat-value">Free</span>
+            <span class="pattern-stat-label">Always</span>
+          </div>
+        </div>
+
+        <!-- Color swatch strip -->
+        <div class="pattern-swatch-strip" aria-hidden="true">
+          <div class="pattern-swatch-strip-item" style="background:#FFDA45;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#E6C9B7;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#3677D2;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#7CC4FF;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#34488E;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#AEB4F2;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#B9BAE1;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#D8C3D7;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#FFE2EA;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#D8C7D1;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#B785A1;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#8A4526;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#FFA9AD;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#C1444A;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#FEFFFF; border: 1px solid var(--color-border);"></div>
+          <div class="pattern-swatch-strip-item" style="background:#89858C;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#000000;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#E7D6DB;"></div>
+          <div class="pattern-swatch-strip-item" style="background:#FFFBE1;"></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="pattern-actions">
+          <a href="/assets/patterns/ditto-transforming-into-lapras-pattern.png" download="ditto-transforming-into-lapras-pattern.png" class="btn-primary" aria-label="Download Ditto Transforming into Lapras pattern">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <path d="M7.5 2v8M4.5 7.5l3 3 3-3M2.5 12.5h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Download Pattern
+          </a>
+          <a href="https://yayascreativestudio.com/pages/bead-builder" class="btn-outline" target="_blank" rel="noopener noreferrer" aria-label="Buy beads for this pattern (opens in new tab)">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="7.5" cy="7.5" r="2" fill="currentColor"/>
+            </svg>
+            Buy Beads
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider" role="separator"></div>
+
+    <!-- ── Bead Breakdown Box ── -->
+    <section aria-labelledby="breakdown-heading">
+      <div class="section-header-row">
+        <div>
+          <p class="section-eyebrow">Color Breakdown</p>
+          <h2 class="section-title" id="breakdown-heading">Bead Breakdown by Color</h2>
+        </div>
+        <button class="btn-copy" id="copy-btn" type="button" aria-label="Copy bead breakdown to clipboard">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+            <rect x="4.5" y="4.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M1.5 8.5V2.5a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Copy breakdown
+        </button>
+      </div>
+
+      <div class="breakdown-box">
+        <p class="breakdown-text" id="breakdown-content">
+          <strong>A08</strong>:4; <strong>A23</strong>:4; <strong>C07</strong>:6; <strong>C24</strong>:82; <strong>C29</strong>:18; <strong>D01</strong>:22; <strong>D11</strong>:5; <strong>D19</strong>:12; <strong>E17</strong>:2; <strong>E20</strong>:3; <strong>E22</strong>:4; <strong>F10</strong>:1; <strong>F14</strong>:3; <strong>F19</strong>:2; <strong>H02</strong>:68; <strong>H04</strong>:4; <strong>H07</strong>:106; <strong>H08</strong>:5; <strong>H21</strong>:2
+        </p>
+        <p class="breakdown-total">Total &mdash; <span>353 beads</span></p>
+      </div>
+    </section>
+
+    <div class="divider" role="separator"></div>
+
+    <!-- ── Related Patterns ── -->
+    <section class="related-section" aria-labelledby="related-heading">
+      <div class="section-header">
+        <p class="section-eyebrow">Explore More</p>
+        <h2 class="section-title" id="related-heading">Related Patterns</h2>
+      </div>
+
+      <div class="pattern-grid" role="list" aria-label="Related patterns">
+
+        <!-- ── Related Card 1 ── -->
+        <article class="pattern-card card-coming-soon" role="listitem" tabindex="0" aria-label="Coming soon pattern">
+          <div class="card-preview" aria-hidden="true">
+            <div class="card-preview-dots"></div>
+            <span class="coming-soon-badge">Coming soon</span>
+            <div class="card-preview-placeholder">
+              <div class="card-preview-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect x="2" y="2" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="8" y="2" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="14" y="2" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="2" y="8" width="4" height="4" rx="1" fill="#4db8a0"/>
+                  <rect x="8" y="8" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="14" y="8" width="4" height="4" rx="1" fill="#4db8a0"/>
+                  <rect x="2" y="14" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="8" y="14" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="14" y="14" width="4" height="4" rx="1" fill="#c47a9a"/>
+                </svg>
+              </div>
+              <span class="card-preview-label">Preview image</span>
+            </div>
+          </div>
+          <div class="card-swatches" aria-hidden="true">
+            <div class="card-swatch" style="background:#c47a9a"></div>
+            <div class="card-swatch" style="background:#7B6A9B"></div>
+            <div class="card-swatch" style="background:#4db8a0"></div>
+            <div class="card-swatch" style="background:#332847"></div>
+            <div class="card-swatch" style="background:#C4B8D9"></div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-name">Kawaii Cherry</h3>
+            <div class="card-meta">
+              <span class="card-meta-item">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="6" r="2.5" fill="currentColor"/>
+                  <circle cx="2" cy="6" r="1.5" fill="currentColor" opacity="0.5"/>
+                  <circle cx="10" cy="6" r="1.5" fill="currentColor" opacity="0.5"/>
+                </svg>
+                — beads total
+              </span>
+              <span class="card-meta-item">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="3" cy="6" r="2" fill="#c47a9a"/>
+                  <circle cx="7" cy="4" r="2" fill="#7B6A9B"/>
+                  <circle cx="9.5" cy="7" r="2" fill="#4db8a0"/>
+                </svg>
+                — colors
+              </span>
+            </div>
+            <div class="card-footer">
+              <span class="card-tag">Kawaii</span>
+              <div class="card-arrow" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 6h6M6.5 3.5L9 6l-2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ── Related Card 2 ── -->
+        <article class="pattern-card card-coming-soon" role="listitem" tabindex="0" aria-label="Coming soon pattern">
+          <div class="card-preview" aria-hidden="true">
+            <div class="card-preview-dots"></div>
+            <span class="coming-soon-badge">Coming soon</span>
+            <div class="card-preview-placeholder">
+              <div class="card-preview-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect x="2" y="2" width="4" height="4" rx="1" fill="#4db8a0"/>
+                  <rect x="8" y="2" width="4" height="4" rx="1" fill="#C4B8D9"/>
+                  <rect x="14" y="2" width="4" height="4" rx="1" fill="#4db8a0"/>
+                  <rect x="2" y="8" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="8" y="8" width="4" height="4" rx="1" fill="#4db8a0"/>
+                  <rect x="14" y="8" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="2" y="14" width="4" height="4" rx="1" fill="#4db8a0"/>
+                  <rect x="8" y="14" width="4" height="4" rx="1" fill="#C4B8D9"/>
+                  <rect x="14" y="14" width="4" height="4" rx="1" fill="#4db8a0"/>
+                </svg>
+              </div>
+              <span class="card-preview-label">Preview image</span>
+            </div>
+          </div>
+          <div class="card-swatches" aria-hidden="true">
+            <div class="card-swatch" style="background:#4db8a0"></div>
+            <div class="card-swatch" style="background:#C4B8D9"></div>
+            <div class="card-swatch" style="background:#7B6A9B"></div>
+            <div class="card-swatch" style="background:#c47a9a"></div>
+            <div class="card-swatch" style="background:#332847"></div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-name">Kawaii Watermelon</h3>
+            <div class="card-meta">
+              <span class="card-meta-item">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="6" r="2.5" fill="currentColor"/>
+                  <circle cx="2" cy="6" r="1.5" fill="currentColor" opacity="0.5"/>
+                  <circle cx="10" cy="6" r="1.5" fill="currentColor" opacity="0.5"/>
+                </svg>
+                — beads total
+              </span>
+              <span class="card-meta-item">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="3" cy="6" r="2" fill="#4db8a0"/>
+                  <circle cx="7" cy="4" r="2" fill="#7B6A9B"/>
+                  <circle cx="9.5" cy="7" r="2" fill="#c47a9a"/>
+                </svg>
+                — colors
+              </span>
+            </div>
+            <div class="card-footer">
+              <span class="card-tag">Kawaii</span>
+              <div class="card-arrow" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 6h6M6.5 3.5L9 6l-2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ── Related Card 3 ── -->
+        <article class="pattern-card card-coming-soon" role="listitem" tabindex="0" aria-label="Coming soon pattern">
+          <div class="card-preview" aria-hidden="true">
+            <div class="card-preview-dots"></div>
+            <span class="coming-soon-badge">Coming soon</span>
+            <div class="card-preview-placeholder">
+              <div class="card-preview-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect x="2" y="2" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="8" y="2" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="14" y="2" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="2" y="8" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="8" y="8" width="4" height="4" rx="1" fill="#C4B8D9"/>
+                  <rect x="14" y="8" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="2" y="14" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                  <rect x="8" y="14" width="4" height="4" rx="1" fill="#c47a9a"/>
+                  <rect x="14" y="14" width="4" height="4" rx="1" fill="#7B6A9B"/>
+                </svg>
+              </div>
+              <span class="card-preview-label">Preview image</span>
+            </div>
+          </div>
+          <div class="card-swatches" aria-hidden="true">
+            <div class="card-swatch" style="background:#7B6A9B"></div>
+            <div class="card-swatch" style="background:#c47a9a"></div>
+            <div class="card-swatch" style="background:#C4B8D9"></div>
+            <div class="card-swatch" style="background:#4db8a0"></div>
+            <div class="card-swatch" style="background:#332847"></div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-name">Kawaii Cupcake</h3>
+            <div class="card-meta">
+              <span class="card-meta-item">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="6" r="2.5" fill="currentColor"/>
+                  <circle cx="2" cy="6" r="1.5" fill="currentColor" opacity="0.5"/>
+                  <circle cx="10" cy="6" r="1.5" fill="currentColor" opacity="0.5"/>
+                </svg>
+                — beads total
+              </span>
+              <span class="card-meta-item">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="3" cy="6" r="2" fill="#7B6A9B"/>
+                  <circle cx="7" cy="4" r="2" fill="#c47a9a"/>
+                  <circle cx="9.5" cy="7" r="2" fill="#4db8a0"/>
+                </svg>
+                — colors
+              </span>
+            </div>
+            <div class="card-footer">
+              <span class="card-tag">Kawaii</span>
+              <div class="card-arrow" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 6h6M6.5 3.5L9 6l-2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div><!-- /.pattern-grid -->
+    </section>
+
+  </main>
+
+
+  <!-- ══════════════════════════════════
+       FOOTER
+  ══════════════════════════════════ -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="/yaya_logo_final.png" alt="YCS Beads" style="height: 48px;">
+      </div>
+
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="../" class="footer-link">Bead Converter</a>
+        <a href="./" class="footer-link">Pattern Library</a>
+      </nav>
+
+      <p class="footer-copy">&copy; <span id="footer-year"></span> YCS Beads. All patterns free to use.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+    // Copy breakdown to clipboard
+    document.getElementById('copy-btn').addEventListener('click', function() {
+      var text = 'A08:4; A23:4; C07:6; C24:82; C29:18; D01:22; D11:5; D19:12; E17:2; E20:3; E22:4; F10:1; F14:3; F19:2; H02:68; H04:4; H07:106; H08:5; H21:2';
+      navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('copy-btn');
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M2 6.5l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!';
+        setTimeout(function() {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><rect x="4.5" y="4.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 8.5V2.5a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Copy breakdown';
+        }, 2000);
+      });
+    });
+  </script>
+
+</body>
+</html>
