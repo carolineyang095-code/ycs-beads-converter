@@ -244,28 +244,29 @@ export function exportFullPatternPNG(
         const pixel = pixels[i];
         const col = i % gridWidth;
         const row = Math.floor(i / gridWidth);
-        const x = gridStartX + col * cellSize;
-        const y = gridStartY + row * cellSize;
+        const x0 = Math.round(gridStartX + col * cellSize);
+        const y0 = Math.round(gridStartY + row * cellSize);
+        const x1 = Math.round(gridStartX + (col + 1) * cellSize);
+        const y1 = Math.round(gridStartY + (row + 1) * cellSize);
+        const w = x1 - x0;
+        const h = y1 - y0;
         const isBg = backgroundIndices.has(i);
 
         if (isBg || pixel.hex === 'transparent' || !pixel.code) {
-          ctx.clearRect(x, y, cellSize, cellSize);
-          if (isBg) {
-            ctx.fillStyle = 'rgba(245, 245, 245, 0.3)';
-            ctx.fillRect(x, y, cellSize, cellSize);
-          }
+          ctx.fillStyle = (col + row) % 2 === 0 ? '#F0F0F0' : '#E0E0E0';
+          ctx.fillRect(x0, y0, w, h);
         } else {
           ctx.fillStyle = pixel.hex;
-          ctx.fillRect(x, y, cellSize, cellSize);
+          ctx.fillRect(x0, y0, w, h);
         }
 
-        if (showCodeText && !isBg) {
+        if (showCodeText && !isBg && pixel.code && pixel.hex !== 'transparent') {
           const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
           ctx.font = `bold ${fontSize}px sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(displayCode(pixel.code), x + cellSize / 2, y + cellSize / 2);
+          ctx.fillText(displayCode(pixel.code), x0 + w / 2, y0 + h / 2);
         }
       }
 
