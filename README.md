@@ -115,17 +115,23 @@ pnpm build
 
 ---
 
+## License
+
+This project is licensed under [AGPL-3.0](./LICENSE), in accordance with the license of the upstream project it is derived from.
+
+---
+
 ## Attribution
 
-Core image processing algorithms (dominant color mapping, BFS region merging, flood-fill background detection) and the `colorSystemMapping.json` color data were adapted from [Zippland/perler-beads](https://github.com/Zippland/perler-beads), licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
+Core image processing algorithms (dominant color mapping, BFS region merging, flood-fill background detection) and the `colorSystemMapping.json` color data were adapted from [Zippland/perler-beads](https://github.com/Zippland/perler-beads) by [Zippland](https://github.com/Zippland), licensed under [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html).
 
-This project has since been significantly extended with a new frontend architecture, dual palette support, canvas editing tools, Apple Pencil support, project management, pattern library, and Shopify integration.
+This project has since been significantly extended with a new frontend architecture (Vite + static HTML/JS), dual palette support (MARD 221 + Artkal C-Mini), canvas editing tools, Apple Pencil support, project management, pattern library, and Shopify integration. The tool itself remains free to use at [tools.yayascreativestudio.com](https://tools.yayascreativestudio.com).
 
 ---
 
 ## References
 
-- [Zippland/perler-beads](https://github.com/Zippland/perler-beads) — Original algorithm design and color mapping data (Apache 2.0)
+- [Zippland/perler-beads](https://github.com/Zippland/perler-beads) — Original algorithm design and color mapping data (AGPL-3.0)
 - [Artkal Beads Official Site](https://www.artkalbeads.com/)
 - [Shopify Cart API Documentation](https://shopify.dev/docs/api/storefront)
 
