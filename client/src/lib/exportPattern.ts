@@ -253,14 +253,20 @@ export function exportFullPatternPNG(
         const isBg = backgroundIndices.has(i);
 
         if (isBg || pixel.hex === 'transparent' || !pixel.code) {
-          ctx.fillStyle = (col + row) % 2 === 0 ? '#F0F0F0' : '#E0E0E0';
-          ctx.fillRect(x0, y0, w, h);
+          const checkerSize = Math.max(4, Math.floor(cellSize / 8));
+          for (let cy = 0; cy < h; cy += checkerSize) {
+            for (let cx = 0; cx < w; cx += checkerSize) {
+              const isLight = (Math.floor((y0 + cy) / checkerSize) + Math.floor((x0 + cx) / checkerSize)) % 2 === 0;
+              ctx.fillStyle = isLight ? '#D3D3D3' : '#A9A9A9';
+              ctx.fillRect(x0 + cx, y0 + cy, Math.min(checkerSize, w - cx), Math.min(checkerSize, h - cy));
+            }
+          }
         } else {
           ctx.fillStyle = pixel.hex;
           ctx.fillRect(x0, y0, w, h);
         }
 
-        if (showCodeText && !isBg) {
+        if (showCodeText && !isBg && pixel.code && pixel.hex !== 'transparent' && pixel.code !== 'BG' && pixel.code !== 'H01' && pixel.code !== '') {
           const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
           ctx.font = `bold ${fontSize}px sans-serif`;
