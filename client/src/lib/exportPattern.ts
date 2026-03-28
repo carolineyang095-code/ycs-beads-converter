@@ -253,8 +253,14 @@ export function exportFullPatternPNG(
         const isBg = backgroundIndices.has(i);
 
         if (isBg || pixel.hex === 'transparent' || !pixel.code) {
-          ctx.fillStyle = (col + row) % 2 === 0 ? '#F0F0F0' : '#E0E0E0';
-          ctx.fillRect(x0, y0, w, h);
+          const checkerSize = Math.max(4, Math.floor(cellSize / 8));
+          for (let cy = 0; cy < h; cy += checkerSize) {
+            for (let cx = 0; cx < w; cx += checkerSize) {
+              const isLight = (Math.floor((y0 + cy) / checkerSize) + Math.floor((x0 + cx) / checkerSize)) % 2 === 0;
+              ctx.fillStyle = isLight ? '#D3D3D3' : '#A9A9A9';
+              ctx.fillRect(x0 + cx, y0 + cy, Math.min(checkerSize, w - cx), Math.min(checkerSize, h - cy));
+            }
+          }
         } else {
           ctx.fillStyle = pixel.hex;
           ctx.fillRect(x0, y0, w, h);
