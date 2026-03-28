@@ -20,7 +20,7 @@ import NoiseColorRemoval from '@/components/NoiseColorRemoval';
 import CropModal from '@/components/CropModal';
 import {
  loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
-  exportGridAsPNG, exportStatsAsCSV, calculateGridDimensions,
+  exportGridAsPNG, exportGridAsCleanPNG, exportStatsAsCSV, calculateGridDimensions,
   getAspectRatioString, getPixelAt, setPixelAt,
   PixelGridCell, ProcessedImage, ProcessingMode
 } from '@/lib/imageProcessing';
@@ -513,23 +513,13 @@ const SHOW_REMOVE_BACKGROUND = false;
   const handleExportPatternPNG = () => {
     if (!processed || !dims) return;
     try {
-      console.log('Exporting with options:', { gridInterval: 5 });
-      exportFullPatternPNG(
+      exportGridAsCleanPNG(
         dims.width,
         dims.height,
         processed.pixels,
-        processed.colorStats,
-        colorIndexRef.current,
         processed.backgroundIndices,
-        `perler-pattern-${dims.width}x${dims.height}.png`,
-        {
-          title: 'Bead Pattern',
-          gridInterval: 5,
-          showCoordinates: true,
-          showGrid: true,
-          showLegend: true
-        },
-        selectedPalette
+        showBackground,
+        `perler-pattern-${dims.width}x${dims.height}.png`
       );
       toast.success('Exporting pattern...');
     } catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }

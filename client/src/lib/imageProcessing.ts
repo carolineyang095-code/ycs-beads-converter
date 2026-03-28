@@ -557,31 +557,35 @@ export function drawPixelGridWithCodes(
 
   for (let i = 0; i < pixels.length; i++) {
     const pixel = pixels[i];
-    const x = (i % gridWidth) * pixelSize;
-    const y = Math.floor(i / gridWidth) * pixelSize;
+    const col = i % gridWidth;
+    const row = Math.floor(i / gridWidth);
+    const x = Math.round(col * pixelSize);
+    const y = Math.round(row * pixelSize);
+    const w = Math.round((col + 1) * pixelSize) - x;
+    const h = Math.round((row + 1) * pixelSize) - y;
 
     const isBg = backgroundIndices.has(i);
 
     const isTransparent = pixel.hex === 'transparent' || !pixel.code || pixel.code === 'BG';
-    
+
     if (isBg || isTransparent) {
       // Background removal or erased area: fill with white for web display
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(x, y, pixelSize, pixelSize);
-      
+      ctx.fillRect(x, y, w, h);
+
       if (isBg && !isTransparent) {
         ctx.fillStyle = 'rgba(245, 245, 245, 0.5)';
-        ctx.fillRect(x, y, pixelSize, pixelSize);
+        ctx.fillRect(x, y, w, h);
       }
     } else {
       ctx.fillStyle = pixel.hex;
-      ctx.fillRect(x, y, pixelSize, pixelSize);
+      ctx.fillRect(x, y, w, h);
     }
 
     // Draw grid
     ctx.strokeStyle = '#CCCCCC';
     ctx.lineWidth = 0.5;
-    ctx.strokeRect(x, y, pixelSize, pixelSize);
+    ctx.strokeRect(x, y, w, h);
 
     // Draw color code text if not background and pixel is large enough
     if (!isBg && pixelSize >= 20) {
@@ -608,6 +612,46 @@ export function exportGridAsPNG(
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+/**
+ * Export the pixel grid as a clean PNG (no grid lines, stable background color)
+ */
+export function exportGridAsCleanPNG(
+  gridWidth: number,
+  gridHeight: number,
+  pixels: PixelGridCell[],
+  backgroundIndices: Set<number>,
+  showBackground: boolean = true,
+  fileName: string = 'perler-pattern.png'
+): void {
+  const pixelSize = Math.max(20, Math.min(40, Math.floor(4000 / Math.max(gridWidth, gridHeight))));
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = gridWidth * pixelSize;
+  exportCanvas.height = gridHeight * pixelSize;
+  const ctx = exportCanvas.getContext('2d');
+  if (!ctx) return;
+  ctx.fillStyle = '#F0F0F0';
+  ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+  for (let i = 0; i < pixels.length; i++) {
+    const pixel = pixels[i];
+    const col = i % gridWidth;
+    const row = Math.floor(i / gridWidth);
+    const x = Math.round(col * pixelSize);
+    const y = Math.round(row * pixelSize);
+    const w = Math.round((col + 1) * pixelSize) - x;
+    const h = Math.round((row + 1) * pixelSize) - y;
+    const isBg = backgroundIndices.has(i);
+    const isTransparent = pixel.hex === 'transparent' || !pixel.code || pixel.code === 'BG';
+    if ((isBg && !showBackground) || isTransparent) {
+      ctx.fillStyle = (col + row) % 2 === 0 ? '#F0F0F0' : '#E0E0E0';
+      ctx.fillRect(x, y, w, h);
+    } else {
+      ctx.fillStyle = pixel.hex;
+      ctx.fillRect(x, y, w, h);
+    }
+  }
+  exportGridAsPNG(exportCanvas, fileName);
 }
 
 /**
