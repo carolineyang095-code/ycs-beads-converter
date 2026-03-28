@@ -266,7 +266,7 @@ export function exportFullPatternPNG(
           ctx.fillRect(x0, y0, w, h);
         }
 
-        if (showCodeText && !isBg) {
+        if (showCodeText && !isBg && pixel.code && pixel.hex !== 'transparent' && pixel.code !== 'BG' && pixel.code !== 'H01' && pixel.code !== '') {
           const brightness = (pixel.rgb.r * 299 + pixel.rgb.g * 587 + pixel.rgb.b * 114) / 1000;
           ctx.fillStyle = brightness > 160 ? '#452F60' : '#FFFFFF';
           ctx.font = `bold ${fontSize}px sans-serif`;
