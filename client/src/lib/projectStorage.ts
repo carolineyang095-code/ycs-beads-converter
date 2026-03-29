@@ -77,3 +77,43 @@ export function generateThumbnail(canvas: HTMLCanvasElement | null, size = 80): 
     return '';
   }
 }
+
+const AUTOSAVE_KEY = 'ycs_autosave_current';
+
+export interface AutosaveData {
+  savedAt: string;
+  gridWidth: number;
+  gridHeight: number;
+  pixelsJson: string;
+  colorStatsJson: string;
+  backgroundIndicesJson: string;
+  gridSize: number;
+}
+
+export function saveAutosave(data: Omit<AutosaveData, 'savedAt'>): void {
+  try {
+    const autosave: AutosaveData = { ...data, savedAt: new Date().toISOString() };
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(autosave));
+  } catch (e) {
+    console.warn('[projectStorage] saveAutosave failed:', e);
+  }
+}
+
+export function getAutosave(): AutosaveData | null {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AutosaveData;
+  } catch (e) {
+    console.warn('[projectStorage] getAutosave failed:', e);
+    return null;
+  }
+}
+
+export function clearAutosave(): void {
+  try {
+    localStorage.removeItem(AUTOSAVE_KEY);
+  } catch (e) {
+    console.warn('[projectStorage] clearAutosave failed:', e);
+  }
+}
