@@ -2,9 +2,10 @@ interface HeroIntroProps {
   onUploadClick: () => void;
   shopUrl: string;
   fileInputId?: string;
+  onOpenProjects?: () => void;
 }
 
-export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroIntroProps) {
+export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenProjects }: HeroIntroProps) {
   return (
     <>
       {/* ── Google Fonts ── */}
@@ -429,6 +430,9 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId }: HeroI
             >
               📖 User Guide
             </a>
+            <button className="btn-outline" onClick={onOpenProjects}>
+              📂 Open Projects
+            </button>
           </div>
 
           {/* Before / After — real images */}

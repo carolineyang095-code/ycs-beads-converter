@@ -7,9 +7,10 @@ interface ProjectManagerProps {
   hasActiveProject: boolean;
   onSave: (name: string) => void;
   onLoad: (project: SavedProject) => void;
+  openTrigger?: number;
 }
 
-export default function ProjectManager({ hasActiveProject, onSave, onLoad }: ProjectManagerProps) {
+export default function ProjectManager({ hasActiveProject, onSave, onLoad, openTrigger }: ProjectManagerProps) {
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState<SavedProject[]>([]);
@@ -21,6 +22,11 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad }: Pro
       setProjects(getAllProjects());
     }
   }, [open]);
+
+  // Open panel programmatically when trigger increments
+  useEffect(() => {
+    if (openTrigger && openTrigger > 0) setOpen(true);
+  }, [openTrigger]);
 
   // Close when clicking outside
   useEffect(() => {

@@ -27,7 +27,7 @@ import {
 import { exportFullPatternPNG } from '@/lib/exportPattern';
 import { createColorIndex, ColorData } from '@/lib/colorMapping';
 import ProjectManager from '@/components/ProjectManager';
-import { saveProject, generateThumbnail, SavedProject } from '@/lib/projectStorage';
+import { saveProject, generateThumbnail, SavedProject, saveAutosave, getAutosave, clearAutosave, getAllProjects } from '@/lib/projectStorage';
 
 
 type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
@@ -96,6 +96,19 @@ const SHOW_REMOVE_BACKGROUND = false;
 
   const hasAutoOpenedSidebar = useRef(false);
 
+  // Part 1: trigger for programmatically opening ProjectManager
+  const [projectOpenTrigger, setProjectOpenTrigger] = useState(0);
+
+  // Part 2: unsaved-changes tracking + autosave
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [autosavePending, setAutosavePending] = useState(false);
+  const processedRef = useRef<ProcessedImage | null>(null);
+  const gridSizeRef = useRef<number>(gridSize);
+
+  // Keep refs in sync with state so interval/callbacks always read latest
+  useEffect(() => { processedRef.current = processed; }, [processed]);
+  useEffect(() => { gridSizeRef.current = gridSize; }, [gridSize]);
+
   // Auto-show sidebar only on initial image load (not on brush strokes)
   useEffect(() => {
     if (processed && !hasAutoOpenedSidebar.current) {
@@ -111,6 +124,88 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
   }, [cropImageSrc]);
 
+  // Autosave triggered after each brush/eraser stroke (runs post-render so processed is current)
+  useEffect(() => {
+    if (!autosavePending || !processed) return;
+    const p = processedRef.current;
+    if (!p) return;
+    saveAutosave({
+      gridWidth: p.gridWidth,
+      gridHeight: p.gridHeight,
+      pixelsJson: JSON.stringify(p.pixels),
+      colorStatsJson: JSON.stringify(Array.from(p.colorStats.entries())),
+      backgroundIndicesJson: JSON.stringify(Array.from(p.backgroundIndices)),
+      gridSize: gridSizeRef.current,
+    });
+    setAutosavePending(false);
+  }, [autosavePending, processed]);
+
+  // 30-second autosave interval (reads via refs — no deps needed)
+  useEffect(() => {
+    const id = setInterval(() => {
+      const p = processedRef.current;
+      if (!p) return;
+      saveAutosave({
+        gridWidth: p.gridWidth,
+        gridHeight: p.gridHeight,
+        pixelsJson: JSON.stringify(p.pixels),
+        colorStatsJson: JSON.stringify(Array.from(p.colorStats.entries())),
+        backgroundIndicesJson: JSON.stringify(Array.from(p.backgroundIndices)),
+        gridSize: gridSizeRef.current,
+      });
+    }, 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Warn before accidental page close when there are unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
+
+  // On mount: check for autosave and offer to restore
+  useEffect(() => {
+    const autosave = getAutosave();
+    if (!autosave) return;
+    toast('You have unsaved work from your last session. Restore?', {
+      id: 'autosave-restore',
+      duration: Infinity,
+      action: {
+        label: 'Restore',
+        onClick: () => {
+          try {
+            const pixels = JSON.parse(autosave.pixelsJson);
+            const colorStats = new Map<string, number>(JSON.parse(autosave.colorStatsJson));
+            const backgroundIndices = new Set<number>(JSON.parse(autosave.backgroundIndicesJson));
+            const loaded: ProcessedImage = {
+              gridWidth: autosave.gridWidth,
+              gridHeight: autosave.gridHeight,
+              pixels,
+              colorStats,
+              backgroundCode: null,
+              backgroundIndices,
+            };
+            setProcessed(loaded);
+            setBaseProcessed(loaded);
+            setDims({ width: autosave.gridWidth, height: autosave.gridHeight });
+            setGridSize(autosave.gridSize);
+            setHasUnsavedChanges(true);
+            clearAutosave();
+            toast.success('Session restored');
+          } catch {
+            toast.error('Failed to restore — data may be corrupted');
+          }
+        },
+      },
+      cancel: { label: 'Dismiss', onClick: () => clearAutosave() },
+    });
+  }, []);
 
   // Undo history state
   const [historyStack, setHistoryStack] = useState<ProcessedImage[]>([]);
@@ -428,7 +523,7 @@ const SHOW_REMOVE_BACKGROUND = false;
       return;
     }
     if (!processed || !canvasRef.current) return;
-    if (activeTool === 'brush' || activeTool === 'eraser') pushToHistory(processed);
+    if (activeTool === 'brush' || activeTool === 'eraser') { pushToHistory(processed); setHasUnsavedChanges(true); }
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
@@ -460,6 +555,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     activePointersRef.current.delete(e.pointerId);
     if (activePointersRef.current.size < 2) { setIsPinching(false); lastPinchDistRef.current = null; }
     setIsDrawing(false);
+    if (activeTool === 'brush' || activeTool === 'eraser') setAutosavePending(true);
   };
 
   const handlePointerCancel = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -644,68 +740,75 @@ const SHOW_REMOVE_BACKGROUND = false;
               </div>
             )}
           </div>
-          {processed && (
-            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-around sm:justify-end">
+          <div className={`flex items-center gap-1.5 ${processed ? 'w-full sm:w-auto' : ''} justify-around sm:justify-end`}>
+            {processed && (
               <ShopifyIntegration
                 colorStats={filteredColorStats}
                 paletteType={selectedPalette}
               />
-              <ProjectManager
-                hasActiveProject={!!processed}
-                onSave={(name) => {
-                  if (!processed) return;
-                  try {
-                    saveProject(name, {
-                      thumbnailDataUrl: generateThumbnail(canvasRef.current),
-                      gridWidth: processed.gridWidth,
-                      gridHeight: processed.gridHeight,
-                      pixelsJson: JSON.stringify(processed.pixels),
-                      colorStatsJson: JSON.stringify(Array.from(processed.colorStats.entries())),
-                      backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
-                      gridSize,
-                    });
-                    toast.success(`Project "${name}" saved`);
-                  } catch (e) {
-                    toast.error('Save failed, please try again');
-                  }
-                }}
-                onLoad={(project: SavedProject) => {
-                  try {
-                    const pixels = JSON.parse(project.pixelsJson);
-                    const colorStats = new Map<string, number>(JSON.parse(project.colorStatsJson));
-                    const backgroundIndices = new Set<number>(JSON.parse(project.backgroundIndicesJson));
-                    const loaded = {
-                      gridWidth: project.gridWidth,
-                      gridHeight: project.gridHeight,
-                      pixels,
-                      colorStats,
-                      backgroundCode: null,
-                      backgroundIndices,
-                    };
-                    setProcessed(loaded);
-                    setBaseProcessed(loaded);
-                    setDims({ width: project.gridWidth, height: project.gridHeight });
-                    setGridSize(project.gridSize);
-                    toast.success(`Loaded project "${project.name}"`);
-                  } catch (e) {
-                    toast.error('Failed to load project — data may be corrupted');
-                  }
-                }}
-              />
-              <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7">
-                <Download className="w-3 h-3" /><span className="hidden sm:inline"> Export Pattern</span>
-              </Button>
-              {/* 右上角收起侧边栏按钮（暂时隐藏，保留代码以备恢复） */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-                    {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{isSidebarOpen ? 'Hide' : 'Show'} Settings Panel</TooltipContent>
-              </Tooltip>
-            </div>
-          )}
+            )}
+            <ProjectManager
+              hasActiveProject={!!processed}
+              openTrigger={projectOpenTrigger}
+              onSave={(name) => {
+                if (!processed) return;
+                try {
+                  saveProject(name, {
+                    thumbnailDataUrl: generateThumbnail(canvasRef.current),
+                    gridWidth: processed.gridWidth,
+                    gridHeight: processed.gridHeight,
+                    pixelsJson: JSON.stringify(processed.pixels),
+                    colorStatsJson: JSON.stringify(Array.from(processed.colorStats.entries())),
+                    backgroundIndicesJson: JSON.stringify(Array.from(processed.backgroundIndices)),
+                    gridSize,
+                  });
+                  setHasUnsavedChanges(false);
+                  toast.success(`Project "${name}" saved`);
+                } catch (e) {
+                  toast.error('Save failed, please try again');
+                }
+              }}
+              onLoad={(project: SavedProject) => {
+                try {
+                  const pixels = JSON.parse(project.pixelsJson);
+                  const colorStats = new Map<string, number>(JSON.parse(project.colorStatsJson));
+                  const backgroundIndices = new Set<number>(JSON.parse(project.backgroundIndicesJson));
+                  const loaded = {
+                    gridWidth: project.gridWidth,
+                    gridHeight: project.gridHeight,
+                    pixels,
+                    colorStats,
+                    backgroundCode: null,
+                    backgroundIndices,
+                  };
+                  setProcessed(loaded);
+                  setBaseProcessed(loaded);
+                  setDims({ width: project.gridWidth, height: project.gridHeight });
+                  setGridSize(project.gridSize);
+                  setHasUnsavedChanges(false);
+                  toast.success(`Loaded project "${project.name}"`);
+                } catch (e) {
+                  toast.error('Failed to load project — data may be corrupted');
+                }
+              }}
+            />
+            {processed && (
+              <>
+                <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7">
+                  <Download className="w-3 h-3" /><span className="hidden sm:inline"> Export Pattern</span>
+                </Button>
+                {/* 右上角收起侧边栏按钮（暂时隐藏，保留代码以备恢复） */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                      {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isSidebarOpen ? 'Hide' : 'Show'} Settings Panel</TooltipContent>
+                </Tooltip>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -813,6 +916,14 @@ const SHOW_REMOVE_BACKGROUND = false;
                 onUploadClick={() => setPaletteModalOpen(true)}
                 shopUrl="https://yayascreativestudio.com/"
                 fileInputId={undefined}
+                onOpenProjects={() => {
+                  const projects = getAllProjects();
+                  if (projects.length === 0) {
+                    toast('No saved projects yet');
+                  } else {
+                    setProjectOpenTrigger(t => t + 1);
+                  }
+                }}
               />
             )}
           </div>
