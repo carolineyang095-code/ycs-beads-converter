@@ -524,6 +524,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
     if (!processed || !canvasRef.current) return;
     if (activeTool === 'brush' || activeTool === 'eraser') { pushToHistory(processed); setHasUnsavedChanges(true); }
+    canvasRef.current.setPointerCapture(e.pointerId);
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) * (canvasRef.current.width / rect.width) / pixelSize);
