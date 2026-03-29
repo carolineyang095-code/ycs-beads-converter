@@ -136,6 +136,18 @@ const SHOW_REMOVE_BACKGROUND = false;
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
+  const paletteRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!paletteOpen) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (paletteRef.current && !paletteRef.current.contains(e.target as Node)) {
+        setPaletteOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [paletteOpen]);
 
   // Load palette — set default brush color to H07
   useEffect(() => {
@@ -741,7 +753,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                 <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full border-2 border-[#38A169] hover:bg-[#38A169]/10" onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30}><Plus className="w-3.5 h-3.5" /></Button>
               </div>
               {selectedColor && (
-                <div className="relative flex items-center gap-1 border-x border-border px-3 cursor-pointer" onClick={() => setPaletteOpen((v: boolean) => !v)}>
+                <div ref={paletteRef} className="relative flex items-center gap-1 border-x border-border px-3 cursor-pointer" onClick={() => setPaletteOpen((v: boolean) => !v)}>
                   <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                   <span className="text-xs font-medium">{selectedColor.code}</span>
                   {paletteOpen && (
