@@ -3,6 +3,7 @@ import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
 import { Button } from '@/components/ui/button';
 import { X, Check, Lock, Unlock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CropModalProps {
   imageSrc: string;
@@ -11,6 +12,7 @@ interface CropModalProps {
 }
 
 export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalProps) {
+  const { t } = useTranslation();
   const imageRef = useRef<HTMLImageElement>(null);
   const cropperRef = useRef<Cropper | null>(null);
   const [isLocked, setIsLocked] = useState(true);
@@ -89,7 +91,7 @@ export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalPr
       <div className="relative w-full max-w-2xl bg-background rounded-xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-semibold">Crop Image</h3>
+          <h3 className="text-lg font-semibold">{t('crop.title')}</h3>
           <Button variant="ghost" size="icon" onClick={handleCancel} className="h-8 w-8">
             <X className="w-4 h-4" />
           </Button>
@@ -119,28 +121,28 @@ export default function CropModal({ imageSrc, onConfirm, onCancel }: CropModalPr
               {isLocked ? (
                 <>
                   <Lock className="w-3.5 h-3.5" />
-                  1:1 Locked
+                  {t('crop.locked')}
                 </>
               ) : (
                 <>
                   <Unlock className="w-3.5 h-3.5" />
-                  Free Ratio
+                  {t('crop.freeRatio')}
                 </>
               )}
             </Button>
             <span className="text-[10px] text-muted-foreground">
-              Drag corners or edges to resize crop area
+              {t('crop.dragHint')}
             </span>
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-1">
             <Button variant="outline" onClick={handleCancel}>
-              Cancel
+              {t('crop.cancel')}
             </Button>
             <Button onClick={handleConfirm} className="gap-2">
               <Check className="w-4 h-4" />
-              Confirm Crop
+              {t('crop.confirm')}
             </Button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { ShoppingCart, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import {
   buildBeadBuilderUrl,
   getTotalBeadCount,
@@ -23,11 +24,12 @@ export default function ShopifyIntegration({
   colorStats,
   paletteType = 'mard',
 }: ShopifyIntegrationProps) {
+  const { t } = useTranslation();
   const totalBeads = getTotalBeadCount(colorStats);
 
   const handleBuyAllBeads = async () => {
     if (totalBeads === 0) {
-      toast.error('No beads to buy');
+      toast.error(t('toast.noBeadsToBuy'));
       return;
     }
 
@@ -38,7 +40,7 @@ export default function ShopifyIntegration({
       }
       const builderUrl = buildBeadBuilderUrl(statsForShopify);
       window.open(builderUrl, '_blank', 'noopener,noreferrer');
-      toast.success('Redirecting to bead builder...');
+      toast.success(t('toast.redirecting'));
     } catch (error) {
       toast.error(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -63,7 +65,7 @@ export default function ShopifyIntegration({
       className="text-xs gap-1.5 bg-[#7B6A9B] hover:bg-[#6d5c8a] text-white border-none rounded-full px-4"
     >
       <ShoppingCart className="w-3.5 h-3.5" />
-      <span className="hidden sm:inline">Buy All Beads for This Pattern ≈ €{estimatedPrice}</span>
+      <span className="hidden sm:inline">{t('shopify.buyAllBeads', { price: estimatedPrice })}</span>
       <ExternalLink className="w-3 h-3 opacity-70 hidden sm:inline" />
     </Button>
   );

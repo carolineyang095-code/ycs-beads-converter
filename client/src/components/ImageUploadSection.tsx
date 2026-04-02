@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Upload, Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ImageUploadSectionProps {
   onImageUpload: (file: File) => void;
@@ -14,6 +15,7 @@ export default function ImageUploadSection({
   onTrigger,
   fileName,
 }: ImageUploadSectionProps) {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFileSelect = (file: File) => {
@@ -49,9 +51,9 @@ export default function ImageUploadSection({
         <div className="flex flex-col items-center gap-1.5">
           <Upload className="w-6 h-6 text-muted-foreground" />
           <p className="text-xs text-muted-foreground">
-            Drop image or click to select
+            {t('upload.dropOrClick')}
           </p>
-          <p className="text-[10px] text-muted-foreground">JPG, PNG, WebP</p>
+          <p className="text-[10px] text-muted-foreground">{t('upload.formats')}</p>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { ColorData, euclideanDistance } from '@/lib/colorMapping';
 
 interface NoiseColorRemovalProps {
@@ -47,6 +48,7 @@ export default function NoiseColorRemoval({
   onRestoreAll,
   removedColors,
 }: NoiseColorRemovalProps) {
+  const { t } = useTranslation();
   const [showRemoved, setShowRemoved] = useState(false);
 
   const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
@@ -66,7 +68,7 @@ export default function NoiseColorRemoval({
     <div className="space-y-3">
       <div className="text-center">
         <p className="text-[10px] text-muted-foreground mt-0.5">
-          Click to remove. Total: {totalBeads.toLocaleString()} beads
+          {t('noise.clickToRemove', { count: totalBeads.toLocaleString() })}
         </p>
       </div>
 
@@ -92,7 +94,7 @@ export default function NoiseColorRemoval({
                   )}
                   <span className="text-xs font-mono font-semibold text-foreground">{code}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{count} pcs</span>
+                <span className="text-xs text-muted-foreground">{t('noise.pcs', { count })}</span>
                 {replacementColor && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="text-[10px] text-muted-foreground">→</span>
@@ -109,7 +111,7 @@ export default function NoiseColorRemoval({
         </div>
       ) : (
         <p className="text-[10px] text-center text-muted-foreground py-2">
-          No noise colors (fewer than {threshold} pcs)
+          {t('noise.noNoise', { threshold })}
         </p>
       )}
 
@@ -119,7 +121,7 @@ export default function NoiseColorRemoval({
             onClick={() => setShowRemoved(!showRemoved)}
             className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-foreground hover:bg-[#EDE7DA] rounded-md transition-colors"
           >
-            <span>Excluded Colors ({removedColors.size})</span>
+            <span>{t('noise.excludedColors', { count: removedColors.size })}</span>
             {showRemoved ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
@@ -154,7 +156,7 @@ export default function NoiseColorRemoval({
                       style={{ color: '#9867DA' }}
                       onClick={() => onRestoreColor(code)}
                     >
-                      Restore
+                      {t('noise.restore')}
                     </Button>
                   </div>
                 );
@@ -168,7 +170,7 @@ export default function NoiseColorRemoval({
             className="w-full mt-2 text-xs h-7"
             onClick={onRestoreAll}
           >
-            <RotateCcw className="w-3 h-3 mr-1" /> Restore All Colors
+            <RotateCcw className="w-3 h-3 mr-1" /> {t('noise.restoreAll')}
           </Button>
         </div>
       )}

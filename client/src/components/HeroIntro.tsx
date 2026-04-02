@@ -1,3 +1,5 @@
+import { useTranslation, Trans } from 'react-i18next';
+
 interface HeroIntroProps {
   onUploadClick: () => void;
   shopUrl: string;
@@ -6,6 +8,7 @@ interface HeroIntroProps {
 }
 
 export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenProjects }: HeroIntroProps) {
+  const { t } = useTranslation();
   return (
     <>
       {/* ── Google Fonts ── */}
@@ -396,31 +399,30 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
 
         {/* ══ HERO ══ */}
         <section className="hero-section">
-          <div className="hero-badge">🎨 Free Online Tool · No Sign-up Required</div>
+          <div className="hero-badge">{t('hero.badge')}</div>
 
           {/* SEO H1 — core keywords in heading */}
           <h1 className="hero-h1">
-            Turn Any Photo into a<br />
-            <em>Perler Bead Pattern</em>
+            {t('hero.title')}<br />
+            <em>{t('hero.titleEmphasis')}</em>
           </h1>
 
           <p className="hero-sub">
-            Upload your image and instantly generate a custom bead pattern using the full{' '}
-            <strong>Artkal 221 color palette</strong>. Get an exact bead count and order everything in one click.
+            <Trans i18nKey="hero.subtitle" components={{ strong: <strong /> }} />
           </p>
 
           <div className="hero-buttons">
             {fileInputId ? (
               <label htmlFor={fileInputId} className="btn-primary" style={{ cursor: 'pointer' }}>
-                ⬆️ Upload Image
+                {t('hero.uploadImage')}
               </label>
             ) : (
               <button className="btn-primary" onClick={onUploadClick}>
-                ⬆️ Upload Image
+                {t('hero.uploadImage')}
               </button>
             )}
             <a className="btn-outline" href={shopUrl} target="_blank" rel="noopener noreferrer">
-              🛍 Visit Shop
+              {t('hero.visitShop')}
             </a>
             <a
               className="btn-outline"
@@ -428,10 +430,10 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
               target="_blank"
               rel="noopener noreferrer"
             >
-              📖 User Guide
+              {t('hero.userGuide')}
             </a>
             <button className="btn-outline" onClick={onOpenProjects}>
-              📂 Open Projects
+              {t('hero.openProjects')}
             </button>
           </div>
 
@@ -443,7 +445,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
                 alt="Art nouveau white cat illustration"
                 className="ba-img"
               />
-              <span className="ba-label">Your Image</span>
+              <span className="ba-label">{t('hero.yourImage')}</span>
             </div>
             <div className="ba-arrow">→</div>
             <div className="ba-side">
@@ -452,7 +454,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
                 alt="Perler bead pattern chart generated from cat image"
                 className="ba-img"
               />
-              <span className="ba-label">Bead Pattern</span>
+              <span className="ba-label">{t('hero.beadPattern')}</span>
             </div>
           </div>
         </section>
@@ -481,7 +483,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             color: 'rgba(255,255,255,0.6)',
             marginBottom: '10px',
             position: 'relative',
-          }}>Free Downloads</p>
+          }}>{t('hero.freeDownloads')}</p>
           <h2 style={{
             fontFamily: 'Playfair Display, serif',
             fontSize: 'clamp(1.4rem, 3vw, 2rem)',
@@ -490,7 +492,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             position: 'relative',
             lineHeight: 1.25,
           }}>
-            Browse Our Free Pattern Library
+            {t('hero.browsePatternLibrary')}
           </h2>
           <p style={{
             color: 'rgba(255,255,255,0.7)',
@@ -500,7 +502,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             lineHeight: 1.6,
             position: 'relative',
           }}>
-            Kawaii, animals, food, seasonal — dozens of ready-to-use bead patterns, completely free.
+            {t('hero.patternLibraryDesc')}
           </p>
           <a
             href="https://tools.yayascreativestudio.com/patterns/"
@@ -521,7 +523,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
               position: 'relative',
             }}
           >
-            🧩 Explore the Pattern Library →
+            {t('hero.explorePatternLibrary')}
           </a>
         </section>
 
@@ -529,29 +531,27 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
 
         {/* ══ HOW IT WORKS ══ */}
         <section className="section">
-          <p className="section-eyebrow">How It Works</p>
+          <p className="section-eyebrow">{t('hero.howItWorks')}</p>
           {/* SEO H2 */}
-          <h2 className="section-h2">
-            From photo to finished pattern<br />in 3 simple steps
-          </h2>
+          <h2 className="section-h2" dangerouslySetInnerHTML={{ __html: t('hero.howItWorksTitle') }} />
           <div className="steps-grid">
             <div className="step-card">
               <div className="step-num">1</div>
               <div className="step-icon">📸</div>
-              <h3 className="step-h3">Upload Your Image</h3>
-              <p className="step-p">Drag & drop any photo — a pet, character, logo, or anything you love. JPG, PNG, and WebP supported.</p>
+              <h3 className="step-h3">{t('hero.step1Title')}</h3>
+              <p className="step-p">{t('hero.step1Desc')}</p>
             </div>
             <div className="step-card">
               <div className="step-num">2</div>
               <div className="step-icon">🎨</div>
-              <h3 className="step-h3">Auto-Convert to Pattern</h3>
-              <p className="step-p">Instantly mapped to the Artkal 221 palette. Adjust grid size, colors, and fine details with live preview.</p>
+              <h3 className="step-h3">{t('hero.step2Title')}</h3>
+              <p className="step-p">{t('hero.step2Desc')}</p>
             </div>
             <div className="step-card">
               <div className="step-num">3</div>
               <div className="step-icon">📦</div>
-              <h3 className="step-h3">Export & Order Beads</h3>
-              <p className="step-p">Download your pattern as PDF, get an exact bead count, and add all required colors to your cart in one click.</p>
+              <h3 className="step-h3">{t('hero.step3Title')}</h3>
+              <p className="step-p">{t('hero.step3Desc')}</p>
             </div>
           </div>
         </section>
@@ -560,22 +560,22 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
 
         {/* ══ FEATURES ══ */}
         <section className="section">
-          <p className="section-eyebrow">Features</p>
-          <h2 className="section-h2">Everything you need to craft</h2>
+          <p className="section-eyebrow">{t('hero.features')}</p>
+          <h2 className="section-h2">{t('hero.featuresTitle')}</h2>
           <div className="features-grid">
             {[
-              { icon: '🎨', title: 'Full Artkal 221 Palette', desc: 'Every color automatically matched to the official Artkal palette — no manual color picking needed.' },
-              { icon: '📊', title: 'Exact Bead Count', desc: 'Get a precise count for every color used. Know exactly how many beads to buy before you start.' },
-              { icon: '✏️', title: 'Edit Your Pattern', desc: 'Use brush, eraser, and eyedropper tools to refine your design pixel by pixel.' },
-              { icon: '📥', title: 'Export Pattern PDF', desc: 'Download a print-ready pattern with color codes, grid lines, and a full color legend.' },
-              { icon: '🛒', title: 'One-Click Bead Order', desc: "Add all required colors directly to your Yaya's Creative Studio cart — no manual searching." },
-              { icon: '💾', title: 'Save Your Projects', desc: 'Save multiple patterns and come back to them anytime. No account or sign-up required.' },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="feature-card">
+              { icon: '🎨', titleKey: 'hero.feature1Title', descKey: 'hero.feature1Desc' },
+              { icon: '📊', titleKey: 'hero.feature2Title', descKey: 'hero.feature2Desc' },
+              { icon: '✏️', titleKey: 'hero.feature3Title', descKey: 'hero.feature3Desc' },
+              { icon: '📥', titleKey: 'hero.feature4Title', descKey: 'hero.feature4Desc' },
+              { icon: '🛒', titleKey: 'hero.feature5Title', descKey: 'hero.feature5Desc' },
+              { icon: '💾', titleKey: 'hero.feature6Title', descKey: 'hero.feature6Desc' },
+            ].map(({ icon, titleKey, descKey }) => (
+              <div key={titleKey} className="feature-card">
                 <div className="feature-icon-box">{icon}</div>
                 <div>
-                  <h4 className="feature-h4">{title}</h4>
-                  <p className="feature-p">{desc}</p>
+                  <h4 className="feature-h4">{t(titleKey)}</h4>
+                  <p className="feature-p">{t(descKey)}</p>
                 </div>
               </div>
             ))}
@@ -584,15 +584,15 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
 
         {/* ══ CTA ══ */}
         <div className="cta-section">
-          <h2 className="cta-h2">Ready to start your next bead project?</h2>
-          <p className="cta-p">Free to use · No sign-up · Works on any device</p>
+          <h2 className="cta-h2">{t('hero.ctaTitle')}</h2>
+          <p className="cta-p">{t('hero.ctaSubtitle')}</p>
           {fileInputId ? (
             <label htmlFor={fileInputId} className="btn-cta" style={{ cursor: 'pointer' }}>
-              ⬆️ Upload Image Now
+              {t('hero.uploadImageNow')}
             </label>
           ) : (
             <button className="btn-cta" onClick={onUploadClick}>
-              ⬆️ Upload Image Now
+              {t('hero.uploadImageNow')}
             </button>
           )}
         </div>

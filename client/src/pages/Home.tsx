@@ -1,6 +1,8 @@
 import HeroIntro from '@/components/HeroIntro';
+import LanguageToggle from '@/components/LanguageToggle';
 import type React from 'react';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/useMobile';
 import {
   Upload, Download, Paintbrush, Eraser,
@@ -35,6 +37,7 @@ type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
   type MaxColors = typeof MAX_COLOR_OPTIONS[number];
 
 export default function Home() {
+  const { t } = useTranslation();
   // Core state
   const [palette, setPalette] = useState<ColorData[]>([]);
   const [gridSize, setGridSize] = useState<number>(100);
@@ -173,11 +176,11 @@ const SHOW_REMOVE_BACKGROUND = false;
   useEffect(() => {
     const autosave = getAutosave();
     if (!autosave) return;
-    toast('You have unsaved work from your last session. Restore?', {
+    toast(t('toast.unsavedWork'), {
       id: 'autosave-restore',
       duration: Infinity,
       action: {
-        label: 'Restore',
+        label: t('toast.restoreAction'),
         onClick: () => {
           try {
             const pixels = JSON.parse(autosave.pixelsJson);
@@ -197,13 +200,13 @@ const SHOW_REMOVE_BACKGROUND = false;
             setGridSize(autosave.gridSize);
             setHasUnsavedChanges(true);
             clearAutosave();
-            toast.success('Session restored');
+            toast.success(t('toast.sessionRestored'));
           } catch {
-            toast.error('Failed to restore — data may be corrupted');
+            toast.error(t('toast.restoreFailed'));
           }
         },
       },
-      cancel: { label: 'Dismiss', onClick: () => clearAutosave() },
+      cancel: { label: t('toast.dismissAction'), onClick: () => clearAutosave() },
     });
   }, []);
 
@@ -345,7 +348,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     const d = calculateGridDimensions(sourceImage, gridSize);
     setDims(d);
     processImage(sourceImage, d.width, d.height, mergeThreshold, enableBgRemoval, excludedCodes, ditherStrength);
-    toast.success('Re-generated from image');
+    toast.success(t('toast.regenerated'));
   };
 
   const handleCreateCanvas = () => {
@@ -357,7 +360,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     }));
     const result: ProcessedImage = { gridWidth: gridSize, gridHeight: gridSize, pixels: emptyPixels, colorStats: new Map(), backgroundCode: null, backgroundIndices: new Set() };
     setProcessed(result); setBaseProcessed(result);
-    toast.success(`Created ${gridSize}x${gridSize} empty canvas`);
+    toast.success(t('toast.createdCanvas', { size: gridSize }));
   };
 
   const resizeGridPreserveContent = (oldProcessed: ProcessedImage, newWidth: number, newHeight: number): ProcessedImage => {
@@ -474,8 +477,8 @@ const SHOW_REMOVE_BACKGROUND = false;
     setReplaceModalOpen(false);
     setReplaceTargetCode(null);
     const msg = isRemove
-      ? `Removed all ${fromCode} beads (made transparent)`
-      : `Replaced all ${fromCode} → ${toCode}`;
+      ? t('toast.removedBeads', { code: fromCode })
+      : t('toast.replacedBeads', { from: fromCode, to: toCode });
     toast.success(msg);
   }, [processed, pushToHistory]);
 
@@ -486,7 +489,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     setProcessed(lastSnapshot); setBaseProcessed(lastSnapshot);
     setDims({ width: lastSnapshot.gridWidth, height: lastSnapshot.gridHeight });
     setGridSize(lastSnapshot.gridWidth);
-    toast.success('Undo successful');
+    toast.success(t('toast.undoSuccess'));
   }, [historyStack]);
 
   const breakdownText = useMemo(() => {
@@ -506,9 +509,9 @@ const SHOW_REMOVE_BACKGROUND = false;
   const handleCopyBreakdown = () => {
     if (!breakdownText) return;
     navigator.clipboard.writeText(breakdownText).then(() => {
-      setCopied(true); toast.success('Copied breakdown to clipboard!');
+      setCopied(true); toast.success(t('toast.copySuccess'));
       setTimeout(() => setCopied(false), 2000);
-    }).catch(() => toast.error('Failed to copy. Please select and copy manually.'));
+    }).catch(() => toast.error(t('toast.copyFail')));
   };
 
   const handleHighlightColor = (code: string | null) => setHighlightCode(prev => prev === code ? null : code);
@@ -587,7 +590,7 @@ const SHOW_REMOVE_BACKGROUND = false;
     if (!processed || !dims) return;
     if (activeTool === 'eyedropper') {
       const pixel = getPixelAt(processed.pixels, processed.gridWidth, x, y);
-      if (pixel) { const color = colorIndexRef.current.get(pixel.code); if (color) { setSelectedColor(color); toast(`Picked: ${color.code}`); } }
+      if (pixel) { const color = colorIndexRef.current.get(pixel.code); if (color) { setSelectedColor(color); toast(t('toast.picked', { code: color.code })); } }
     } else if (activeTool === 'brush' && selectedColor) {
       const newPixels = applyBrush(processed.pixels, processed.gridWidth, processed.gridHeight, x, y, brushSize, selectedColor);
       const newStats = new Map<string, number>();
@@ -640,14 +643,14 @@ const SHOW_REMOVE_BACKGROUND = false;
         },
         selectedPalette
       );
-      toast.success('Exporting pattern...');
-    } catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
+      toast.success(t('toast.exporting'));
+    } catch (err) { toast.error(t('toast.exportFailed', { error: err instanceof Error ? err.message : 'Unknown error' })); }
   };
 
   const handleExportCSV = () => {
     if (!processed || !dims) return;
-    try { exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`, selectedPalette); toast.success('CSV exported'); }
-    catch (err) { toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
+    try { exportStatsAsCSV(processed.colorStats, colorIndexRef.current, `perler-stats-${dims.width}x${dims.height}.csv`, selectedPalette); toast.success(t('toast.csvExported')); }
+    catch (err) { toast.error(t('toast.exportFailed', { error: err instanceof Error ? err.message : 'Unknown error' })); }
   };
 
   const filteredColorStats = useMemo(() => {
@@ -681,7 +684,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                     <button
                       className={`w-7 h-7 rounded-sm border transition-transform hover:scale-110 relative overflow-hidden ${selectedColor?.code === color.code ? 'ring-2 ring-purple-500 ring-offset-1 border-transparent' : 'border-gray-200'}`}
                       style={{ backgroundColor: color.hex }}
-                      onClick={() => { setSelectedColor(color); setActiveTool('brush'); setPaletteOpen(false); toast(`Selected: ${color.code}`); }}
+                      onClick={() => { setSelectedColor(color); setActiveTool('brush'); setPaletteOpen(false); toast(t('toast.selected', { code: color.code })); }}
                     >
                       {isH01 && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -731,13 +734,14 @@ const SHOW_REMOVE_BACKGROUND = false;
               <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
             </a>
             <a href="/patterns/" className="text-xs font-semibold text-[#7B6A9B] hover:text-[#452F60] transition-colors whitespace-nowrap">
-              Pattern Library
+              {t('nav.patternLibrary')}
             </a>
+            <LanguageToggle />
             {processed && (
               <div className="hidden sm:flex text-[10px] sm:text-xs text-muted-foreground items-center gap-2">
-                <span className="whitespace-nowrap">Total: <span className="font-semibold text-foreground">{totalBeads.toLocaleString()}</span> beads</span>
+                <span className="whitespace-nowrap">{t('nav.totalBeads', { count: totalBeads.toLocaleString() })}</span>
                 <span className="text-border">·</span>
-                <span className="whitespace-nowrap">Colors: <span className="font-semibold text-foreground">{totalColors}</span></span>
+                <span className="whitespace-nowrap">{t('nav.colors', { count: totalColors })}</span>
               </div>
             )}
           </div>
@@ -764,9 +768,9 @@ const SHOW_REMOVE_BACKGROUND = false;
                     gridSize,
                   });
                   setHasUnsavedChanges(false);
-                  toast.success(`Project "${name}" saved`);
+                  toast.success(t('toast.projectSaved', { name }));
                 } catch (e) {
-                  toast.error('Save failed, please try again');
+                  toast.error(t('toast.saveFailed'));
                 }
               }}
               onLoad={(project: SavedProject) => {
@@ -787,16 +791,16 @@ const SHOW_REMOVE_BACKGROUND = false;
                   setDims({ width: project.gridWidth, height: project.gridHeight });
                   setGridSize(project.gridSize);
                   setHasUnsavedChanges(false);
-                  toast.success(`Loaded project "${project.name}"`);
+                  toast.success(t('toast.projectLoaded', { name: project.name }));
                 } catch (e) {
-                  toast.error('Failed to load project — data may be corrupted');
+                  toast.error(t('toast.loadFailed'));
                 }
               }}
             />
             {processed && (
               <>
                 <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7">
-                  <Download className="w-3 h-3" /><span className="hidden sm:inline"> Export Pattern</span>
+                  <Download className="w-3 h-3" /><span className="hidden sm:inline"> {t('nav.exportPattern')}</span>
                 </Button>
                 {/* 右上角收起侧边栏按钮（暂时隐藏，保留代码以备恢复） */}
                 <Tooltip>
@@ -805,7 +809,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                       {isSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>{isSidebarOpen ? 'Hide' : 'Show'} Settings Panel</TooltipContent>
+                  <TooltipContent>{isSidebarOpen ? t('sidebar.hideSettings') : t('sidebar.showSettings')}</TooltipContent>
                 </Tooltip>
               </>
             )}
@@ -815,12 +819,12 @@ const SHOW_REMOVE_BACKGROUND = false;
 
       {/* Info Banner */}
       <div className="w-full bg-[#F5EFE6] text-[#332847] text-xs sm:text-sm text-center px-3 py-1 sm:px-4 sm:py-2 flex-shrink-0">
-        🧩 Our beads are 2.6mm mini fuse beads, produced by the same factory as Artkal. We use the MARD 221 color system — a wider palette, fully compatible with Artkal mini beads.
+        {t('infoBanner')}
       </div>
 
       {error && (
         <div className="mx-4 mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex-shrink-0">
-          {error}<button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
+          {error}<button onClick={() => setError(null)} className="ml-2 underline">{t('error.dismiss')}</button>
         </div>
       )}
 
@@ -833,25 +837,25 @@ const SHOW_REMOVE_BACKGROUND = false;
           {processed && (
             <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-white">
               <div className="flex items-center gap-2 border-r border-border pr-3">
-                <span className="text-xs font-medium text-muted-foreground">Preview</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('toolbar.preview')}</span>
                 <Switch checked={isPreview} onCheckedChange={setIsPreview} />
               </div>
               <div className="flex items-center gap-1 border-r border-border pr-3">
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant={activeTool === 'brush' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')}><Paintbrush className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Brush Tool</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.brushTool')}</TooltipContent></Tooltip>
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant={activeTool === 'eraser' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')}><Eraser className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Eraser Tool</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.eraserTool')}</TooltipContent></Tooltip>
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}><Pipette className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Eyedropper</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.eyedropper')}</TooltipContent></Tooltip>
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleUndo} disabled={historyStack.length === 0}><Undo2 className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Undo (Step Back)</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.undoStepBack')}</TooltipContent></Tooltip>
               </div>
               <div className="flex items-center gap-1 border-l border-border pl-3">
-                <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Size</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">{t('toolbar.size')}</span>
                 <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full border-2 border-[#E53E3E] hover:bg-[#E53E3E]/10" onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} disabled={brushSize <= 1}><Minus className="w-3.5 h-3.5" /></Button>
                 <span className="text-xs font-mono text-muted-foreground w-5 text-center">{brushSize}</span>
                 <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full border-2 border-[#38A169] hover:bg-[#38A169]/10" onClick={() => setBrushSize(prev => Math.min(30, prev + 1))} disabled={brushSize >= 30}><Plus className="w-3.5 h-3.5" /></Button>
@@ -868,7 +872,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </div>
               )}
               <div className="flex items-center gap-2 border-r border-border pr-3">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Zoom</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t('toolbar.zoom')}</span>
                 <div className="w-24 lg:w-32">
                   <Slider value={[pixelSize]} onValueChange={(v) => setPixelSize(v[0])} min={4} max={30} step={2} />
                 </div>
@@ -877,7 +881,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               <div className="flex items-center gap-1 border-l border-border pl-3">
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={handleReset}><Trash2 className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Reset Canvas (Clear All)</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.resetCanvas')}</TooltipContent></Tooltip>
               </div>
 
               <Button size="sm" variant="ghost" className={`h-8 w-8 p-0 lg:hidden ${isSidebarOpen ? 'text-primary bg-primary/10' : ''}`} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
@@ -898,7 +902,7 @@ const SHOW_REMOVE_BACKGROUND = false;
           <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#F5EFE6]">
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-[#F5EFE6]/60 z-10">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" />Processing...</div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" />{t('toast.processing')}</div>
               </div>
             )}
             {(sourceImage || processed) && processed ? (
@@ -920,7 +924,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                 onOpenProjects={() => {
                   const projects = getAllProjects();
                   if (projects.length === 0) {
-                    toast('No saved projects yet');
+                    toast(t('toast.noSavedProjects'));
                   } else {
                     setProjectOpenTrigger(t => t + 1);
                   }
@@ -932,8 +936,8 @@ const SHOW_REMOVE_BACKGROUND = false;
           {/* Status bar */}
           {dims && processed && (
             <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-white flex-shrink-0">
-              <span>Grid: {dims.width} x {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
-              <span>Total: {totalBeads.toLocaleString()} beads | Colors: {totalColors}</span>
+              <span>{t('statusBar.grid', { width: dims.width, height: dims.height, ratio: getAspectRatioString(dims.width, dims.height) })}</span>
+              <span>{t('statusBar.total', { count: totalBeads.toLocaleString(), colors: totalColors })}</span>
             </div>
           )}
         </div>
@@ -944,14 +948,14 @@ const SHOW_REMOVE_BACKGROUND = false;
   {/* Purple circle toggle — outside opacity div so always visible */}
   <button
     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-    title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+    title={isSidebarOpen ? t('sidebar.collapseSidebar') : t('sidebar.expandSidebar')}
     className="absolute top-4 -left-3.5 z-30 w-7 h-7 rounded-full bg-[#7B6A9B] hover:bg-[#6a5a8a] active:bg-[#594a78] text-white shadow-md flex items-center justify-center transition-colors duration-150"
   >
     {isSidebarOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
   </button>
   <div className={`${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} transition-all duration-200 flex flex-col h-full w-80 overflow-y-auto`}>
             <div className="p-4 border-b border-border" data-upload-panel="1">
-              <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Canvas Source</h3>
+              <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> {t('sidebar.canvasSource')}</h3>
               <div className="space-y-2">
                 <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => {
                       if (!processed) {
@@ -961,68 +965,68 @@ const SHOW_REMOVE_BACKGROUND = false;
                       }
                     }} fileName={uploadedFileName} />
                 <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> New Canvas</Button>
-                  <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> Reset to Image</Button>
+                  <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> {t('sidebar.newCanvas')}</Button>
+                  <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> {t('sidebar.resetToImage')}</Button>
                 </div>
               </div>
             </div>
             {processed && (
               <div className="p-4 border-b border-border space-y-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><SlidersHorizontal className="w-3.5 h-3.5" /> Parameters</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><SlidersHorizontal className="w-3.5 h-3.5" /> {t('sidebar.parameters')}</h3>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-foreground">Canvas Width (Beads)</label>
+                    <label className="text-xs font-medium text-foreground">{t('sidebar.canvasWidth')}</label>
                     <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
                   </div>
                   <Slider value={[gridSize]} onValueChange={handleGridSizeChange} min={10} max={250} step={1} className="w-full" />
-                  {dims && <p className="text-[10px] text-muted-foreground mt-1">Output: {dims.width} x {dims.height}</p>}
+                  {dims && <p className="text-[10px] text-muted-foreground mt-1">{t('sidebar.output', { width: dims.width, height: dims.height })}</p>}
                 </div>
                 {canvasSource === 'image' && (
                   <>
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-medium text-foreground">Processing Mode</label>
+                        <label className="text-xs font-medium text-foreground">{t('sidebar.processingMode')}</label>
                         <span className="text-xs font-mono text-muted-foreground">{processingMode}</span>
                       </div>
                       <select value={processingMode} onChange={(e) => handleModeChange(e.target.value)} className="w-full h-9 px-2 text-xs border border-border rounded-md bg-white">
-                        <option value="clean">Clean Cartoon</option>
-                        <option value="vivid">Vivid Game</option>
-                        <option value="soft">Soft Illustration</option>
+                        <option value="clean">{t('sidebar.cleanCartoon')}</option>
+                        <option value="vivid">{t('sidebar.vividGame')}</option>
+                        <option value="soft">{t('sidebar.softIllustration')}</option>
                       </select>
-                      <p className="text-[10px] text-muted-foreground mt-1">clean = no dithering + stronger simplify · vivid = keep details · soft = gentle simplify</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{t('sidebar.modeHint')}</p>
                     </div>
                     {SHOW_DITHERING && (
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
+                          <label className="text-xs font-medium text-foreground">{t('sidebar.colorDetail')}</label>
                           <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
                         </div>
                         <Slider value={[ditherStrength]} onValueChange={handleDitherChange} min={0} max={100} step={1} className="w-full" />
-                        <p className="text-[10px] text-muted-foreground mt-1">0 = off · 20–40 natural · 60+ grainy</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">{t('sidebar.ditherHint')}</p>
                       </div>
                     )}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
+                        <label className="text-xs font-medium text-foreground">{t('sidebar.colorPaletteLimit')}</label>
                         <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
                       </div>
                       <Slider value={[maxColorIndex]} onValueChange={(v) => setMaxColorIndex(v[0])} min={0} max={MAX_COLOR_OPTIONS.length - 1} step={1} className="w-full" />
                       <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">{MAX_COLOR_OPTIONS.map((n) => <span key={n}>{n}</span>)}</div>
-                      <p className="text-[10px] text-muted-foreground mt-1">221 = most vivid · 50 = cleaner cartoon · 20 = very simplified</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{t('sidebar.paletteLimitHint')}</p>
                     </div>
                     {SHOW_SIMPLIFY_SMALL_AREAS && (
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
+                          <label className="text-xs font-medium text-foreground">{t('sidebar.simplifySmallAreas')}</label>
                           <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
                         </div>
                         <Slider value={[mergeThreshold]} onValueChange={handleMergeChange} min={1} max={12} step={1} className="w-full" />
-                        <p className="text-[10px] text-muted-foreground mt-1">Regions smaller than {mergeThreshold}px will be merged</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">{t('sidebar.simplifyHint', { threshold: mergeThreshold })}</p>
                       </div>
                     )}
                     {SHOW_REMOVE_BACKGROUND && (
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-medium text-foreground">Remove Background</label>
+                        <label className="text-xs font-medium text-foreground">{t('sidebar.removeBackground')}</label>
                         <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
                       </div>
                     )}
@@ -1032,14 +1036,14 @@ const SHOW_REMOVE_BACKGROUND = false;
             )}
             {processed && (
               <div className="p-4 border-b border-border">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Sparkles className="w-3.5 h-3.5" /> Clean Up Stray Beads</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Sparkles className="w-3.5 h-3.5" /> {t('sidebar.cleanUpStrayBeads')}</h3>
                 <NoiseColorRemoval colorStats={processed.colorStats} palette={colorIndexRef.current} threshold={10} onRemoveColor={handleRemoveNoiseColor} onRestoreColor={handleRestoreColor} onRestoreAll={handleRestoreAll} removedColors={removedColors} />
               </div>
             )}
             {processed && (
               <div className="p-4 border-b border-border">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Layers className="w-3.5 h-3.5" /> Bead Count & Colors ({totalColors})</h3>
-                <p className="text-[10px] text-muted-foreground mb-2">Click to highlight · ✏️ to replace</p>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Layers className="w-3.5 h-3.5" /> {t('sidebar.beadCountColors', { count: totalColors })}</h3>
+                <p className="text-[10px] text-muted-foreground mb-2">{t('sidebar.clickToHighlight')}</p>
                 <div className="space-y-0.5 max-h-72 overflow-y-auto mb-4">
                   {Array.from(processed.colorStats.entries()).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
                     const color = colorIndexRef.current.get(code);
@@ -1062,7 +1066,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                           <span className="text-muted-foreground flex-shrink-0 w-10 text-right">{pct}%</span>
                           <button
                             className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0 p-2 sm:p-0 sm:w-5 sm:h-5 rounded flex items-center justify-center hover:bg-purple-100 active:bg-purple-100 text-[#7B6A9B]"
-                            title={`Replace all ${code} beads`}
+                            title={t('replaceModal.replaceAll', { code })}
                             onClick={(e) => {
                               e.stopPropagation();
                               setReplaceTargetCode(code);
@@ -1079,12 +1083,12 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </div>
                 <div className="space-y-2 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Quick Breakdown</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('sidebar.quickBreakdown')}</span>
                     <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#7B6A9B]" onClick={handleCopyBreakdown}>
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? 'Copied!' : 'Copy breakdown'}
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? t('sidebar.copied') : t('sidebar.copyBreakdown')}
                     </Button>
                   </div>
-                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none" placeholder="No beads to show" />
+                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none" placeholder={t('sidebar.noBeadsToShow')} />
                 </div>
               </div>
             )}
@@ -1101,9 +1105,9 @@ const SHOW_REMOVE_BACKGROUND = false;
 
             {/* Header */}
             <div className="px-6 pt-6 pb-4 text-center border-b border-gray-100">
-              <h3 className="text-lg font-bold text-[#452F60]">Choose your bead palette</h3>
+              <h3 className="text-lg font-bold text-[#452F60]">{t('paletteModal.title')}</h3>
               <p className="text-xs text-gray-400 mt-1">
-                You can only change this before uploading an image
+                {t('paletteModal.subtitle')}
               </p>
             </div>
 
@@ -1121,7 +1125,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#7B6A9B]">
-                    ⭐ Recommended
+                    {t('paletteModal.recommended')}
                   </span>
                   {selectedPalette === 'mard' && (
                     <span className="text-[#7B6A9B] font-bold text-sm">✓</span>
@@ -1129,11 +1133,11 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </div>
                 <span className="text-base font-bold text-[#452F60]">MARD</span>
                 <span className="text-[12px] text-gray-500 leading-snug">
-                  221 colors · Full color range<br />
-                  Best for detailed patterns
+                  {t('paletteModal.mardDesc')}<br />
+                  {t('paletteModal.mardDetail')}
                 </span>
                 <span className="text-[11px] text-[#7B6A9B] font-semibold mt-1">
-                  Our shop beads use this palette
+                  {t('paletteModal.mardShopNote')}
                 </span>
               </button>
 
@@ -1148,7 +1152,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                    C-Mini Series
+                    {t('paletteModal.cMiniSeries')}
                   </span>
                   {selectedPalette === 'artkal' && (
                     <span className="text-[#7B6A9B] font-bold text-sm">✓</span>
@@ -1156,10 +1160,10 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </div>
                 <span className="text-base font-bold text-[#452F60]">ARTKAL</span>
                 <span className="text-[12px] text-gray-500 leading-snug">
-                  173 colors · Use your existing Artkal beads
+                  {t('paletteModal.artkalDesc')}
                 </span>
                 <span className="text-[11px] text-green-600 font-semibold mt-1">
-                  ✓ Same melting point · Mix &amp; match freely
+                  {t('paletteModal.artkalCompat')}
                 </span>
               </button>
 
@@ -1168,8 +1172,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             {/* Artkal hint */}
             {selectedPalette === 'artkal' && (
               <p className="px-6 pb-2 text-[11px] text-gray-400 text-center leading-relaxed">
-                Artkal C-Mini beads are produced using the MARD color system —
-                fully compatible with our beads, same melting point.
+                {t('paletteModal.artkalHint')}
               </p>
             )}
 
@@ -1182,7 +1185,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                 }}
                 className="w-full py-3 rounded-xl bg-[#452F60] hover:bg-[#3a2752] text-white font-bold text-sm transition-colors"
               >
-                Continue → Select Image
+                {t('paletteModal.continueSelectImage')}
               </button>
             </div>
 
@@ -1208,14 +1211,14 @@ const SHOW_REMOVE_BACKGROUND = false;
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div>
-                  <h3 className="font-bold text-sm text-gray-800">🎨 Choose a Replacement Color</h3>
-                  <p className="text-[11px] text-gray-400 mt-0.5">All beads of this color will be replaced instantly</p>
+                  <h3 className="font-bold text-sm text-gray-800">{t('replaceModal.title')}</h3>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{t('replaceModal.subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   {targetColor && (
                     <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-lg">
                       <div className="w-4 h-4 rounded border border-gray-200 flex-shrink-0" style={{ backgroundColor: targetColor.hex }} />
-                      <span className="text-xs font-bold text-[#7B6A9B]">Replacing: {replaceTargetCode}</span>
+                      <span className="text-xs font-bold text-[#7B6A9B]">{t('replaceModal.replacing', { code: replaceTargetCode })}</span>
                     </div>
                   )}
                   <button
@@ -1289,8 +1292,8 @@ const SHOW_REMOVE_BACKGROUND = false;
 
               {/* Footer hint */}
               <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-                <p className="text-[11px] text-gray-400">★ = current color &nbsp;·&nbsp; Click any swatch to replace all matching beads</p>
-                <p className="text-[11px] text-gray-400">{filteredPalette.filter(c => c.code === 'H01' || (c.hex && c.hex !== '#null')).length} colors</p>
+                <p className="text-[11px] text-gray-400">{t('replaceModal.hint')}</p>
+                <p className="text-[11px] text-gray-400">{t('replaceModal.colorCount', { count: filteredPalette.filter(c => c.code === 'H01' || (c.hex && c.hex !== '#null')).length })}</p>
               </div>
             </div>
           </div>
@@ -1305,36 +1308,36 @@ const SHOW_REMOVE_BACKGROUND = false;
           {/* Row 1: Tool buttons - Horizontal Scrollable for small screens */}
           <div className="flex items-center justify-between px-2 pt-2 pb-1 overflow-x-auto no-scrollbar">
             <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isPreview ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Eye className="w-5 h-5" /><span>Preview</span>
+              <Eye className="w-5 h-5" /><span>{t('toolbar.preview')}</span>
             </button>
             <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'brush' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Paintbrush className="w-5 h-5" /><span>Brush</span>
+              <Paintbrush className="w-5 h-5" /><span>{t('toolbar.brush')}</span>
             </button>
             <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eraser' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Eraser className="w-5 h-5" /><span>Eraser</span>
+              <Eraser className="w-5 h-5" /><span>{t('toolbar.eraser')}</span>
             </button>
             <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Pipette className="w-5 h-5" /><span>Pick</span>
+              <Pipette className="w-5 h-5" /><span>{t('toolbar.pick')}</span>
             </button>
             <button onClick={handleUndo} disabled={historyStack.length === 0} className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 text-gray-500 disabled:opacity-30">
-              <Undo2 className="w-5 h-5" /><span>Undo</span>
+              <Undo2 className="w-5 h-5" /><span>{t('toolbar.undo')}</span>
             </button>
             <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${paletteOpen ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               {selectedColor
                 ? <div className="w-5 h-5 rounded border-2 border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                 : <Palette className="w-5 h-5" />
               }
-              <span>{selectedColor ? selectedColor.code : 'Color'}</span>
+              <span>{selectedColor ? selectedColor.code : t('toolbar.color')}</span>
             </button>
             <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isSidebarOpen ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <SlidersHorizontal className="w-5 h-5" /><span>Settings</span>
+              <SlidersHorizontal className="w-5 h-5" /><span>{t('nav.settings')}</span>
             </button>
           </div>
 
           {/* Row 2: Brush size + Zoom */}
           <div className="flex items-center gap-3 px-4 pb-3 pt-1">
             <div className="flex items-center gap-1 flex-shrink-0">
-              <span className="text-[10px] text-muted-foreground">Size</span>
+              <span className="text-[10px] text-muted-foreground">{t('toolbar.size')}</span>
               <button onClick={() => setBrushSize(prev => Math.max(1, prev - 1))} disabled={brushSize <= 1} className="w-6 h-6 flex items-center justify-center rounded border border-border disabled:opacity-30">
                 <Minus className="w-3 h-3" />
               </button>
@@ -1344,7 +1347,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               </button>
             </div>
             <div className="flex items-center gap-2 flex-1">
-              <span className="text-[10px] text-muted-foreground flex-shrink-0">Zoom</span>
+              <span className="text-[10px] text-muted-foreground flex-shrink-0">{t('toolbar.zoom')}</span>
               <Slider value={[pixelSize]} onValueChange={(v) => setPixelSize(v[0])} min={4} max={30} step={2} className="flex-1" />
               <span className="text-[10px] font-mono text-muted-foreground w-8 flex-shrink-0 text-right">{pixelSize}px</span>
             </div>
