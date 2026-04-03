@@ -727,7 +727,7 @@ const SHOW_REMOVE_BACKGROUND = false;
       )}
 
       {/* Header */}
-      <header className="border-b border-border bg-white px-3 py-2 flex-shrink-0">
+      <header className="border-b border-border bg-white px-6 py-2 flex-shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
@@ -736,15 +736,6 @@ const SHOW_REMOVE_BACKGROUND = false;
             <a href="/patterns/" className="text-xs font-semibold text-[#7B6A9B] hover:text-[#452F60] transition-colors whitespace-nowrap">
               {t('nav.patternLibrary')}
             </a>
-            <button
-              onClick={() => i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')}
-              className="text-[10px] sm:text-xs font-semibold tracking-wide text-[#332847] hover:text-[#452F60] transition-colors whitespace-nowrap"
-              aria-label="Toggle language"
-            >
-              <span className={i18n.language === 'en' ? 'underline underline-offset-2' : 'opacity-50'}>EN</span>
-              <span className="mx-0.5 opacity-30">|</span>
-              <span className={i18n.language === 'fr' ? 'underline underline-offset-2' : 'opacity-50'}>FR</span>
-            </button>
             {processed && (
               <div className="hidden sm:flex text-[10px] sm:text-xs text-muted-foreground items-center gap-2">
                 <span className="whitespace-nowrap">{t('nav.total')} <span className="font-semibold text-foreground">{totalBeads.toLocaleString()}</span> {t('units.beads')}</span>
@@ -821,6 +812,15 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </Tooltip>
               </>
             )}
+            <button
+              onClick={() => i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')}
+              className="text-[10px] sm:text-xs font-semibold tracking-wide text-[#332847] hover:text-[#452F60] transition-colors whitespace-nowrap"
+              aria-label="Toggle language"
+            >
+              <span className={i18n.language === 'en' ? 'underline underline-offset-2' : 'opacity-50'}>EN</span>
+              <span className="mx-0.5 opacity-30">|</span>
+              <span className={i18n.language === 'fr' ? 'underline underline-offset-2' : 'opacity-50'}>FR</span>
+            </button>
           </div>
         </div>
       </header>
