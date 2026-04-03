@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FolderOpen, Save, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAllProjects, deleteProject, formatSavedAt, SavedProject } from '@/lib/projectStorage';
@@ -11,6 +12,7 @@ interface ProjectManagerProps {
 }
 
 export default function ProjectManager({ hasActiveProject, onSave, onLoad, openTrigger }: ProjectManagerProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projects, setProjects] = useState<SavedProject[]>([]);
@@ -68,7 +70,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad, openT
         onClick={() => setOpen((v) => !v)}
       >
         <FolderOpen className="w-3 h-3" />
-        <span className="hidden sm:inline">My Projects</span>
+        <span className="hidden sm:inline">{t('projects.myProjects')}</span>
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </Button>
 
@@ -82,7 +84,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad, openT
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
-                placeholder="Project name (optional)"
+                placeholder={t('projects.namePlaceholder')}
                 className="flex-1 h-7 px-2 text-xs border border-border rounded bg-white focus:outline-none focus:ring-1 focus:ring-[#7B6A9B]"
               />
               <Button
@@ -91,7 +93,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad, openT
                 className="h-7 text-[10px] gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded flex-shrink-0"
                 onClick={handleSave}
               >
-                <Save className="w-3 h-3" /> Save
+                <Save className="w-3 h-3" /> {t('projects.save')}
               </Button>
             </div>
           )}
@@ -99,7 +101,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad, openT
           {/* Project list */}
           <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
             {projects.length === 0 ? (
-              <p className="text-[10px] text-muted-foreground text-center py-4">No saved projects yet</p>
+              <p className="text-[10px] text-muted-foreground text-center py-4">{t('projects.noProjects')}</p>
             ) : (
               projects.map((project) => (
                 <div
@@ -132,7 +134,7 @@ export default function ProjectManager({ hasActiveProject, onSave, onLoad, openT
                   <button
                     className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                     onClick={(e) => handleDelete(e, project.id)}
-                    title="Delete project"
+                    title={t('projects.deleteTooltip')}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

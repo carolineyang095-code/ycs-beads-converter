@@ -161,6 +161,10 @@ const PATTERN_CATALOG = [
 ];
 
 (function () {
+  var i18n = window.__i18nPatterns;
+  var lang = i18n ? i18n.getLang() : "en";
+  function t(key) { return i18n ? i18n.t(key, lang) : key; }
+
   var currentSlug = location.pathname.split("/").pop().replace(".html", "");
   var grid = document.querySelector(".related-section .pattern-grid");
   if (!grid) return;
@@ -196,11 +200,11 @@ const PATTERN_CATALOG = [
         '<div class="card-meta">' +
           '<span class="card-meta-item">' +
             '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="2.5" fill="currentColor"/><circle cx="2" cy="6" r="1.5" fill="currentColor" opacity="0.5"/><circle cx="10" cy="6" r="1.5" fill="currentColor" opacity="0.5"/></svg> ' +
-            p.beads + ' beads total' +
+            p.beads + ' ' + t('beadsTotal') +
           '</span>' +
           '<span class="card-meta-item">' +
             '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="3" cy="6" r="2" fill="' + p.swatchColors[0] + '"/><circle cx="7" cy="4" r="2" fill="' + p.swatchColors[1] + '"/><circle cx="9.5" cy="7" r="2" fill="' + p.swatchColors[2] + '"/></svg> ' +
-            p.colors + ' colors' +
+            p.colors + ' ' + t('colors') +
           '</span>' +
         '</div>' +
         '<div class="card-footer">' +

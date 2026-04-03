@@ -1,6 +1,7 @@
 import HeroIntro from '@/components/HeroIntro';
 import type React from 'react';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/useMobile';
 import {
   Upload, Download, Paintbrush, Eraser,
@@ -35,6 +36,8 @@ type EditTool = 'none' | 'brush' | 'eraser' | 'eyedropper';
   type MaxColors = typeof MAX_COLOR_OPTIONS[number];
 
 export default function Home() {
+  const { t, i18n } = useTranslation();
+
   // Core state
   const [palette, setPalette] = useState<ColorData[]>([]);
   const [gridSize, setGridSize] = useState<number>(100);
@@ -731,13 +734,22 @@ const SHOW_REMOVE_BACKGROUND = false;
               <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
             </a>
             <a href="/patterns/" className="text-xs font-semibold text-[#7B6A9B] hover:text-[#452F60] transition-colors whitespace-nowrap">
-              Pattern Library
+              {t('nav.patternLibrary')}
             </a>
+            <button
+              onClick={() => i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')}
+              className="text-[10px] sm:text-xs font-semibold tracking-wide text-[#332847] hover:text-[#452F60] transition-colors whitespace-nowrap"
+              aria-label="Toggle language"
+            >
+              <span className={i18n.language === 'en' ? 'underline underline-offset-2' : 'opacity-50'}>EN</span>
+              <span className="mx-0.5 opacity-30">|</span>
+              <span className={i18n.language === 'fr' ? 'underline underline-offset-2' : 'opacity-50'}>FR</span>
+            </button>
             {processed && (
               <div className="hidden sm:flex text-[10px] sm:text-xs text-muted-foreground items-center gap-2">
-                <span className="whitespace-nowrap">Total: <span className="font-semibold text-foreground">{totalBeads.toLocaleString()}</span> beads</span>
+                <span className="whitespace-nowrap">{t('nav.total')} <span className="font-semibold text-foreground">{totalBeads.toLocaleString()}</span> {t('units.beads')}</span>
                 <span className="text-border">·</span>
-                <span className="whitespace-nowrap">Colors: <span className="font-semibold text-foreground">{totalColors}</span></span>
+                <span className="whitespace-nowrap">{t('nav.colors')} <span className="font-semibold text-foreground">{totalColors}</span></span>
               </div>
             )}
           </div>
@@ -796,7 +808,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             {processed && (
               <>
                 <Button onClick={handleExportPatternPNG} size="sm" variant="outline" className="text-[9px] sm:text-xs gap-1 border-[#7B6A9B] text-[#7B6A9B] hover:bg-purple-50 rounded-full px-2 sm:px-3 h-7">
-                  <Download className="w-3 h-3" /><span className="hidden sm:inline"> Export Pattern</span>
+                  <Download className="w-3 h-3" /><span className="hidden sm:inline"> {t('nav.exportPattern')}</span>
                 </Button>
                 {/* 右上角收起侧边栏按钮（暂时隐藏，保留代码以备恢复） */}
                 <Tooltip>
@@ -815,7 +827,7 @@ const SHOW_REMOVE_BACKGROUND = false;
 
       {/* Info Banner */}
       <div className="w-full bg-[#F5EFE6] text-[#332847] text-xs sm:text-sm text-center px-3 py-1 sm:px-4 sm:py-2 flex-shrink-0">
-        🧩 Our beads are 2.6mm mini fuse beads, produced by the same factory as Artkal. We use the MARD 221 color system — a wider palette, fully compatible with Artkal mini beads.
+        {t('banner.info')}
       </div>
 
       {error && (
@@ -833,22 +845,22 @@ const SHOW_REMOVE_BACKGROUND = false;
           {processed && (
             <div className="hidden lg:flex border-b border-border px-4 py-2 items-center gap-3 flex-shrink-0 bg-white">
               <div className="flex items-center gap-2 border-r border-border pr-3">
-                <span className="text-xs font-medium text-muted-foreground">Preview</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('toolbar.preview')}</span>
                 <Switch checked={isPreview} onCheckedChange={setIsPreview} />
               </div>
               <div className="flex items-center gap-1 border-r border-border pr-3">
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant={activeTool === 'brush' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')}><Paintbrush className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Brush Tool</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.brushTool')}</TooltipContent></Tooltip>
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant={activeTool === 'eraser' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')}><Eraser className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Eraser Tool</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.eraserTool')}</TooltipContent></Tooltip>
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant={activeTool === 'eyedropper' ? 'default' : 'ghost'} className="h-8 w-8 p-0" onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')}><Pipette className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Eyedropper</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.eyedropper')}</TooltipContent></Tooltip>
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleUndo} disabled={historyStack.length === 0}><Undo2 className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Undo (Step Back)</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.undo')}</TooltipContent></Tooltip>
               </div>
               <div className="flex items-center gap-1 border-l border-border pl-3">
                 <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">Size</span>
@@ -877,7 +889,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               <div className="flex items-center gap-1 border-l border-border pl-3">
                 <Tooltip><TooltipTrigger asChild>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={handleReset}><Trash2 className="w-4 h-4" /></Button>
-                </TooltipTrigger><TooltipContent>Reset Canvas (Clear All)</TooltipContent></Tooltip>
+                </TooltipTrigger><TooltipContent>{t('toolbar.resetCanvas')}</TooltipContent></Tooltip>
               </div>
 
               <Button size="sm" variant="ghost" className={`h-8 w-8 p-0 lg:hidden ${isSidebarOpen ? 'text-primary bg-primary/10' : ''}`} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
@@ -933,7 +945,7 @@ const SHOW_REMOVE_BACKGROUND = false;
           {dims && processed && (
             <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground bg-white flex-shrink-0">
               <span>Grid: {dims.width} x {dims.height} | Ratio: {getAspectRatioString(dims.width, dims.height)}</span>
-              <span>Total: {totalBeads.toLocaleString()} beads | Colors: {totalColors}</span>
+              <span>{t('nav.total')} {totalBeads.toLocaleString()} {t('units.beads')} | {t('nav.colors')} {totalColors}</span>
             </div>
           )}
         </div>
@@ -951,7 +963,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   </button>
   <div className={`${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} transition-all duration-200 flex flex-col h-full w-80 overflow-y-auto`}>
             <div className="p-4 border-b border-border" data-upload-panel="1">
-              <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Canvas Source</h3>
+              <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> {t('sidebar.canvasSource')}</h3>
               <div className="space-y-2">
                 <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => {
                       if (!processed) {
@@ -961,8 +973,8 @@ const SHOW_REMOVE_BACKGROUND = false;
                       }
                     }} fileName={uploadedFileName} />
                 <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> New Canvas</Button>
-                  <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> Reset to Image</Button>
+                  <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> {t('sidebar.newCanvas')}</Button>
+                  <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> {t('sidebar.resetToImage')}</Button>
                 </div>
               </div>
             </div>
@@ -971,7 +983,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><SlidersHorizontal className="w-3.5 h-3.5" /> Parameters</h3>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-foreground">Canvas Width (Beads)</label>
+                    <label className="text-xs font-medium text-foreground">{t('sidebar.canvasWidth')}</label>
                     <span className="text-xs font-mono text-muted-foreground">{gridSize}</span>
                   </div>
                   <Slider value={[gridSize]} onValueChange={handleGridSizeChange} min={10} max={250} step={1} className="w-full" />
@@ -981,20 +993,20 @@ const SHOW_REMOVE_BACKGROUND = false;
                   <>
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-medium text-foreground">Processing Mode</label>
+                        <label className="text-xs font-medium text-foreground">{t('sidebar.processingMode')}</label>
                         <span className="text-xs font-mono text-muted-foreground">{processingMode}</span>
                       </div>
                       <select value={processingMode} onChange={(e) => handleModeChange(e.target.value)} className="w-full h-9 px-2 text-xs border border-border rounded-md bg-white">
-                        <option value="clean">Clean Cartoon</option>
-                        <option value="vivid">Vivid Game</option>
-                        <option value="soft">Soft Illustration</option>
+                        <option value="clean">{t('sidebar.cleanCartoon')}</option>
+                        <option value="vivid">{t('sidebar.vividGame')}</option>
+                        <option value="soft">{t('sidebar.softIllustration')}</option>
                       </select>
                       <p className="text-[10px] text-muted-foreground mt-1">clean = no dithering + stronger simplify · vivid = keep details · soft = gentle simplify</p>
                     </div>
                     {SHOW_DITHERING && (
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-medium text-foreground">Color Detail (Dithering)</label>
+                          <label className="text-xs font-medium text-foreground">{t('sidebar.colorDetail')}</label>
                           <span className="text-xs font-mono text-muted-foreground">{ditherStrength}</span>
                         </div>
                         <Slider value={[ditherStrength]} onValueChange={handleDitherChange} min={0} max={100} step={1} className="w-full" />
@@ -1003,7 +1015,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                     )}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-medium text-foreground">Color Palette Limit</label>
+                        <label className="text-xs font-medium text-foreground">{t('sidebar.colorPaletteLimit')}</label>
                         <span className="text-xs font-mono text-muted-foreground">{maxColors}</span>
                       </div>
                       <Slider value={[maxColorIndex]} onValueChange={(v) => setMaxColorIndex(v[0])} min={0} max={MAX_COLOR_OPTIONS.length - 1} step={1} className="w-full" />
@@ -1013,7 +1025,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                     {SHOW_SIMPLIFY_SMALL_AREAS && (
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-medium text-foreground">Simplify Small Areas</label>
+                          <label className="text-xs font-medium text-foreground">{t('sidebar.simplifySmall')}</label>
                           <span className="text-xs font-mono text-muted-foreground">{mergeThreshold}</span>
                         </div>
                         <Slider value={[mergeThreshold]} onValueChange={handleMergeChange} min={1} max={12} step={1} className="w-full" />
@@ -1022,7 +1034,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                     )}
                     {SHOW_REMOVE_BACKGROUND && (
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-medium text-foreground">Remove Background</label>
+                        <label className="text-xs font-medium text-foreground">{t('sidebar.removeBackground')}</label>
                         <Switch checked={enableBgRemoval} onCheckedChange={handleBgToggle} />
                       </div>
                     )}
@@ -1032,14 +1044,14 @@ const SHOW_REMOVE_BACKGROUND = false;
             )}
             {processed && (
               <div className="p-4 border-b border-border">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Sparkles className="w-3.5 h-3.5" /> Clean Up Stray Beads</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Sparkles className="w-3.5 h-3.5" /> {t('sidebar.cleanUpStray')}</h3>
                 <NoiseColorRemoval colorStats={processed.colorStats} palette={colorIndexRef.current} threshold={10} onRemoveColor={handleRemoveNoiseColor} onRestoreColor={handleRestoreColor} onRestoreAll={handleRestoreAll} removedColors={removedColors} />
               </div>
             )}
             {processed && (
               <div className="p-4 border-b border-border">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Layers className="w-3.5 h-3.5" /> Bead Count & Colors ({totalColors})</h3>
-                <p className="text-[10px] text-muted-foreground mb-2">Click to highlight · ✏️ to replace</p>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3"><Layers className="w-3.5 h-3.5" /> {t('sidebar.beadCountColors')} ({totalColors})</h3>
+                <p className="text-[10px] text-muted-foreground mb-2">{t('sidebar.clickToHighlight')}</p>
                 <div className="space-y-0.5 max-h-72 overflow-y-auto mb-4">
                   {Array.from(processed.colorStats.entries()).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
                     const color = colorIndexRef.current.get(code);
@@ -1079,12 +1091,12 @@ const SHOW_REMOVE_BACKGROUND = false;
                 </div>
                 <div className="space-y-2 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Quick Breakdown</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t('sidebar.quickBreakdown')}</span>
                     <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] gap-1 hover:bg-purple-50 text-[#7B6A9B]" onClick={handleCopyBreakdown}>
-                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? 'Copied!' : 'Copy breakdown'}
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}{copied ? t('sidebar.copied') : t('sidebar.copyBreakdown')}
                     </Button>
                   </div>
-                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none" placeholder="No beads to show" />
+                  <textarea readOnly value={breakdownText} className="w-full h-20 p-2 text-[10px] font-mono bg-gray-50 border border-border rounded resize-none focus:outline-none" placeholder={t('sidebar.noBeads')} />
                 </div>
               </div>
             )}
@@ -1305,29 +1317,29 @@ const SHOW_REMOVE_BACKGROUND = false;
           {/* Row 1: Tool buttons - Horizontal Scrollable for small screens */}
           <div className="flex items-center justify-between px-2 pt-2 pb-1 overflow-x-auto no-scrollbar">
             <button onClick={() => setIsPreview(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isPreview ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Eye className="w-5 h-5" /><span>Preview</span>
+              <Eye className="w-5 h-5" /><span>{t('toolbar.preview')}</span>
             </button>
             <button onClick={() => setActiveTool(activeTool === 'brush' ? 'none' : 'brush')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'brush' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Paintbrush className="w-5 h-5" /><span>Brush</span>
+              <Paintbrush className="w-5 h-5" /><span>{t('toolbar.brush')}</span>
             </button>
             <button onClick={() => setActiveTool(activeTool === 'eraser' ? 'none' : 'eraser')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eraser' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Eraser className="w-5 h-5" /><span>Eraser</span>
+              <Eraser className="w-5 h-5" /><span>{t('toolbar.eraser')}</span>
             </button>
             <button onClick={() => setActiveTool(activeTool === 'eyedropper' ? 'none' : 'eyedropper')} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${activeTool === 'eyedropper' ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <Pipette className="w-5 h-5" /><span>Pick</span>
+              <Pipette className="w-5 h-5" /><span>{t('toolbar.pick')}</span>
             </button>
             <button onClick={handleUndo} disabled={historyStack.length === 0} className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 text-gray-500 disabled:opacity-30">
-              <Undo2 className="w-5 h-5" /><span>Undo</span>
+              <Undo2 className="w-5 h-5" /><span>{t('toolbar.undo')}</span>
             </button>
             <button onClick={() => setPaletteOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${paletteOpen ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
               {selectedColor
                 ? <div className="w-5 h-5 rounded border-2 border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                 : <Palette className="w-5 h-5" />
               }
-              <span>{selectedColor ? selectedColor.code : 'Color'}</span>
+              <span>{selectedColor ? selectedColor.code : t('toolbar.color')}</span>
             </button>
             <button onClick={() => setIsSidebarOpen(v => !v)} className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] min-w-[56px] flex-shrink-0 ${isSidebarOpen ? 'bg-purple-100 text-[#7B6A9B]' : 'text-gray-500'}`}>
-              <SlidersHorizontal className="w-5 h-5" /><span>Settings</span>
+              <SlidersHorizontal className="w-5 h-5" /><span>{t('toolbar.settings')}</span>
             </button>
           </div>
 
