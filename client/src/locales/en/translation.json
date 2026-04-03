@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "patternLibrary": "Pattern Library",
+    "exportPattern": "Export Pattern",
+    "total": "Total:",
+    "colors": "Colors:"
+  },
+  "banner": {
+    "info": "🧩 Our beads are 2.6mm mini fuse beads, produced by the same factory as Artkal. We use the MARD 221 color system — a wider palette, fully compatible with Artkal mini beads."
+  },
+  "units": {
+    "beads": "beads",
+    "beadsTotal": "beads total",
+    "colors": "colors",
+    "pcs": "pcs"
+  },
+  "hero": {
+    "badge": "Free Online Tool · No Sign-up Required",
+    "titleLine1": "Turn Any Photo into a",
+    "titleLine2": "Perler Bead Pattern",
+    "subtitle": "Upload your image and instantly generate a custom bead pattern using the full Artkal 221 color palette. Get an exact bead count and order everything in one click.",
+    "uploadBtn": "⬆️ Upload Image",
+    "shopBtn": "🛍 Visit Shop",
+    "guideBtn": "📖 User Guide",
+    "openProjectsBtn": "📂 Open Projects",
+    "yourImage": "Your Image",
+    "beadPattern": "Bead Pattern",
+    "freeDownloads": "Free Downloads",
+    "browseLibrary": "Browse Our Free Pattern Library",
+    "libraryDesc": "Kawaii, animals, food, seasonal — dozens of ready-to-use bead patterns, completely free.",
+    "exploreLibrary": "🧩 Explore the Pattern Library →",
+    "howItWorks": "How It Works",
+    "fromPhoto": "From photo to finished pattern",
+    "threeSteps": "in 3 simple steps",
+    "step1Title": "Upload Your Image",
+    "step1Desc": "Drag & drop any photo — a pet, character, logo, or anything you love. JPG, PNG, and WebP supported.",
+    "step2Title": "Auto-Convert to Pattern",
+    "step2Desc": "Instantly mapped to the Artkal 221 palette. Adjust grid size, colors, and fine details with live preview.",
+    "step3Title": "Export & Order Beads",
+    "step3Desc": "Download your pattern as PDF, get an exact bead count, and add all required colors to your cart in one click.",
+    "features": "Features",
+    "everythingYouNeed": "Everything you need to craft",
+    "feat1Title": "Full Artkal 221 Palette",
+    "feat1Desc": "Every color automatically matched to the official Artkal palette — no manual color picking needed.",
+    "feat2Title": "Exact Bead Count",
+    "feat2Desc": "Get a precise count for every color used. Know exactly how many beads to buy before you start.",
+    "feat3Title": "Edit Your Pattern",
+    "feat3Desc": "Use brush, eraser, and eyedropper tools to refine your design pixel by pixel.",
+    "feat4Title": "Export Pattern PDF",
+    "feat4Desc": "Download a print-ready pattern with color codes, grid lines, and a full color legend.",
+    "feat5Title": "One-Click Bead Order",
+    "feat5Desc": "Add all required colors directly to your Yaya's Creative Studio cart — no manual searching.",
+    "feat6Title": "Save Your Projects",
+    "feat6Desc": "Save multiple patterns and come back to them anytime. No account or sign-up required.",
+    "ctaHeading": "Ready to start your next bead project?",
+    "ctaSubtext": "Free to use · No sign-up · Works on any device",
+    "ctaBtn": "⬆️ Upload Image Now"
+  },
+  "toolbar": {
+    "preview": "Preview",
+    "brushTool": "Brush Tool",
+    "eraserTool": "Eraser Tool",
+    "eyedropper": "Eyedropper",
+    "undo": "Undo (Step Back)",
+    "size": "Size",
+    "zoom": "Zoom",
+    "resetCanvas": "Reset Canvas (Clear All)",
+    "brush": "Brush",
+    "eraser": "Eraser",
+    "pick": "Pick",
+    "color": "Color",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "canvasSource": "Canvas Source",
+    "newCanvas": "New Canvas",
+    "resetToImage": "Reset to Image",
+    "parameters": "Parameters",
+    "canvasWidth": "Canvas Width (Beads)",
+    "output": "Output:",
+    "processingMode": "Processing Mode",
+    "cleanCartoon": "Clean Cartoon",
+    "vividGame": "Vivid Game",
+    "softIllustration": "Soft Illustration",
+    "modeHelp": "clean = no dithering + stronger simplify · vivid = keep details · soft = gentle simplify",
+    "colorDetail": "Color Detail (Dithering)",
+    "colorDetailHelp": "0 = off · 20–40 natural · 60+ grainy",
+    "colorPaletteLimit": "Color Palette Limit",
+    "paletteLimitHelp": "221 = most vivid · 50 = cleaner cartoon · 20 = very simplified",
+    "simplifySmall": "Simplify Small Areas",
+    "simplifyHelp": "Regions smaller than {{size}}px will be merged",
+    "removeBackground": "Remove Background",
+    "cleanUpStray": "Clean Up Stray Beads",
+    "beadCountColors": "Bead Count & Colors",
+    "clickToHighlight": "Click to highlight · ✏️ to replace",
+    "quickBreakdown": "Quick Breakdown",
+    "copyBreakdown": "Copy breakdown",
+    "copied": "Copied!",
+    "noBeads": "No beads to show"
+  },
+  "palette": {
+    "chooseTitle": "Choose your bead palette",
+    "chooseSubtitle": "You can only change this before uploading an image",
+    "recommended": "⭐ Recommended",
+    "mardName": "MARD",
+    "mardDesc": "221 colors · Full color range",
+    "mardDetail": "Best for detailed patterns",
+    "mardShop": "Our shop beads use this palette",
+    "artkalName": "ARTKAL",
+    "artkalSeries": "C-Mini Series",
+    "artkalDesc": "173 colors · Use your existing Artkal beads",
+    "artkalCompat": "✓ Same melting point · Mix & match freely",
+    "artkalNote": "Artkal C-Mini beads are produced using the MARD color system — fully compatible with our beads, same melting point.",
+    "continueBtn": "Continue → Select Image"
+  },
+  "replaceColor": {
+    "title": "🎨 Choose a Replacement Color",
+    "subtitle": "All beads of this color will be replaced instantly",
+    "replacing": "Replacing: {{code}}",
+    "hint": "★ = current color · Click any swatch to replace all matching beads"
+  },
+  "colorStats": {
+    "totalBeads": "Total Beads",
+    "uniqueColors": "Unique Colors",
+    "coverage": "Coverage",
+    "color": "Color",
+    "code": "Code",
+    "hex": "Hex",
+    "count": "Count"
+  },
+  "projects": {
+    "myProjects": "My Projects",
+    "namePlaceholder": "Project name (optional)",
+    "save": "Save",
+    "noProjects": "No saved projects yet",
+    "deleteTooltip": "Delete project"
+  },
+  "shopify": {
+    "noBeads": "No beads to buy",
+    "redirecting": "Redirecting to bead builder...",
+    "buyAll": "Buy All Beads for This Pattern ≈ €{{price}}"
+  },
+  "upload": {
+    "dropOrClick": "Drop image or click to select",
+    "formats": "JPG, PNG, WebP"
+  },
+  "noise": {
+    "clickToRemove": "Click to remove. Total: {{count}} beads",
+    "clickToReplace": "Click to replace {{code}} with {{replacement}}",
+    "noNoise": "No noise colors (fewer than {{threshold}} pcs)",
+    "excludedColors": "Excluded Colors ({{count}})",
+    "restore": "Restore",
+    "restoreAll": "Restore All Colors"
+  },
+  "crop": {
+    "title": "Crop Image",
+    "locked": "1:1 Locked",
+    "freeRatio": "Free Ratio",
+    "helper": "Drag corners or edges to resize crop area",
+    "cancel": "Cancel",
+    "confirm": "Confirm Crop"
+  },
+  "error": {
+    "unexpected": "An unexpected error occurred.",
+    "reload": "Reload Page"
+  },
+  "patterns": {
+    "relatedPatterns": "Related Patterns",
+    "exploreMore": "Explore More",
+    "downloadPattern": "Download Pattern",
+    "beadBreakdown": "Bead Breakdown by Color",
+    "colorBreakdown": "Color Breakdown",
+    "buyBeads": "Buy Beads"
+  }
+}

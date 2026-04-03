@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "patternLibrary": "Bibliothèque de modèles",
+    "exportPattern": "Exporter le modèle",
+    "total": "Total :",
+    "colors": "Couleurs :"
+  },
+  "banner": {
+    "info": "🧩 Nos perles mesurent 2.6 mm, produites dans la même usine qu'Artkal. Nous utilisons le système de couleurs MARD 221 — une palette plus large, entièrement compatible avec les mini-perles Artkal."
+  },
+  "units": {
+    "beads": "perles",
+    "beadsTotal": "perles au total",
+    "colors": "couleurs",
+    "pcs": "pcs"
+  },
+  "hero": {
+    "badge": "Outil gratuit en ligne · Pas d'inscription",
+    "titleLine1": "Transformez n'importe quelle photo en",
+    "titleLine2": "Modèle de perles à repasser",
+    "subtitle": "Téléchargez votre image et générez instantanément un modèle de perles personnalisé avec la palette complète Artkal 221 couleurs. Obtenez le nombre exact de perles et commandez tout en un clic.",
+    "uploadBtn": "⬆️ Télécharger une image",
+    "shopBtn": "🛍 Visiter la boutique",
+    "guideBtn": "📖 Guide d'utilisation",
+    "openProjectsBtn": "📂 Ouvrir les projets",
+    "yourImage": "Votre image",
+    "beadPattern": "Modèle de perles",
+    "freeDownloads": "Téléchargements gratuits",
+    "browseLibrary": "Parcourez notre bibliothèque de modèles gratuits",
+    "libraryDesc": "Kawaii, animaux, nourriture, saisonnier — des dizaines de modèles de perles prêts à l'emploi, entièrement gratuits.",
+    "exploreLibrary": "🧩 Explorer la bibliothèque →",
+    "howItWorks": "Comment ça marche",
+    "fromPhoto": "De la photo au modèle fini",
+    "threeSteps": "en 3 étapes simples",
+    "step1Title": "Téléchargez votre image",
+    "step1Desc": "Glissez-déposez n'importe quelle photo — animal, personnage, logo. JPG, PNG et WebP pris en charge.",
+    "step2Title": "Conversion automatique",
+    "step2Desc": "Conversion instantanée vers la palette Artkal 221. Ajustez la taille, les couleurs et les détails en temps réel.",
+    "step3Title": "Exportez & commandez",
+    "step3Desc": "Téléchargez votre modèle en PDF, obtenez le nombre exact de perles et ajoutez toutes les couleurs à votre panier en un clic.",
+    "features": "Fonctionnalités",
+    "everythingYouNeed": "Tout ce qu'il vous faut pour créer",
+    "feat1Title": "Palette complète Artkal 221",
+    "feat1Desc": "Chaque couleur est automatiquement associée à la palette officielle Artkal — pas de sélection manuelle.",
+    "feat2Title": "Comptage exact des perles",
+    "feat2Desc": "Obtenez un décompte précis pour chaque couleur. Sachez exactement combien de perles acheter.",
+    "feat3Title": "Modifiez votre modèle",
+    "feat3Desc": "Utilisez le pinceau, la gomme et la pipette pour affiner votre design pixel par pixel.",
+    "feat4Title": "Export PDF du modèle",
+    "feat4Desc": "Téléchargez un modèle prêt à imprimer avec les codes couleur, le quadrillage et la légende complète.",
+    "feat5Title": "Commande en un clic",
+    "feat5Desc": "Ajoutez toutes les couleurs nécessaires directement à votre panier Yaya's Creative Studio.",
+    "feat6Title": "Sauvegardez vos projets",
+    "feat6Desc": "Enregistrez plusieurs modèles et revenez-y à tout moment. Pas de compte ni d'inscription.",
+    "ctaHeading": "Prêt(e) à commencer votre prochain projet ?",
+    "ctaSubtext": "Gratuit · Sans inscription · Fonctionne sur tout appareil",
+    "ctaBtn": "⬆️ Télécharger une image"
+  },
+  "toolbar": {
+    "preview": "Aperçu",
+    "brushTool": "Pinceau",
+    "eraserTool": "Gomme",
+    "eyedropper": "Pipette",
+    "undo": "Annuler",
+    "size": "Taille",
+    "zoom": "Zoom",
+    "resetCanvas": "Réinitialiser le canevas",
+    "brush": "Pinceau",
+    "eraser": "Gomme",
+    "pick": "Pipette",
+    "color": "Couleur",
+    "settings": "Paramètres"
+  },
+  "sidebar": {
+    "canvasSource": "Source du canevas",
+    "newCanvas": "Nouveau canevas",
+    "resetToImage": "Réinitialiser à l'image",
+    "parameters": "Paramètres",
+    "canvasWidth": "Largeur du canevas (perles)",
+    "output": "Résultat :",
+    "processingMode": "Mode de traitement",
+    "cleanCartoon": "Cartoon net",
+    "vividGame": "Jeu vif",
+    "softIllustration": "Illustration douce",
+    "modeHelp": "net = pas de tramage + simplification forte · vif = garder les détails · doux = simplification légère",
+    "colorDetail": "Détail des couleurs (tramage)",
+    "colorDetailHelp": "0 = désactivé · 20–40 naturel · 60+ granuleux",
+    "colorPaletteLimit": "Limite de la palette",
+    "paletteLimitHelp": "221 = plus vif · 50 = cartoon plus net · 20 = très simplifié",
+    "simplifySmall": "Simplifier les petites zones",
+    "simplifyHelp": "Les régions de moins de {{size}} px seront fusionnées",
+    "removeBackground": "Supprimer l'arrière-plan",
+    "cleanUpStray": "Nettoyer les perles isolées",
+    "beadCountColors": "Nombre de perles & couleurs",
+    "clickToHighlight": "Cliquez pour surligner · ✏️ pour remplacer",
+    "quickBreakdown": "Répartition rapide",
+    "copyBreakdown": "Copier le détail",
+    "copied": "Copié !",
+    "noBeads": "Aucune perle à afficher"
+  },
+  "palette": {
+    "chooseTitle": "Choisissez votre palette de perles",
+    "chooseSubtitle": "Vous ne pouvez la changer qu'avant de télécharger une image",
+    "recommended": "⭐ Recommandé",
+    "mardName": "MARD",
+    "mardDesc": "221 couleurs · Gamme complète",
+    "mardDetail": "Idéal pour les modèles détaillés",
+    "mardShop": "Nos perles en boutique utilisent cette palette",
+    "artkalName": "ARTKAL",
+    "artkalSeries": "Série C-Mini",
+    "artkalDesc": "173 couleurs · Utilisez vos perles Artkal existantes",
+    "artkalCompat": "✓ Même point de fusion · Mélangez librement",
+    "artkalNote": "Les perles Artkal C-Mini sont produites avec le système de couleurs MARD — entièrement compatibles avec nos perles, même point de fusion.",
+    "continueBtn": "Continuer → Sélectionner une image"
+  },
+  "replaceColor": {
+    "title": "🎨 Choisissez une couleur de remplacement",
+    "subtitle": "Toutes les perles de cette couleur seront remplacées instantanément",
+    "replacing": "Remplacement : {{code}}",
+    "hint": "★ = couleur actuelle · Cliquez sur une pastille pour remplacer toutes les perles correspondantes"
+  },
+  "colorStats": {
+    "totalBeads": "Total de perles",
+    "uniqueColors": "Couleurs uniques",
+    "coverage": "Couverture",
+    "color": "Couleur",
+    "code": "Code",
+    "hex": "Hex",
+    "count": "Nombre"
+  },
+  "projects": {
+    "myProjects": "Mes projets",
+    "namePlaceholder": "Nom du projet (facultatif)",
+    "save": "Enregistrer",
+    "noProjects": "Aucun projet sauvegardé",
+    "deleteTooltip": "Supprimer le projet"
+  },
+  "shopify": {
+    "noBeads": "Aucune perle à acheter",
+    "redirecting": "Redirection vers le constructeur de perles...",
+    "buyAll": "Acheter les perles ≈ {{price}} €"
+  },
+  "upload": {
+    "dropOrClick": "Déposez une image ou cliquez pour sélectionner",
+    "formats": "JPG, PNG, WebP"
+  },
+  "noise": {
+    "clickToRemove": "Cliquez pour supprimer. Total : {{count}} perles",
+    "clickToReplace": "Cliquez pour remplacer {{code}} par {{replacement}}",
+    "noNoise": "Pas de couleurs parasites (moins de {{threshold}} pcs)",
+    "excludedColors": "Couleurs exclues ({{count}})",
+    "restore": "Restaurer",
+    "restoreAll": "Restaurer toutes les couleurs"
+  },
+  "crop": {
+    "title": "Recadrer l'image",
+    "locked": "1:1 Verrouillé",
+    "freeRatio": "Ratio libre",
+    "helper": "Faites glisser les coins ou les bords pour redimensionner la zone de recadrage",
+    "cancel": "Annuler",
+    "confirm": "Confirmer le recadrage"
+  },
+  "error": {
+    "unexpected": "Une erreur inattendue s'est produite.",
+    "reload": "Recharger la page"
+  },
+  "patterns": {
+    "relatedPatterns": "Modèles similaires",
+    "exploreMore": "Explorer plus",
+    "downloadPattern": "Télécharger le modèle",
+    "beadBreakdown": "Répartition des perles par couleur",
+    "colorBreakdown": "Détail des couleurs",
+    "buyBeads": "Acheter les perles"
+  }
+}
