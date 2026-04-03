@@ -727,8 +727,8 @@ const SHOW_REMOVE_BACKGROUND = false;
       )}
 
       {/* Header */}
-      <header className="border-b border-border bg-white px-6 py-2 flex-shrink-0">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+      <header className="border-b border-border bg-white flex-shrink-0">
+        <div className="max-w-[1200px] w-full mx-auto px-6 py-2 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
               <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
