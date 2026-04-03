@@ -59,10 +59,15 @@
   window.__i18nPatterns = { t: t, getLang: getLang };
 
   function applyTranslations(lang) {
-    // data-i18n attribute on elements
+    // data-i18n attribute on elements (key-based lookup)
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
       var key = el.getAttribute("data-i18n");
       el.textContent = t(key, lang);
+    });
+    // data-i18n-en / data-i18n-fr attributes (inline content translations)
+    document.querySelectorAll("[data-i18n-en]").forEach(function (el) {
+      var text = el.getAttribute("data-i18n-" + lang);
+      if (text) el.textContent = text;
     });
     // data-i18n-aria for aria-label
     document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
