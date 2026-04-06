@@ -84,7 +84,7 @@ export function exportFullPatternPNG(
 
   // Load logo first
   const logo = new Image();
-  logo.src = '/yaya_logo_final.png';
+  logo.src = '/ycs-logo-2026.png';
   logo.onload = () => {
     renderPattern(logo);
   };
