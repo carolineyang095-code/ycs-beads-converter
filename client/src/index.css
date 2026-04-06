@@ -134,13 +134,16 @@
 }
 
 @layer base {
-  /* Typography System - Inter */
+  /* Typography System - Nanum Pen Script + Dosis */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Nanum Pen Script', cursive;
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Dosis', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.7;
   }
 }
 

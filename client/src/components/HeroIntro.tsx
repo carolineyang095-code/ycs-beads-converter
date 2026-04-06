@@ -13,12 +13,12 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
     <>
       {/* ── Google Fonts ── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@400;500;600&display=swap');
+        /* Fonts loaded via index.html */
 
         .hero-root * { box-sizing: border-box; }
 
         .hero-root {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Dosis', sans-serif;
           background: #F5EFE6;
           color: #2D2040;
           width: 100%;
@@ -64,7 +64,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .hero-h1 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Nanum Pen Script', cursive;
           font-size: clamp(2.2rem, 5vw, 3.6rem);
           font-weight: 700;
           color: #452F60;
@@ -107,7 +107,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
           padding: 13px 28px;
           font-size: 14px;
           font-weight: 600;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Dosis', sans-serif;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -126,7 +126,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
           padding: 13px 28px;
           font-size: 14px;
           font-weight: 600;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Dosis', sans-serif;
           cursor: pointer;
           transition: background 0.15s;
           text-decoration: none;
@@ -209,7 +209,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .section-h2 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Nanum Pen Script', cursive;
           font-size: clamp(1.5rem, 3vw, 2.1rem);
           font-weight: 700;
           color: #452F60;
@@ -262,13 +262,13 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Dosis', sans-serif;
         }
 
         .step-icon { font-size: 30px; margin-bottom: 12px; margin-top: 6px; }
 
         .step-h3 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Nanum Pen Script', cursive;
           font-size: 1rem;
           font-weight: 700;
           color: #452F60;
@@ -313,7 +313,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .feature-h4 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Nanum Pen Script', cursive;
           font-size: 0.92rem;
           font-weight: 700;
           color: #452F60;
@@ -349,7 +349,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .cta-h2 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Nanum Pen Script', cursive;
           font-size: clamp(1.4rem, 3vw, 1.9rem);
           color: white;
           margin-bottom: 10px;
@@ -371,7 +371,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
           padding: 14px 32px;
           font-size: 14px;
           font-weight: 700;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Dosis', sans-serif;
           cursor: pointer;
           transition: transform 0.15s, box-shadow 0.15s;
           position: relative;
@@ -475,7 +475,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             backgroundSize: '22px 22px',
           }} />
           <p style={{
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: "'Dosis', sans-serif",
             fontSize: '11px',
             fontWeight: 700,
             letterSpacing: '0.12em',
@@ -485,7 +485,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             position: 'relative',
           }}>{t('hero.freeDownloads')}</p>
           <h2 style={{
-            fontFamily: 'Playfair Display, serif',
+            fontFamily: "'Nanum Pen Script', cursive",
             fontSize: 'clamp(1.4rem, 3vw, 2rem)',
             color: 'white',
             marginBottom: '12px',
@@ -515,7 +515,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
               padding: '14px 32px',
               fontSize: '14px',
               fontWeight: 700,
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: "'Dosis', sans-serif",
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
