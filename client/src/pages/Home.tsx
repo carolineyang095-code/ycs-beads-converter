@@ -731,7 +731,7 @@ const SHOW_REMOVE_BACKGROUND = false;
         <div className="max-w-[1200px] w-full mx-auto px-6 py-2 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <a href="https://tools.yayascreativestudio.com/" className="flex-shrink-0 transition-transform hover:scale-105">
-              <img src="/yaya_logo_final.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
+              <img src="/ycs-logo-2026.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
             </a>
             <a href="/patterns/" className="text-xs font-semibold text-[#7B6A9B] hover:text-[#452F60] transition-colors whitespace-nowrap">
               {t('nav.patternLibrary')}
