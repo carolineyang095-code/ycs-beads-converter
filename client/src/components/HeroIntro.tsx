@@ -451,7 +451,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             <div className="ba-side">
               <img
                 src="/hero-cat-pattern.png"
-                alt="Perler bead pattern chart generated from cat image"
+                alt="Fuse bead pattern chart generated from cat image"
                 className="ba-img"
               />
               <span className="ba-label">{t('hero.beadPattern')}</span>
