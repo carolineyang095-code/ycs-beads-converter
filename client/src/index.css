@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -135,7 +136,11 @@
 
 @layer base {
   /* Typography System - Nanum Pen Script + Dosis */
-  h1, h2, h3, h4, h5, h6 {
+  h1 {
+    font-family: 'Caveat', cursive;
+  }
+
+  h2, h3, h4, h5, h6 {
     font-family: 'Nanum Pen Script', cursive;
   }
 
