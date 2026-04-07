@@ -135,13 +135,13 @@
 }
 
 @layer base {
-  /* Typography System - Nanum Pen Script + Dosis */
+  /* Typography System - Caveat + Dosis */
   h1 {
     font-family: 'Caveat', cursive;
   }
 
   h2, h3, h4, h5, h6 {
-    font-family: 'Nanum Pen Script', cursive;
+    font-family: 'Caveat', cursive;
   }
 
   body {

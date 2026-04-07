@@ -209,7 +209,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .section-h2 {
-          font-family: 'Nanum Pen Script', cursive;
+          font-family: 'Caveat', cursive;
           font-size: clamp(1.5rem, 3vw, 2.1rem);
           font-weight: 700;
           color: #452F60;
@@ -268,7 +268,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         .step-icon { font-size: 30px; margin-bottom: 12px; margin-top: 6px; }
 
         .step-h3 {
-          font-family: 'Nanum Pen Script', cursive;
+          font-family: 'Caveat', cursive;
           font-size: 1rem;
           font-weight: 700;
           color: #452F60;
@@ -313,7 +313,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .feature-h4 {
-          font-family: 'Nanum Pen Script', cursive;
+          font-family: 'Caveat', cursive;
           font-size: 0.92rem;
           font-weight: 700;
           color: #452F60;
@@ -349,7 +349,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .cta-h2 {
-          font-family: 'Nanum Pen Script', cursive;
+          font-family: 'Caveat', cursive;
           font-size: clamp(1.4rem, 3vw, 1.9rem);
           color: white;
           margin-bottom: 10px;
@@ -485,7 +485,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             position: 'relative',
           }}>{t('hero.freeDownloads')}</p>
           <h2 style={{
-            fontFamily: "'Nanum Pen Script', cursive",
+            fontFamily: "'Caveat', cursive",
             fontSize: 'clamp(1.4rem, 3vw, 2rem)',
             color: 'white',
             marginBottom: '12px',
