@@ -64,7 +64,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .hero-h1 {
-          font-family: 'Nanum Pen Script', cursive;
+          font-family: 'Caveat', cursive;
           font-size: clamp(2.2rem, 5vw, 3.6rem);
           font-weight: 700;
           color: #452F60;
