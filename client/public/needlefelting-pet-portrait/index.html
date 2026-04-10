@@ -81,6 +81,9 @@ body { font-family: var(--font-sans); background: var(--color-bg); color: var(--
 .nf-canvas{width:100%;height:auto;border-radius:8px;display:block;background:#fff;border:1px solid #E8E3F0;}
 .nf-dl-btn{width:100%;margin-top:6px;padding:7px;background:#332847;color:#F5EFE6;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;}
 .nf-hint-box{background:#F5EFE6;border-left:3px solid #7B6A9B;padding:8px 10px;border-radius:0 6px 6px 0;font-size:11px;color:#5a4f6a;line-height:1.7;margin-top:8px;}
+.nf-toggle-row{display:flex;gap:6px;margin:8px 0;}
+.nf-toggle-btn{padding:5px 12px;border:1px solid #E8E3F0;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:#5a4f6a;transition:all .15s;}
+.nf-toggle-btn.active{background:#332847;color:#F5EFE6;border-color:#332847;}
 /* Inline language switcher */
 .nf-lang-bar{display:flex;gap:6px;margin-bottom:1rem;}
 .nf-lang-btn{padding:3px 10px;border:1px solid #E8E3F0;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:#5a4f6a;}
@@ -171,19 +174,26 @@ body { font-family: var(--font-sans); background: var(--color-bg); color: var(--
       <span class="nf-sec-title" data-nf="step3Title">Generate outline</span>
     </div>
 
+    <!-- Detail level (meta-control) -->
+    <div class="nf-row">
+      <span class="nf-lbl" data-nf="lblDetail">Detail level:</span>
+      <input type="range" min="1" max="10" value="4" id="nfDt" oninput="nfSetDetail(this.value)">
+      <span class="nf-val" id="nfDtv">4</span>
+    </div>
+
     <!-- Edge detection params -->
     <div class="nf-row">
       <span class="nf-lbl" data-nf="lblBlur">Blur (0=none):</span>
-      <input type="range" min="0" max="10" step="0.5" value="2" id="nfBl" oninput="document.getElementById('nfBlv').textContent=this.value">
-      <span class="nf-val" id="nfBlv">2</span>
+      <input type="range" min="0" max="10" step="0.5" value="4" id="nfBl" oninput="document.getElementById('nfBlv').textContent=this.value">
+      <span class="nf-val" id="nfBlv">4</span>
       <span class="nf-lbl" data-nf="lblLowTh">Low threshold:</span>
-      <input type="range" min="1" max="30" value="5" id="nfTl" oninput="document.getElementById('nfTlv').textContent=this.value">
-      <span class="nf-val" id="nfTlv">5</span>
+      <input type="range" min="1" max="50" value="12" id="nfTl" oninput="document.getElementById('nfTlv').textContent=this.value">
+      <span class="nf-val" id="nfTlv">12</span>
     </div>
     <div class="nf-row">
       <span class="nf-lbl" data-nf="lblHighTh">High threshold:</span>
-      <input type="range" min="5" max="60" value="18" id="nfTh" oninput="document.getElementById('nfThv').textContent=this.value">
-      <span class="nf-val" id="nfThv">18</span>
+      <input type="range" min="5" max="100" value="35" id="nfTh" oninput="document.getElementById('nfThv').textContent=this.value">
+      <span class="nf-val" id="nfThv">35</span>
       <span class="nf-lbl" data-nf="lblStructure">Structure mix:</span>
       <input type="range" min="0" max="10" value="3" id="nfLm" oninput="document.getElementById('nfLmv').textContent=this.value">
       <span class="nf-val" id="nfLmv">3</span>
@@ -195,21 +205,25 @@ body { font-family: var(--font-sans); background: var(--color-bg); color: var(--
       <input type="range" min="0" max="5" value="3" id="nfSm" oninput="document.getElementById('nfSmv').textContent=this.value">
       <span class="nf-val" id="nfSmv">3</span>
       <span class="nf-lbl" data-nf="lblLineWidth">Line width:</span>
-      <input type="range" min="0.5" max="4" step="0.5" value="1" id="nfLw" oninput="document.getElementById('nfLwv').textContent=this.value">
-      <span class="nf-val" id="nfLwv">1</span>
+      <input type="range" min="1" max="5" step="0.5" value="2" id="nfLw" oninput="document.getElementById('nfLwv').textContent=this.value">
+      <span class="nf-val" id="nfLwv">2</span>
     </div>
     <div class="nf-row">
       <span class="nf-lbl" data-nf="lblMinLen">Min stroke len:</span>
-      <input type="range" min="3" max="40" value="8" id="nfMl" oninput="document.getElementById('nfMlv').textContent=this.value">
-      <span class="nf-val" id="nfMlv">8</span>
+      <input type="range" min="3" max="60" value="20" id="nfMl" oninput="document.getElementById('nfMlv').textContent=this.value">
+      <span class="nf-val" id="nfMlv">20</span>
       <button class="nf-btn nf-btn-dark" id="nfEdgebtn" onclick="nfGenEdge()" disabled data-nf="btnGenerate" style="margin-left:auto;">Generate outline</button>
     </div>
 
     <div class="nf-hint-box" data-nf="edgeHint">
-      Blur 0 = max detail · High ≈ Low × 3 · Smoothness 3 = balanced · Structure mix ↑ for dark animals
+      Detail ↓ = bold sketch · Detail ↑ = fine lines · Line width ↑ for chalk effect · Structure mix ↑ for dark animals
     </div>
 
     <div id="nfEdgeOut" style="display:none;margin-top:10px;">
+      <div class="nf-toggle-row">
+        <button class="nf-toggle-btn active" id="nfBgLight" onclick="nfSetBg(false)" data-nf="btnLightBg">Kraft paper</button>
+        <button class="nf-toggle-btn" id="nfBgDark" onclick="nfSetBg(true)" data-nf="btnDarkBg">Dark felt</button>
+      </div>
       <div class="nf-canvas-label" data-nf="labelOutline">Outline</div>
       <canvas id="nfOc" class="nf-canvas"></canvas>
       <button class="nf-dl-btn" onclick="nfDl('nfOc','felt-outline')" data-nf="btnDownload">Download PNG</button>
@@ -231,9 +245,11 @@ const NF_T = {
     modelLoading:"Loading AI model (first use ~5MB, then cached)…",
     labelSubject:"Subject extracted",labelOriginal:"Original",labelOutline:"Outline",
     aiHint:"AI runs entirely in your browser. No data is sent to any server.",
-    edgeHint:"Blur 0 = max detail · High ≈ Low × 3 · Smoothness 3 = balanced · Structure mix ↑ for dark animals",
+    edgeHint:"Detail ↓ = bold sketch · Detail ↑ = fine lines · Line width ↑ for chalk effect · Structure mix ↑ for dark animals",
+    lblDetail:"Detail level:",
     lblBlur:"Blur (0=none):",lblLowTh:"Low threshold:",lblHighTh:"High threshold:",
     lblStructure:"Structure mix:",lblSmooth:"Smoothness:",lblLineWidth:"Line width:",lblMinLen:"Min stroke len:",
+    btnLightBg:"Kraft paper",btnDarkBg:"Dark felt",
     statusLoaded:"✓ Photo loaded",statusRmDone:"✓ Background removed",statusProcessing:"Processing…"
   },
   fr:{
@@ -246,9 +262,11 @@ const NF_T = {
     modelLoading:"Chargement du modèle IA (~5 Mo au premier lancement, puis mis en cache)…",
     labelSubject:"Sujet extrait",labelOriginal:"Original",labelOutline:"Contour",
     aiHint:"L'IA fonctionne entièrement dans votre navigateur. Aucune donnée n'est transmise.",
-    edgeHint:"Flou 0 = détail max · Seuil haut ≈ seuil bas × 3 · Fluidité 3 = équilibré",
+    edgeHint:"Détail ↓ = croquis gras · Détail ↑ = traits fins · Épaisseur ↑ pour effet craie · Structure ↑ pour animaux foncés",
+    lblDetail:"Niveau de détail :",
     lblBlur:"Flou (0=aucun):",lblLowTh:"Seuil bas:",lblHighTh:"Seuil haut:",
     lblStructure:"Structure:",lblSmooth:"Fluidité:",lblLineWidth:"Épaisseur:",lblMinLen:"Longueur min:",
+    btnLightBg:"Papier kraft",btnDarkBg:"Feutre foncé",
     statusLoaded:"✓ Photo chargée",statusRmDone:"✓ Fond supprimé",statusProcessing:"Traitement…"
   },
   zh:{
@@ -261,9 +279,11 @@ const NF_T = {
     modelLoading:"加载 AI 模型（首次约 5MB，之后自动缓存）…",
     labelSubject:"主体提取",labelOriginal:"原图",labelOutline:"线稿",
     aiHint:"AI 完全在浏览器本地运行，图片不上传任何服务器。",
-    edgeHint:"模糊 0 = 最多细节 · 高阈值 ≈ 低阈值 × 3 · 流畅度 3 = 平衡 · 深色动物请提高结构强度",
+    edgeHint:"细节 ↓ = 粗线条 · 细节 ↑ = 细线条 · 线条粗细 ↑ 模拟粉笔 · 深色动物请提高结构强度",
+    lblDetail:"细节等级：",
     lblBlur:"模糊（0=不模糊）：",lblLowTh:"低阈值：",lblHighTh:"高阈值：",
     lblStructure:"结构强度：",lblSmooth:"流畅度：",lblLineWidth:"线条粗细：",lblMinLen:"最短笔画：",
+    btnLightBg:"牛皮纸底",btnDarkBg:"深色毛毡",
     statusLoaded:"✓ 照片已加载",statusRmDone:"✓ 背景已去除",statusProcessing:"处理中…"
   }
 };
@@ -381,6 +401,36 @@ function nfBoxBlur(ch,w,h,r){
   return o2;
 }
 
+function nfGaussBlur(ch,w,h,r){
+  if(r<=0)return new Float32Array(ch);
+  let o=ch;for(let p=0;p<3;p++)o=nfBoxBlur(o,w,h,r/1.73);
+  return o;
+}
+
+function nfRemoveSmall(edges,w,h,minSize){
+  const vis=new Uint8Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const idx=y*w+x;if(!edges[idx]||vis[idx])continue;
+    const cc=[idx];vis[idx]=1;let qi=0;
+    while(qi<cc.length){const ci=cc[qi++],cy=Math.floor(ci/w),cx=ci%w;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dy&&!dx)continue;
+        const ny=cy+dy,nx=cx+dx;if(ny>=0&&ny<h&&nx>=0&&nx<w){const ni=ny*w+nx;if(edges[ni]&&!vis[ni]){vis[ni]=1;cc.push(ni);}}}}
+    if(cc.length<minSize)for(const ci of cc)edges[ci]=0;
+  }
+}
+
+function nfMorphClose(edges,w,h,r){
+  const dil=new Uint8Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(!edges[y*w+x])continue;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const ny=y+dy,nx=x+dx;if(ny>=0&&ny<h&&nx>=0&&nx<w)dil[ny*w+nx]=1;}}
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const idx=y*w+x;
+    if(!dil[idx]){edges[idx]=0;continue;}
+    let ok=true;for(let dy=-r;dy<=r&&ok;dy++)for(let dx=-r;dx<=r&&ok;dx++){const ny=y+dy,nx=x+dx;
+      if(ny>=0&&ny<h&&nx>=0&&nx<w){if(!dil[ny*w+nx])ok=false;}else ok=false;}
+    edges[idx]=ok?1:0;
+  }
+}
+
 function nfSobel(ch,w,h){
   const mag=new Float32Array(w*h),ang=new Float32Array(w*h);
   for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
@@ -481,8 +531,10 @@ function nfChaikin(pts,iters){
 }
 
 function nfDrawChains(ctx,chains,smoothIters,lineWidth){
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
-  ctx.strokeStyle='#111';ctx.lineWidth=lineWidth;
+  if(window._nfDarkBg){ctx.fillStyle='#1a1a3e';ctx.strokeStyle='#f0ece4';}
+  else{ctx.fillStyle='#f5f0e8';ctx.strokeStyle='#222';}
+  ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  ctx.lineWidth=lineWidth;
   ctx.lineCap='round';ctx.lineJoin='round';
   for(const chain of chains){
     if(chain.length<2)continue;
@@ -497,9 +549,30 @@ function nfDrawChains(ctx,chains,smoothIters,lineWidth){
   }
 }
 
+window._nfDarkBg=false;window._nfLastChains=null;
+
+window.nfSetDetail=function(v){
+  v=parseInt(v);document.getElementById('nfDtv').textContent=v;
+  const t=(10-v)/9;
+  const bl=(6*t).toFixed(1),lo=Math.round(3+19*t),hi=Math.round(8+47*t);
+  document.getElementById('nfBl').value=bl;document.getElementById('nfBlv').textContent=bl;
+  document.getElementById('nfTl').value=lo;document.getElementById('nfTlv').textContent=lo;
+  document.getElementById('nfTh').value=hi;document.getElementById('nfThv').textContent=hi;
+};
+
+window.nfSetBg=function(dark){
+  window._nfDarkBg=dark;
+  document.getElementById('nfBgLight').classList.toggle('active',!dark);
+  document.getElementById('nfBgDark').classList.toggle('active',dark);
+  if(window._nfLastChains){
+    const oc=document.getElementById('nfOc'),sm=parseInt(document.getElementById('nfSm').value),
+      lw=parseFloat(document.getElementById('nfLw').value);
+    nfDrawChains(oc.getContext('2d'),window._nfLastChains,sm,lw);
+  }
+};
+
 window.nfGenEdge=function(){
-  const src=window._nfMasked||window._nfSrcImg;
-  if(!src)return;
+  const src=window._nfMasked||window._nfSrcImg;if(!src)return;
   document.getElementById('nfEdgebtn').disabled=true;
   setTimeout(()=>{
     const blurR=parseFloat(document.getElementById('nfBl').value);
@@ -529,7 +602,7 @@ window.nfGenEdge=function(){
       else{const[L,a,bv]=nfRgbToLab(r,g,b);Lch[i]=L;Ach[i]=a;Bch[i]=bv;}
     }
 
-    const bL=nfBoxBlur(Lch,W,H,blurR),bA=nfBoxBlur(Ach,W,H,blurR),bB=nfBoxBlur(Bch,W,H,blurR);
+    const bL=nfGaussBlur(Lch,W,H,blurR),bA=nfGaussBlur(Ach,W,H,blurR),bB=nfGaussBlur(Bch,W,H,blurR);
     const gA=nfSobel(bA,W,H),gB=nfSobel(bB,W,H),gL=nfSobel(bL,W,H);
 
     const combMag=new Float32Array(W*H),combAng=new Float32Array(W*H);
@@ -546,7 +619,11 @@ window.nfGenEdge=function(){
     const edges=nfHyst(norm,W,H,tlo,thi);
     for(let i=0;i<W*H;i++)if(isBg[i])edges[i]=0;
 
+    nfRemoveSmall(edges,W,H,minLen*3);
+    nfMorphClose(edges,W,H,1);
+
     const chains=nfTraceChains(edges,W,H,minLen);
+    window._nfLastChains=chains;
     const oc=document.getElementById('nfOc');oc.width=W;oc.height=H;
     nfDrawChains(oc.getContext('2d'),chains,smoothIters,lineWidth);
 
