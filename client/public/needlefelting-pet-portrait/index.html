@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-nf="pageTitle">Needle Felting — Pet Portrait Template</title>
+<link rel="icon" href="../favicon.png" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dosis:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ── Site-level tokens (from patterns page) ── */
+:root {
+  --color-bg:       #F5EFE6;
+  --color-dark:     #332847;
+  --color-purple:   #452F60;
+  --color-accent:   #7B6A9B;
+  --color-light:    #9B8FB0;
+  --color-teal:     #4db8a0;
+  --color-pink:     #c47a9a;
+  --color-border:   #DDD5EC;
+  --color-border2:  #C4B8D9;
+  --color-surface:  #E8E3F0;
+  --color-white:    #ffffff;
+  --font-serif:     'Caveat', cursive;
+  --font-sans:      'Dosis', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--color-bg); color: var(--color-dark); line-height: 1.6; min-height: 100vh; }
+
+/* ── Topbar (matches patterns page) ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  height: 60px; display: flex; align-items: center;
+}
+.topbar-inner {
+  max-width: 1200px; width: 100%; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.topbar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+.topbar-logo img { height: 48px; width: auto; display: block; }
+.topbar-nav { display: flex; align-items: center; gap: 8px; }
+.nav-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--color-accent); text-decoration: none;
+}
+.nav-back:hover { text-decoration: underline; }
+
+/* ── Page-specific styles ── */
+.nf-wrap{max-width:780px;margin:0 auto;padding:1.5rem 1rem;}
+.nf-page-title{font-family:var(--font-serif);color:var(--color-dark);font-size:1.4rem;font-weight:700;margin-bottom:2px;}
+.nf-subtitle{font-size:12px;color:var(--color-accent);margin-bottom:1.5rem;}
+.nf-section{background:#fff;border:1px solid #E8E3F0;border-radius:14px;padding:1rem;margin-bottom:12px;}
+.nf-sec-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.nf-badge{background:#332847;color:#F5EFE6;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.nf-sec-title{font-size:13px;font-weight:600;color:#332847;}
+.nf-upload-zone{border:2px dashed #E8E3F0;border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s;background:#fafafa;}
+.nf-upload-zone:hover,.nf-upload-zone.drag{border-color:#7B6A9B;background:#F5EFE6;}
+.nf-upload-label{font-size:13px;font-weight:600;color:#332847;}
+.nf-upload-hint{font-size:11px;color:#5a4f6a;margin-top:4px;line-height:1.6;}
+.nf-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.nf-lbl{font-size:11px;color:#5a4f6a;white-space:nowrap;width:110px;}
+.nf-val{font-size:11px;font-weight:600;color:#332847;width:30px;}
+.nf-row input[type=range]{flex:1;max-width:130px;}
+.nf-btn{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.nf-btn:active{opacity:.8;}
+.nf-btn:disabled{opacity:.4;cursor:not-allowed;}
+.nf-btn-teal{background:#4db8a0;color:#fff;}
+.nf-btn-dark{background:#332847;color:#F5EFE6;}
+.nf-status{font-size:11px;font-weight:500;}
+.nf-ok{color:#4db8a0;}.nf-err{color:#c47a9a;}.nf-loading{color:#7B6A9B;}
+.nf-progress-wrap{display:none;margin-top:8px;}
+.nf-progress-bar{height:4px;background:#E8E3F0;border-radius:2px;overflow:hidden;}
+.nf-progress-fill{height:100%;background:#4db8a0;border-radius:2px;transition:width .3s;width:0%;}
+.nf-progress-label{font-size:10px;color:#7B6A9B;margin-top:4px;}
+.nf-canvases{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.nf-canvas-label{font-size:11px;color:#5a4f6a;margin-bottom:4px;font-weight:500;}
+.nf-canvas{width:100%;height:auto;border-radius:8px;display:block;background:#fff;border:1px solid #E8E3F0;}
+.nf-dl-btn{width:100%;margin-top:6px;padding:7px;background:#332847;color:#F5EFE6;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;}
+.nf-hint-box{background:#F5EFE6;border-left:3px solid #7B6A9B;padding:8px 10px;border-radius:0 6px 6px 0;font-size:11px;color:#5a4f6a;line-height:1.7;margin-top:8px;}
+/* Inline language switcher */
+.nf-lang-bar{display:flex;gap:6px;margin-bottom:1rem;}
+.nf-lang-btn{padding:3px 10px;border:1px solid #E8E3F0;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:#5a4f6a;}
+.nf-lang-btn.active{background:#332847;color:#F5EFE6;border-color:#332847;}
+@media(max-width:480px){.nf-canvases{grid-template-columns:1fr;}.nf-row{flex-direction:column;align-items:flex-start;}}
+</style>
+</head>
+<body>
+
+<!-- ── Topbar (same structure as patterns page) ── -->
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <a href="../" class="topbar-logo" aria-label="YCS Beads home">
+      <img src="/ycs-logo-2026.png" alt="YCS Beads" style="height: 48px;">
+    </a>
+    <nav class="topbar-nav" aria-label="Main navigation">
+      <a href="../" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M9 11.5L4.5 7 9 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Tools
+      </a>
+    </nav>
+  </div>
+</header>
+
+<div class="nf-wrap">
+
+  <!-- Inline language switcher (EN/FR/ZH) -->
+  <div class="nf-lang-bar" id="nfLangBar">
+    <button class="nf-lang-btn active" onclick="nfSetLang('en')">EN</button>
+    <button class="nf-lang-btn" onclick="nfSetLang('fr')">FR</button>
+    <button class="nf-lang-btn" onclick="nfSetLang('zh')">中文</button>
+  </div>
+
+  <h1 class="nf-page-title" data-nf="pageTitle">Needle Felting — Pet Portrait Template</h1>
+  <p class="nf-subtitle" data-nf="pageSubtitle">Yaya's Creative Studio · Pet photo → Needle felting template</p>
+
+  <!-- STEP 1: Upload -->
+  <div class="nf-section">
+    <div class="nf-sec-header">
+      <span class="nf-badge">1</span>
+      <span class="nf-sec-title" data-nf="step1Title">Upload photo</span>
+    </div>
+    <div class="nf-upload-zone" id="nfUploadZone"
+         onclick="document.getElementById('nfFi').click()"
+         ondragover="nfEv(event)" ondrop="nfDrop(event)">
+      <input type="file" id="nfFi" accept="image/*" style="display:none" onchange="nfLoadImg(this.files[0])">
+      <div class="nf-upload-label" data-nf="uploadLabel">Click or drag your pet photo here</div>
+      <div class="nf-upload-hint" data-nf="uploadHint">Best: front-facing · even light · plain background</div>
+    </div>
+    <div id="nfUploadStatus" class="nf-status" style="margin-top:6px;"></div>
+  </div>
+
+  <!-- STEP 2: Background Removal -->
+  <div class="nf-section">
+    <div class="nf-sec-header">
+      <span class="nf-badge">2</span>
+      <span class="nf-sec-title" data-nf="step2Title">Remove background</span>
+    </div>
+    <div class="nf-row">
+      <button class="nf-btn nf-btn-teal" id="nfRmbtn" onclick="nfRemoveBg()" disabled data-nf="btnRemoveBg">Remove background</button>
+      <span class="nf-status" id="nfRmStatus"></span>
+    </div>
+    <div class="nf-progress-wrap" id="nfProgressWrap">
+      <div class="nf-progress-bar"><div class="nf-progress-fill" id="nfProgressFill"></div></div>
+      <div class="nf-progress-label" id="nfProgressLabel" data-nf="modelLoading">Loading AI model (first use ~5MB, then cached)…</div>
+    </div>
+    <div id="nfBgOut" style="display:none">
+      <div class="nf-canvases">
+        <div>
+          <div class="nf-canvas-label" data-nf="labelSubject">Subject extracted</div>
+          <canvas id="nfMc" class="nf-canvas"></canvas>
+        </div>
+        <div>
+          <div class="nf-canvas-label" data-nf="labelOriginal">Original</div>
+          <canvas id="nfRc" class="nf-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="nf-hint-box" data-nf="aiHint">AI runs entirely in your browser. No data is sent to any server.</div>
+  </div>
+
+  <!-- STEP 3: Edge Detection -->
+  <div class="nf-section">
+    <div class="nf-sec-header">
+      <span class="nf-badge">3</span>
+      <span class="nf-sec-title" data-nf="step3Title">Generate outline</span>
+    </div>
+    <div class="nf-row">
+      <span class="nf-lbl" data-nf="lblBlur">Blur (0=none):</span>
+      <input type="range" min="0" max="10" step="0.5" value="2" id="nfBl" oninput="document.getElementById('nfBlv').textContent=this.value">
+      <span class="nf-val" id="nfBlv">2</span>
+    </div>
+    <div class="nf-row">
+      <span class="nf-lbl" data-nf="lblLowTh">Low threshold:</span>
+      <input type="range" min="1" max="30" value="5" id="nfTl" oninput="document.getElementById('nfTlv').textContent=this.value">
+      <span class="nf-val" id="nfTlv">5</span>
+    </div>
+    <div class="nf-row">
+      <span class="nf-lbl" data-nf="lblHighTh">High threshold:</span>
+      <input type="range" min="5" max="60" value="18" id="nfTh" oninput="document.getElementById('nfThv').textContent=this.value">
+      <span class="nf-val" id="nfThv">18</span>
+    </div>
+    <div class="nf-row">
+      <span class="nf-lbl" data-nf="lblStructure">Structure mix:</span>
+      <input type="range" min="0" max="10" value="3" id="nfLm" oninput="document.getElementById('nfLmv').textContent=this.value">
+      <span class="nf-val" id="nfLmv">3</span>
+      <button class="nf-btn nf-btn-dark" id="nfEdgebtn" onclick="nfGenEdge()" disabled data-nf="btnGenerate">Generate outline</button>
+    </div>
+    <div class="nf-hint-box" data-nf="edgeHint">Blur 0 = max detail · Blur 4+ = major outlines only · High ≈ Low × 3 · Structure mix ↑ for dark/black animals</div>
+    <div id="nfEdgeOut" style="display:none;margin-top:10px;">
+      <div class="nf-canvas-label" data-nf="labelOutline">Outline</div>
+      <canvas id="nfOc" class="nf-canvas"></canvas>
+      <button class="nf-dl-btn" onclick="nfDl('nfOc','felt-outline')" data-nf="btnDownload">Download PNG</button>
+    </div>
+  </div>
+
+</div><!-- end nf-wrap -->
+
+<!-- ── TRANSLATIONS ── -->
+<script>
+const NF_TRANSLATIONS = {
+  en: {
+    pageTitle: "Needle Felting — Pet Portrait Template",
+    pageSubtitle: "Yaya's Creative Studio · Pet photo → Needle felting template",
+    step1Title: "Upload photo",
+    step2Title: "Remove background",
+    step3Title: "Generate outline",
+    uploadLabel: "Click or drag your pet photo here",
+    uploadHint: "Best: front-facing · even light · plain background",
+    btnRemoveBg: "Remove background",
+    btnGenerate: "Generate outline",
+    btnDownload: "Download PNG",
+    modelLoading: "Loading AI model (first use ~5MB, then cached)…",
+    labelSubject: "Subject extracted",
+    labelOriginal: "Original",
+    labelOutline: "Outline",
+    aiHint: "AI runs entirely in your browser. No data is sent to any server.",
+    edgeHint: "Blur 0 = max detail · Blur 4+ = major outlines only · High ≈ Low × 3 · Structure mix ↑ for dark/black animals",
+    statusLoaded: "✓ Photo loaded",
+    statusRmDone: "✓ Background removed",
+    statusProcessing: "Processing…"
+  },
+  fr: {
+    pageTitle: "Feutrage à l'aiguille — Gabarit portrait animalier",
+    pageSubtitle: "Yaya's Creative Studio · Photo de votre animal → Gabarit de feutrage",
+    step1Title: "Télécharger la photo",
+    step2Title: "Supprimer le fond",
+    step3Title: "Générer le contour",
+    uploadLabel: "Cliquez ou déposez la photo de votre animal ici",
+    uploadHint: "Idéal : face · lumière uniforme · fond simple",
+    btnRemoveBg: "Supprimer le fond",
+    btnGenerate: "Générer le contour",
+    btnDownload: "Télécharger PNG",
+    modelLoading: "Chargement du modèle IA (~5 Mo au premier lancement, puis mis en cache)…",
+    labelSubject: "Sujet extrait",
+    labelOriginal: "Original",
+    labelOutline: "Contour",
+    aiHint: "L'IA fonctionne entièrement dans votre navigateur. Aucune donnée n'est transmise.",
+    edgeHint: "Flou 0 = détail max · Flou 4+ = contours principaux · Seuil haut ≈ seuil bas × 3",
+    statusLoaded: "✓ Photo chargée",
+    statusRmDone: "✓ Fond supprimé",
+    statusProcessing: "Traitement…"
+  },
+  zh: {
+    pageTitle: "戳羊毛毡 — 宠物底稿生成器",
+    pageSubtitle: "Yaya's Creative Studio · 宠物照片 → 羊毛毡底稿",
+    step1Title: "第一步 — 上传照片",
+    step2Title: "第二步 — 去除背景",
+    step3Title: "第三步 — 生成线稿",
+    uploadLabel: "点击或拖拽上传宠物照片",
+    uploadHint: "建议：正面照 · 均匀光线 · 背景简单",
+    btnRemoveBg: "去除背景",
+    btnGenerate: "生成线稿",
+    btnDownload: "下载 PNG",
+    modelLoading: "加载 AI 模型（首次约 5MB，之后自动缓存）…",
+    labelSubject: "主体提取",
+    labelOriginal: "原图",
+    labelOutline: "线稿",
+    aiHint: "AI 完全在浏览器本地运行，图片不上传任何服务器。",
+    edgeHint: "模糊 0 = 最多细节 · 模糊 4+ = 仅保留主要轮廓 · 高阈值 ≈ 低阈值 × 3 · 深色动物请提高结构强度",
+    statusLoaded: "✓ 照片已加载",
+    statusRmDone: "✓ 背景已去除",
+    statusProcessing: "处理中…"
+  }
+};
+
+let NF_LANG = 'en';
+
+function nfSetLang(lang) {
+  NF_LANG = lang;
+  document.querySelectorAll('[data-nf]').forEach(el => {
+    const key = el.getAttribute('data-nf');
+    if (NF_TRANSLATIONS[lang] && NF_TRANSLATIONS[lang][key]) {
+      el.textContent = NF_TRANSLATIONS[lang][key];
+    }
+  });
+  document.querySelectorAll('.nf-lang-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['en','fr','zh'][i] === lang);
+  });
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+}
+
+function nfT(key) {
+  return (NF_TRANSLATIONS[NF_LANG] || NF_TRANSLATIONS.en)[key] || key;
+}
+
+document.addEventListener('DOMContentLoaded', () => nfSetLang(NF_LANG));
+</script>
+
+<!-- ── BACKGROUND REMOVAL (AI — neural network, runs in browser) ── -->
+<script type="module">
+import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.5';
+window._nfRemoveBgLib = removeBackground;
+
+window.nfRemoveBg = async function() {
+  if (!window._nfSrcImg) return;
+  const btn = document.getElementById('nfRmbtn');
+  const st  = document.getElementById('nfRmStatus');
+  const pw  = document.getElementById('nfProgressWrap');
+  btn.disabled = true;
+  pw.style.display = 'block';
+  st.textContent = '';
+  st.className = 'nf-status nf-loading';
+
+  try {
+    const MAX = 800;
+    const img = window._nfSrcImg;
+    const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+    const W = Math.round(img.width * scale);
+    const H = Math.round(img.height * scale);
+
+    const tmp = document.createElement('canvas');
+    tmp.width = W; tmp.height = H;
+    tmp.getContext('2d').drawImage(img, 0, 0, W, H);
+    const blob = await new Promise(res => tmp.toBlob(res, 'image/jpeg', 0.92));
+
+    const resultBlob = await removeBackground(blob, {
+      progress: (key, current, total) => {
+        const pct = total > 0 ? Math.round(current / total * 100) : 0;
+        document.getElementById('nfProgressFill').style.width = pct + '%';
+        const lbl = key.includes('fetch')     ? `${nfT('modelLoading')} ${pct}%` :
+                    key.includes('inference') ? `${nfT('statusProcessing')} ${pct}%` :
+                    `${pct}%`;
+        document.getElementById('nfProgressLabel').textContent = lbl;
+      }
+    });
+
+    const url = URL.createObjectURL(resultBlob);
+    const resultImg = new Image();
+    resultImg.onload = () => {
+      const mc = document.getElementById('nfMc');
+      mc.width = W; mc.height = H;
+      const mx = mc.getContext('2d');
+      mx.fillStyle = '#ffffff';
+      mx.fillRect(0, 0, W, H);
+      mx.drawImage(resultImg, 0, 0, W, H);
+
+      const rc = document.getElementById('nfRc');
+      rc.width = W; rc.height = H;
+      rc.getContext('2d').drawImage(img, 0, 0, W, H);
+
+      window._nfMaskedCanvas = mc;
+      document.getElementById('nfBgOut').style.display = 'block';
+      pw.style.display = 'none';
+      st.textContent = nfT('statusRmDone');
+      st.className = 'nf-status nf-ok';
+      btn.disabled = false;
+      URL.revokeObjectURL(url);
+    };
+    resultImg.src = url;
+
+  } catch (err) {
+    console.error(err);
+    pw.style.display = 'none';
+    st.textContent = 'Error: ' + err.message;
+    st.className = 'nf-status nf-err';
+    btn.disabled = false;
+  }
+};
+</script>
+
+<!-- ── UTILITIES + LAB CANNY EDGE DETECTION ── -->
+<script>
+window.nfEv   = e => e.preventDefault();
+window.nfDrop = e => { e.preventDefault(); if (e.dataTransfer.files[0]) nfLoadImg(e.dataTransfer.files[0]); };
+
+window.nfLoadImg = function(f) {
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const i = new Image();
+    i.onload = () => {
+      window._nfSrcImg = i;
+      window._nfMaskedCanvas = null;
+      document.getElementById('nfRmbtn').disabled = false;
+      document.getElementById('nfEdgebtn').disabled = false;
+      const st = document.getElementById('nfUploadStatus');
+      st.textContent = nfT('statusLoaded') + ' · ' + i.width + '×' + i.height + 'px';
+      st.className = 'nf-status nf-ok';
+    };
+    i.src = e.target.result;
+  };
+  r.readAsDataURL(f);
+};
+
+function nfRgbToLab(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+  g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+  b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+  let x = (r * 0.4124564 + g * 0.3575761 + b * 0.1804375) / 0.95047;
+  let y = (r * 0.2126729 + g * 0.7151522 + b * 0.0721750);
+  let z = (r * 0.0193339 + g * 0.1191920 + b * 0.9503041) / 1.08883;
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+}
+
+function nfBoxBlur(ch, w, h, r) {
+  if (r <= 0) return new Float32Array(ch);
+  const ir = Math.max(1, Math.round(r));
+  const o = new Float32Array(ch.length);
+  for (let y = 0; y < h; y++) {
+    let s = 0, cnt = 0;
+    for (let x = -ir; x < w; x++) {
+      if (x + ir < w) { s += ch[y * w + Math.min(x + ir, w - 1)]; cnt++; }
+      if (x - ir > 0) { s -= ch[y * w + x - ir - 1]; cnt--; }
+      if (x >= 0) o[y * w + x] = s / cnt;
+    }
+  }
+  const o2 = new Float32Array(ch.length);
+  for (let x = 0; x < w; x++) {
+    let s = 0, cnt = 0;
+    for (let y = -ir; y < h; y++) {
+      if (y + ir < h) { s += o[Math.min(y + ir, h - 1) * w + x]; cnt++; }
+      if (y - ir > 0) { s -= o[(y - ir - 1) * w + x]; cnt--; }
+      if (y >= 0) o2[y * w + x] = s / cnt;
+    }
+  }
+  if (r < 1) { for (let i = 0; i < ch.length; i++) o2[i] = ch[i] * (1 - r) + o2[i] * r; }
+  return o2;
+}
+
+function nfSobelGrad(ch, w, h) {
+  const mag = new Float32Array(w * h), ang = new Float32Array(w * h);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x;
+      const gx = -ch[(y-1)*w+(x-1)] + ch[(y-1)*w+(x+1)] - 2*ch[y*w+(x-1)] + 2*ch[y*w+(x+1)] - ch[(y+1)*w+(x-1)] + ch[(y+1)*w+(x+1)];
+      const gy = -ch[(y-1)*w+(x-1)] - 2*ch[(y-1)*w+x]   - ch[(y-1)*w+(x+1)] + ch[(y+1)*w+(x-1)] + 2*ch[(y+1)*w+x]   + ch[(y+1)*w+(x+1)];
+      mag[i] = Math.sqrt(gx * gx + gy * gy);
+      ang[i] = Math.atan2(gy, gx);
+    }
+  }
+  return { mag, ang };
+}
+
+function nfNms(mag, ang, w, h) {
+  const out = new Float32Array(w * h);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x;
+      if (!mag[i]) continue;
+      const a = ang[i];
+      const x1 = Math.round(x + Math.cos(a)), y1 = Math.round(y + Math.sin(a));
+      const x2 = Math.round(x - Math.cos(a)), y2 = Math.round(y - Math.sin(a));
+      const n1 = (y1 >= 0 && y1 < h && x1 >= 0 && x1 < w) ? mag[y1 * w + x1] : 0;
+      const n2 = (y2 >= 0 && y2 < h && x2 >= 0 && x2 < w) ? mag[y2 * w + x2] : 0;
+      if (mag[i] >= n1 && mag[i] >= n2) out[i] = mag[i];
+    }
+  }
+  return out;
+}
+
+function nfHysteresis(mag, w, h, lo, hi) {
+  const out = new Uint8Array(w * h), strong = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    if (mag[i] >= hi) strong[i] = 2;
+    else if (mag[i] >= lo) strong[i] = 1;
+  }
+  const q = [];
+  for (let i = 0; i < w * h; i++) if (strong[i] === 2) { out[i] = 1; q.push(i); }
+  let qi = 0;
+  while (qi < q.length) {
+    const i = q[qi++], y = Math.floor(i / w), x = i % w;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const ny = y + dy, nx = x + dx;
+      if (ny >= 0 && ny < h && nx >= 0 && nx < w) {
+        const ni = ny * w + nx;
+        if (strong[ni] === 1 && !out[ni]) { out[ni] = 1; q.push(ni); }
+      }
+    }
+  }
+  return out;
+}
+
+window.nfGenEdge = function() {
+  const src = window._nfMaskedCanvas || window._nfSrcImg;
+  if (!src) return;
+  document.getElementById('nfEdgebtn').disabled = true;
+
+  setTimeout(() => {
+    const blurR  = parseFloat(document.getElementById('nfBl').value);
+    const tlo    = parseFloat(document.getElementById('nfTl').value);
+    const thi    = parseFloat(document.getElementById('nfTh').value);
+    const lumMix = parseInt(document.getElementById('nfLm').value) / 10;
+
+    const MAX = 600;
+    let W, H;
+    if (src instanceof HTMLCanvasElement) {
+      W = src.width; H = src.height;
+    } else {
+      const scale = Math.min(1, MAX / Math.max(src.width, src.height));
+      W = Math.round(src.width * scale);
+      H = Math.round(src.height * scale);
+    }
+
+    const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H;
+    const tx = tmp.getContext('2d');
+    if (src instanceof HTMLCanvasElement) tx.drawImage(src, 0, 0);
+    else tx.drawImage(src, 0, 0, W, H);
+    const px = tx.getImageData(0, 0, W, H).data;
+
+    const Lch = new Float32Array(W * H);
+    const Ach = new Float32Array(W * H);
+    const Bch = new Float32Array(W * H);
+    const isBg = new Uint8Array(W * H);
+
+    for (let i = 0; i < W * H; i++) {
+      const r = px[i*4], g = px[i*4+1], b = px[i*4+2];
+      if (r > 248 && g > 248 && b > 248) {
+        isBg[i] = 1; Lch[i] = 100; Ach[i] = 0; Bch[i] = 0;
+      } else {
+        const [L, a, bv] = nfRgbToLab(r, g, b);
+        Lch[i] = L; Ach[i] = a; Bch[i] = bv;
+      }
+    }
+
+    const bL = nfBoxBlur(Lch, W, H, blurR);
+    const bA = nfBoxBlur(Ach, W, H, blurR);
+    const bB = nfBoxBlur(Bch, W, H, blurR);
+    const gA = nfSobelGrad(bA, W, H);
+    const gB = nfSobelGrad(bB, W, H);
+    const gL = nfSobelGrad(bL, W, H);
+
+    const combMag = new Float32Array(W * H);
+    const combAng = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i++) {
+      const cm = Math.sqrt(gA.mag[i] ** 2 + gB.mag[i] ** 2);
+      combMag[i] = cm + gL.mag[i] * lumMix;
+      combAng[i] = cm > 0.5
+        ? Math.atan2(gA.mag[i]*Math.sin(gA.ang[i]) + gB.mag[i]*Math.sin(gB.ang[i]),
+                     gA.mag[i]*Math.cos(gA.ang[i]) + gB.mag[i]*Math.cos(gB.ang[i]))
+        : gL.ang[i];
+    }
+
+    const thinned = nfNms(combMag, combAng, W, H);
+    let maxM = 0;
+    for (let i = 0; i < W * H; i++) if (thinned[i] > maxM) maxM = thinned[i];
+    const norm = new Float32Array(W * H);
+    if (maxM > 0) for (let i = 0; i < W * H; i++) norm[i] = thinned[i] / maxM * 100;
+    const edges = nfHysteresis(norm, W, H, tlo, thi);
+    for (let i = 0; i < W * H; i++) if (isBg[i]) edges[i] = 0;
+
+    const oc = document.getElementById('nfOc'); oc.width = W; oc.height = H;
+    const ox = oc.getContext('2d');
+    const oid = ox.createImageData(W, H);
+    for (let i = 0; i < W * H; i++) {
+      const v = edges[i] ? 0 : 255;
+      oid.data[i*4] = v; oid.data[i*4+1] = v; oid.data[i*4+2] = v; oid.data[i*4+3] = 255;
+    }
+    ox.putImageData(oid, 0, 0);
+
+    document.getElementById('nfEdgeOut').style.display = 'block';
+    document.getElementById('nfEdgebtn').disabled = false;
+  }, 20);
+};
+
+window.nfDl = function(id, name) {
+  const a = document.createElement('a');
+  a.download = name + '.png';
+  a.href = document.getElementById(id).toDataURL('image/png');
+  a.click();
+};
+</script>
+
+</body>
+</html>
