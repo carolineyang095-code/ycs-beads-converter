@@ -584,6 +584,21 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
           </div>
         </section>
 
+        <div className="hero-divider" />
+
+        {/* ══ SESSION TIMER TOOL ══ */}
+        <section className="section" style={{ paddingBottom: '32px' }}>
+          <a href="/timer/" style={{ textDecoration: 'none' }}>
+            <div className="feature-card" style={{ maxWidth: '480px', margin: '0 auto', cursor: 'pointer' }}>
+              <div className="feature-icon-box">⏱</div>
+              <div>
+                <h4 className="feature-h4">Session Timer</h4>
+                <p className="feature-p">计时 · 计费 · 拼豆工作台</p>
+              </div>
+            </div>
+          </a>
+        </section>
+
         {/* ══ CTA ══ */}
         <div className="cta-section">
           <h2 className="cta-h2">{t('hero.ctaHeading')}</h2>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Timer — Yaya's Creative Studio</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F5EFE6;min-height:100vh;padding:1.5rem 1rem;}
+  h1{font-family:'Playfair Display',Georgia,serif;color:#332847;font-size:1.4rem;font-weight:700;margin-bottom:2px;}
+  .subtitle{font-size:12px;color:#7B6A9B;margin-bottom:1.25rem;}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;}
+  .paris-time{font-size:14px;font-weight:600;color:#332847;}
+  .pricing-info{font-size:11px;color:#5a4f6a;text-align:right;line-height:1.6;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem;}
+  .card{background:#fff;border:1px solid #E8E3F0;border-radius:14px;padding:1rem;}
+  .card.running{border:1.5px solid #4db8a0;box-shadow:0 0 0 3px rgba(77,184,160,0.08);}
+  .card.done{border:1px solid #b8a8d4;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .pos-label{font-family:'Playfair Display',Georgia,serif;font-size:1.1rem;font-weight:700;color:#332847;}
+  .badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;}
+  .badge-idle{background:#E8E3F0;color:#7B6A9B;}
+  .badge-run{background:#e1f5ee;color:#0a6b4e;}
+  .badge-done{background:#f3f0f9;color:#5a4f6a;}
+  .time-display{font-size:1.6rem;font-weight:700;color:#332847;font-variant-numeric:tabular-nums;margin:6px 0 2px;}
+  .price-display{font-size:1rem;font-weight:600;margin-bottom:5px;}
+  .price-idle{color:#b8a8d4;}
+  .price-run{color:#0a6b4e;}
+  .price-done{color:#332847;}
+  .timestamps{font-size:11px;color:#5a4f6a;line-height:1.8;margin-bottom:4px;}
+  .pause-info{font-size:11px;font-weight:600;color:#c47a9a;margin-bottom:10px;}
+  .btn{width:100%;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s;margin-top:4px;}
+  .btn:active{opacity:.8;}
+  .btn-start{background:#332847;color:#F5EFE6;}
+  .btn-stop{background:#4db8a0;color:#fff;}
+  .btn-reset{background:transparent;color:#7B6A9B;border:1px solid #E8E3F0;margin-top:5px;}
+  .log-section{background:#fff;border:1px solid #E8E3F0;border-radius:14px;padding:1rem;}
+  .log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .log-title{font-size:13px;font-weight:600;color:#332847;}
+  .log-actions{display:flex;gap:6px;}
+  .small-btn{background:#F5EFE6;border:1px solid #E8E3F0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;color:#5a4f6a;}
+  .log-table{width:100%;border-collapse:collapse;font-size:11px;}
+  .log-table th{color:#7B6A9B;font-weight:600;text-align:left;padding:5px 6px;border-bottom:1px solid #E8E3F0;}
+  .log-table th.th-pause{color:#c47a9a;}
+  .log-table td{padding:5px 6px;border-bottom:1px solid #f3f0f9;color:#332847;}
+  .log-table td.td-pause{color:#c47a9a;font-weight:600;}
+  .log-empty{color:#b8a8d4;text-align:center;padding:1rem 0;font-size:12px;}
+  .total-row td{font-weight:700;color:#332847;border-top:1px solid #E8E3F0;border-bottom:none;}
+  @media(max-width:420px){
+    .time-display{font-size:1.3rem;}
+    .log-table{font-size:10px;}
+    .log-table th,.log-table td{padding:4px 3px;}
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Session Timer</h1>
+    <p class="subtitle">Yaya's Creative Studio · 拼豆工作台</p>
+  </div>
+  <div>
+    <div class="paris-time" id="pt">--:--:--</div>
+    <div class="pricing-info">1h · €8.90 · +30min · €3.00<br>Illimité · €25.00</div>
+  </div>
+</div>
+
+<div class="grid" id="cards"></div>
+
+<div class="log-section">
+  <div class="log-header">
+    <span class="log-title">Session log</span>
+    <div class="log-actions">
+      <button class="small-btn" onclick="clearLog()">Clear</button>
+      <button class="small-btn" onclick="printLog()">🖨 Print / Export</button>
+    </div>
+  </div>
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th>Pos.</th>
+        <th>Start</th>
+        <th>Last stop</th>
+        <th>Active</th>
+        <th class="th-pause">Break</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody id="lb"></tbody>
+  </table>
+</div>
+
+<script>
+const POS = ['A','B','C','D'];
+const ST = {};
+POS.forEach(p => {
+  ST[p] = { running: false, startMs: null, elapsed: 0, firstStart: '', firstStartMs: 0, lastEnd: '', lastEndMs: 0, logIdx: -1 };
+});
+const LOG = [];
+
+function pTime() {
+  return new Date().toLocaleString('fr-FR', {
+    timeZone: 'Europe/Paris',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+}
+
+function price(ms) {
+  const m = ms / 60000;
+  if (m < 0.017) return 0;
+  if (m <= 60) return 8.90;
+  return Math.min(8.90 + Math.ceil((m - 60) / 30) * 3, 25.00);
+}
+
+function fmt(ms) {
+  if (ms <= 0) return '—';
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sc = s % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(sc).padStart(2,'0')}s`;
+  return `${String(m).padStart(2,'0')}m ${String(sc).padStart(2,'0')}s`;
+}
+
+function pausedMs(s) {
+  if (!s.firstStartMs) return 0;
+  const wallEnd = s.running ? Date.now() : (s.lastEndMs || Date.now());
+  const active = s.running ? s.elapsed + (Date.now() - s.startMs) : s.elapsed;
+  return Math.max(0, wallEnd - s.firstStartMs - active);
+}
+
+function render() {
+  document.getElementById('cards').innerHTML = POS.map(p => {
+    const s = ST[p];
+    const el = s.running ? s.elapsed + (Date.now() - s.startMs) : s.elapsed;
+    const pr = price(el);
+    const paused = pausedMs(s);
+    const cardCls = s.running ? 'running' : s.elapsed > 0 ? 'done' : '';
+    const badgeCls = s.running ? 'badge-run' : s.elapsed > 0 ? 'badge-done' : 'badge-idle';
+    const badgeTxt = s.running ? '● Running' : s.elapsed > 0 ? 'Paused' : 'Idle';
+    const priceCls = s.running ? 'price-run' : s.elapsed > 0 ? 'price-done' : 'price-idle';
+    let tsHtml = '';
+    if (s.firstStart) tsHtml += `<div>Started: ${s.firstStart}</div>`;
+    if (!s.running && s.lastEnd) tsHtml += `<div>Stopped: ${s.lastEnd}</div>`;
+    const pauseHtml = paused > 1000 ? `<div class="pause-info">Break: ${fmt(paused)}</div>` : '';
+    return `<div class="card ${cardCls}">
+  <div class="card-header">
+    <span class="pos-label">Pos. ${p}</span>
+    <span class="badge ${badgeCls}">${badgeTxt}</span>
+  </div>
+  <div class="time-display">${fmt(el)}</div>
+  <div class="price-display ${priceCls}">€${pr.toFixed(2)}</div>
+  ${tsHtml ? `<div class="timestamps">${tsHtml}</div>` : ''}
+  ${pauseHtml}
+  <button class="btn ${s.running ? 'btn-stop' : 'btn-start'}" onclick="tog('${p}')">${s.running ? 'Stop' : s.elapsed > 0 ? 'Resume' : 'Start'}</button>
+  ${s.elapsed > 0 && !s.running ? `<button class="btn btn-reset" onclick="rst('${p}')">Reset</button>` : ''}
+</div>`;
+  }).join('');
+}
+
+function tog(p) {
+  const s = ST[p];
+  if (s.running) {
+    s.elapsed += Date.now() - s.startMs;
+    s.running = false;
+    s.lastEnd = pTime();
+    s.lastEndMs = Date.now();
+    s.startMs = null;
+    const paused = pausedMs(s);
+    if (s.logIdx === -1) {
+      LOG.unshift({ p, start: s.firstStart, end: s.lastEnd, ms: s.elapsed, pauseMs: paused });
+      s.logIdx = 0;
+    } else {
+      LOG[s.logIdx].end = s.lastEnd;
+      LOG[s.logIdx].ms = s.elapsed;
+      LOG[s.logIdx].pauseMs = paused;
+    }
+    renderLog();
+  } else {
+    if (s.elapsed === 0) {
+      s.firstStart = pTime();
+      s.firstStartMs = Date.now();
+      s.logIdx = -1;
+    }
+    s.startMs = Date.now();
+    s.running = true;
+  }
+  render();
+}
+
+function rst(p) {
+  ST[p] = { running: false, startMs: null, elapsed: 0, firstStart: '', firstStartMs: 0, lastEnd: '', lastEndMs: 0, logIdx: -1 };
+  render();
+}
+
+function renderLog() {
+  const b = document.getElementById('lb');
+  if (!LOG.length) {
+    b.innerHTML = `<tr><td colspan="6" class="log-empty">No sessions yet</td></tr>`;
+    return;
+  }
+  const rows = LOG.map(e => `<tr>
+    <td><strong>Pos. ${e.p}</strong></td>
+    <td>${e.start}</td>
+    <td>${e.end}</td>
+    <td>${fmt(e.ms)}</td>
+    <td class="td-pause">${fmt(e.pauseMs)}</td>
+    <td><strong>€${price(e.ms).toFixed(2)}</strong></td>
+  </tr>`).join('');
+  const total = LOG.reduce((sum, e) => sum + price(e.ms), 0);
+  b.innerHTML = rows + `<tr class="total-row"><td colspan="5">Total</td><td>€${total.toFixed(2)}</td></tr>`;
+}
+
+function clearLog() {
+  if (confirm('Clear all log entries?')) {
+    LOG.length = 0;
+    POS.forEach(p => { if (!ST[p].running) ST[p].logIdx = -1; });
+    renderLog();
+  }
+}
+
+function printLog() {
+  const total = LOG.reduce((s, e) => s + price(e.ms), 0);
+  const rows = LOG.map(e =>
+    `<tr><td>Position ${e.p}</td><td>${e.start}</td><td>${e.end}</td><td>${fmt(e.ms)}</td><td style="color:#c47a9a">${fmt(e.pauseMs)}</td><td>€${price(e.ms).toFixed(2)}</td></tr>`
+  ).join('');
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>YCS Session Log</title>
+<style>
+  body{font-family:sans-serif;padding:2rem;max-width:750px;margin:0 auto}
+  h2{color:#332847;font-size:1.2rem;margin-bottom:2px}
+  .sub{color:#888;font-size:12px;margin-bottom:1.5rem}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:7px 10px;border-bottom:1px solid #eee;text-align:left;font-size:12px}
+  th{color:#7B6A9B;background:#F5EFE6;font-weight:600}
+  .tot{margin-top:1.5rem;font-weight:700;color:#332847;text-align:right;font-size:14px}
+  @media print{body{padding:0}}
+</style></head><body>
+<h2>Yaya's Creative Studio — Session Log</h2>
+<p class="sub">Printed: ${pTime()}</p>
+<table>
+  <thead><tr><th>Position</th><th>Start</th><th>Last stop</th><th>Active</th><th>Break</th><th>Amount</th></tr></thead>
+  <tbody>${rows || '<tr><td colspan="6" style="color:#aaa">No entries</td></tr>'}</tbody>
+</table>
+<p class="tot">Total: €${total.toFixed(2)}</p>
+</body></html>`);
+  w.document.close();
+  w.print();
+}
+
+renderLog();
+render();
+setInterval(() => {
+  document.getElementById('pt').textContent = pTime();
+  if (POS.some(p => ST[p].running)) render();
+}, 1000);
+</script>
+</body>
+</html>
