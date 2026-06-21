@@ -19,7 +19,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
 
         .hero-root {
           font-family: 'Dosis', sans-serif;
-          background: #F5EFE6;
+          background: #FFFFFF;
           color: #2D2040;
           width: 100%;
         }
@@ -64,7 +64,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .hero-h1 {
-          font-family: 'Caveat', cursive;
+          font-family: 'Dosis', sans-serif;
           font-size: clamp(2.2rem, 5vw, 3.6rem);
           font-weight: 700;
           color: #452F60;
@@ -209,7 +209,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .section-h2 {
-          font-family: 'Caveat', cursive;
+          font-family: 'Dosis', sans-serif;
           font-size: clamp(1.5rem, 3vw, 2.1rem);
           font-weight: 700;
           color: #452F60;
@@ -268,7 +268,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         .step-icon { font-size: 30px; margin-bottom: 12px; margin-top: 6px; }
 
         .step-h3 {
-          font-family: 'Caveat', cursive;
+          font-family: 'Dosis', sans-serif;
           font-size: 1rem;
           font-weight: 700;
           color: #452F60;
@@ -313,7 +313,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .feature-h4 {
-          font-family: 'Caveat', cursive;
+          font-family: 'Dosis', sans-serif;
           font-size: 0.92rem;
           font-weight: 700;
           color: #452F60;
@@ -349,7 +349,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .cta-h2 {
-          font-family: 'Caveat', cursive;
+          font-family: 'Dosis', sans-serif;
           font-size: clamp(1.4rem, 3vw, 1.9rem);
           color: white;
           margin-bottom: 10px;
@@ -364,7 +364,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
         }
 
         .btn-cta {
-          background: #F5EFE6;
+          background: #FFFFFF;
           color: #452F60;
           border: none;
           border-radius: 99px;
@@ -485,7 +485,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             position: 'relative',
           }}>{t('hero.freeDownloads')}</p>
           <h2 style={{
-            fontFamily: "'Caveat', cursive",
+            fontFamily: "'Dosis', sans-serif",
             fontSize: 'clamp(1.4rem, 3vw, 2rem)',
             color: 'white',
             marginBottom: '12px',
@@ -509,7 +509,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              background: '#F5EFE6',
+              background: '#FFFFFF',
               color: '#452F60',
               borderRadius: '99px',
               padding: '14px 32px',

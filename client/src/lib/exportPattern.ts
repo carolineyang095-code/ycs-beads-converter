@@ -156,30 +156,30 @@ export function exportFullPatternPNG(
         const totalTextHeight = 48 + 25 + 42; // subtitle + gap + link
         let textY = currentY + (logoHeight - totalTextHeight) / 2;
         
-        ctx.font = '500 48px "Inter", sans-serif';
+        ctx.font = '500 48px "Dosis", sans-serif';
         ctx.fillStyle = '#7B6A9B';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText("Turn Any Image into a Custom Bead Pattern", textStartX, textY);
         textY += 73; // 48 + 25 gap
 
-        ctx.font = '400 42px "Inter", sans-serif';
+        ctx.font = '400 42px "Dosis", sans-serif';
         ctx.fillStyle = '#7B6A9B';
         ctx.fillText("https://tools.yayascreativestudio.com/", textStartX, textY);
       } else {
         ctx.fillStyle = '#452F60';
-        ctx.font = 'bold 84px "Inter", sans-serif';
+        ctx.font = 'bold 84px "Dosis", sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText("Yaya's Creative Studio", 40, currentY);
         currentY += 120;
         
-        ctx.font = '500 48px "Inter", sans-serif';
+        ctx.font = '500 48px "Dosis", sans-serif';
         ctx.fillStyle = '#7B6A9B';
         ctx.fillText("Turn Any Image into a Custom Bead Pattern · 221 Artkal Colors · One-Click Bead Order", 40, currentY);
         currentY += 70;
 
-        ctx.font = '400 42px "Inter", sans-serif';
+        ctx.font = '400 42px "Dosis", sans-serif';
         ctx.fillStyle = '#7B6A9B';
         ctx.fillText("https://tools.yayascreativestudio.com/", 40, currentY);
       }
@@ -187,7 +187,7 @@ export function exportFullPatternPNG(
       const totalBeads = Array.from(colorStats.values()).reduce((a, b) => a + b, 0);
       const totalColors = colorStats.size;
 
-      ctx.font = 'bold 48px "Inter", sans-serif';
+      ctx.font = 'bold 48px "Dosis", sans-serif';
       ctx.textAlign = 'right';
       ctx.fillStyle = '#7B6A9B';
       ctx.fillText(
@@ -321,7 +321,7 @@ export function exportFullPatternPNG(
         ctx.lineTo(totalWidth - 40, legendStartY - 40);
         ctx.stroke();
 
-        ctx.font = 'bold 48px "Inter", sans-serif';
+        ctx.font = 'bold 48px "Dosis", sans-serif';
         ctx.fillStyle = '#452F60';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
@@ -368,7 +368,7 @@ export function exportFullPatternPNG(
         }
 
         ctx.fillStyle = '#7B6A9B';
-        ctx.font = 'bold 40px "Inter", sans-serif';
+        ctx.font = 'bold 40px "Dosis", sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(
           `Total: ${totalBeads.toLocaleString()} beads`,
