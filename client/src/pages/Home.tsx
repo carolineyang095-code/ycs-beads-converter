@@ -707,7 +707,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   );
 
   return (
-    <div className="h-screen flex flex-col bg-[#F5EFE6] overflow-hidden relative">
+    <div className="h-screen flex flex-col bg-[#FFFFFF] overflow-hidden relative">
       <input
         id="hero-file-input"
         ref={hiddenFileInputRef}
@@ -826,7 +826,7 @@ const SHOW_REMOVE_BACKGROUND = false;
       </header>
 
       {/* Info Banner */}
-      <div className="w-full bg-[#F5EFE6] text-[#332847] text-xs sm:text-sm text-center px-3 py-1 sm:px-4 sm:py-2 flex-shrink-0">
+      <div className="w-full bg-[#FFFFFF] text-[#332847] text-xs sm:text-sm text-center px-3 py-1 sm:px-4 sm:py-2 flex-shrink-0">
         {t('banner.info')}
       </div>
 
@@ -873,7 +873,7 @@ const SHOW_REMOVE_BACKGROUND = false;
                   <div className="w-5 h-5 rounded border border-gray-300" style={{ backgroundColor: selectedColor.hex }} />
                   <span className="text-xs font-medium">{selectedColor.code}</span>
                   {paletteOpen && (
-                    <div className="absolute top-full left-0 w-96 mt-2 bg-[#F5EFE6] border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
+                    <div className="absolute top-full left-0 w-96 mt-2 bg-[#FFFFFF] border border-border rounded-lg shadow-xl z-50 p-3 max-h-[500px] overflow-y-auto">
                       <PalettePopupContent />
                     </div>
                   )}
@@ -907,9 +907,9 @@ const SHOW_REMOVE_BACKGROUND = false;
           )}
 
           {/* Canvas */}
-          <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#F5EFE6]">
+          <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#FFFFFF]">
             {isProcessing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#F5EFE6]/60 z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-[#FFFFFF]/60 z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" />Processing...</div>
               </div>
             )}
