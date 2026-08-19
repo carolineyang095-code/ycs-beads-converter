@@ -64,7 +64,7 @@
   </div>
   <div>
     <div class="paris-time" id="pt">--:--:--</div>
-    <div class="pricing-info">1h · €8.90 · +30min · €3.00<br>Illimité · €25.00</div>
+    <div class="pricing-info">1h · €8.90 · +30min · €3.00</div>
   </div>
 </div>
 
@@ -112,7 +112,7 @@ function price(ms) {
   const m = ms / 60000;
   if (m < 0.017) return 0;
   if (m <= 60) return 8.90;
-  return Math.min(8.90 + Math.ceil((m - 60) / 30) * 3, 25.00);
+  return 8.90 + Math.ceil((m - 60) / 30) * 3;
 }
 
 function fmt(ms) {
