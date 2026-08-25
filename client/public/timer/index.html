@@ -22,6 +22,8 @@
   .badge-idle{background:#E8E3F0;color:#7B6A9B;}
   .badge-run{background:#e1f5ee;color:#0a6b4e;}
   .badge-done{background:#f3f0f9;color:#5a4f6a;}
+  .client-input{width:100%;padding:6px 8px;border:1px solid #E8E3F0;border-radius:6px;font-family:'Dosis',sans-serif;font-size:12px;color:#332847;margin-bottom:6px;background:#F5EFE6;}
+  .client-input::placeholder{color:#b8a8d4;}
   .time-display{font-size:1.6rem;font-weight:700;color:#332847;font-variant-numeric:tabular-nums;margin:6px 0 2px;}
   .price-display{font-size:1rem;font-weight:600;margin-bottom:5px;}
   .price-idle{color:#b8a8d4;}
@@ -64,7 +66,7 @@
   </div>
   <div>
     <div class="paris-time" id="pt">--:--:--</div>
-    <div class="pricing-info">1h · €8.90 · +30min · €3.00</div>
+    <div class="pricing-info">1h · €8.90 · +15min · €2.50</div>
   </div>
 </div>
 
@@ -82,6 +84,7 @@
     <thead>
       <tr>
         <th>Pos.</th>
+        <th>Client</th>
         <th>Start</th>
         <th>Last stop</th>
         <th>Active</th>
@@ -97,9 +100,13 @@
 const POS = ['A','B','C','D'];
 const ST = {};
 POS.forEach(p => {
-  ST[p] = { running: false, startMs: null, elapsed: 0, firstStart: '', firstStartMs: 0, lastEnd: '', lastEndMs: 0, logIdx: -1 };
+  ST[p] = { running: false, startMs: null, elapsed: 0, firstStart: '', firstStartMs: 0, lastEnd: '', lastEndMs: 0, logIdx: -1, clientName: '' };
 });
 const LOG = [];
+
+function esc(str) {
+  return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 function pTime() {
   return new Date().toLocaleString('fr-FR', {
@@ -112,7 +119,7 @@ function price(ms) {
   const m = ms / 60000;
   if (m < 0.017) return 0;
   if (m <= 60) return 8.90;
-  return 8.90 + Math.ceil((m - 60) / 30) * 3;
+  return 8.90 + Math.floor((m - 60) / 15) * 2.50;
 }
 
 function fmt(ms) {
@@ -130,6 +137,10 @@ function pausedMs(s) {
   const wallEnd = s.running ? Date.now() : (s.lastEndMs || Date.now());
   const active = s.running ? s.elapsed + (Date.now() - s.startMs) : s.elapsed;
   return Math.max(0, wallEnd - s.firstStartMs - active);
+}
+
+function setClient(p, val) {
+  ST[p].clientName = val;
 }
 
 function render() {
@@ -151,14 +162,27 @@ function render() {
     <span class="pos-label">Pos. ${p}</span>
     <span class="badge ${badgeCls}">${badgeTxt}</span>
   </div>
-  <div class="time-display">${fmt(el)}</div>
-  <div class="price-display ${priceCls}">€${pr.toFixed(2)}</div>
+  <input class="client-input" type="text" placeholder="Client name" value="${esc(s.clientName)}" oninput="setClient('${p}', this.value)">
+  <div class="time-display" id="time-${p}">${fmt(el)}</div>
+  <div class="price-display ${priceCls}" id="price-${p}">€${pr.toFixed(2)}</div>
   ${tsHtml ? `<div class="timestamps">${tsHtml}</div>` : ''}
   ${pauseHtml}
   <button class="btn ${s.running ? 'btn-stop' : 'btn-start'}" onclick="tog('${p}')">${s.running ? 'Stop' : s.elapsed > 0 ? 'Resume' : 'Start'}</button>
   ${s.elapsed > 0 && !s.running ? `<button class="btn btn-reset" onclick="rst('${p}')">Reset</button>` : ''}
 </div>`;
   }).join('');
+}
+
+function tick() {
+  POS.forEach(p => {
+    const s = ST[p];
+    if (!s.running) return;
+    const el = s.elapsed + (Date.now() - s.startMs);
+    const timeEl = document.getElementById(`time-${p}`);
+    const priceEl = document.getElementById(`price-${p}`);
+    if (timeEl) timeEl.textContent = fmt(el);
+    if (priceEl) priceEl.textContent = `€${price(el).toFixed(2)}`;
+  });
 }
 
 function tog(p) {
@@ -171,9 +195,10 @@ function tog(p) {
     s.startMs = null;
     const paused = pausedMs(s);
     if (s.logIdx === -1) {
-      LOG.unshift({ p, start: s.firstStart, end: s.lastEnd, ms: s.elapsed, pauseMs: paused });
+      LOG.unshift({ p, client: s.clientName, start: s.firstStart, end: s.lastEnd, ms: s.elapsed, pauseMs: paused });
       s.logIdx = 0;
     } else {
+      LOG[s.logIdx].client = s.clientName;
       LOG[s.logIdx].end = s.lastEnd;
       LOG[s.logIdx].ms = s.elapsed;
       LOG[s.logIdx].pauseMs = paused;
@@ -192,18 +217,20 @@ function tog(p) {
 }
 
 function rst(p) {
-  ST[p] = { running: false, startMs: null, elapsed: 0, firstStart: '', firstStartMs: 0, lastEnd: '', lastEndMs: 0, logIdx: -1 };
+  const clientName = ST[p].clientName;
+  ST[p] = { running: false, startMs: null, elapsed: 0, firstStart: '', firstStartMs: 0, lastEnd: '', lastEndMs: 0, logIdx: -1, clientName };
   render();
 }
 
 function renderLog() {
   const b = document.getElementById('lb');
   if (!LOG.length) {
-    b.innerHTML = `<tr><td colspan="6" class="log-empty">No sessions yet</td></tr>`;
+    b.innerHTML = `<tr><td colspan="7" class="log-empty">No sessions yet</td></tr>`;
     return;
   }
   const rows = LOG.map(e => `<tr>
     <td><strong>Pos. ${e.p}</strong></td>
+    <td>${esc(e.client)}</td>
     <td>${e.start}</td>
     <td>${e.end}</td>
     <td>${fmt(e.ms)}</td>
@@ -211,7 +238,7 @@ function renderLog() {
     <td><strong>€${price(e.ms).toFixed(2)}</strong></td>
   </tr>`).join('');
   const total = LOG.reduce((sum, e) => sum + price(e.ms), 0);
-  b.innerHTML = rows + `<tr class="total-row"><td colspan="5">Total</td><td>€${total.toFixed(2)}</td></tr>`;
+  b.innerHTML = rows + `<tr class="total-row"><td colspan="6">Total</td><td>€${total.toFixed(2)}</td></tr>`;
 }
 
 function clearLog() {
@@ -225,7 +252,7 @@ function clearLog() {
 function printLog() {
   const total = LOG.reduce((s, e) => s + price(e.ms), 0);
   const rows = LOG.map(e =>
-    `<tr><td>Position ${e.p}</td><td>${e.start}</td><td>${e.end}</td><td>${fmt(e.ms)}</td><td style="color:#c47a9a">${fmt(e.pauseMs)}</td><td>€${price(e.ms).toFixed(2)}</td></tr>`
+    `<tr><td>Position ${e.p}</td><td>${esc(e.client)}</td><td>${e.start}</td><td>${e.end}</td><td>${fmt(e.ms)}</td><td style="color:#c47a9a">${fmt(e.pauseMs)}</td><td>€${price(e.ms).toFixed(2)}</td></tr>`
   ).join('');
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>YCS Session Log</title>
@@ -242,8 +269,8 @@ function printLog() {
 <h2>Yaya's Creative Studio — Session Log</h2>
 <p class="sub">Printed: ${pTime()}</p>
 <table>
-  <thead><tr><th>Position</th><th>Start</th><th>Last stop</th><th>Active</th><th>Break</th><th>Amount</th></tr></thead>
-  <tbody>${rows || '<tr><td colspan="6" style="color:#aaa">No entries</td></tr>'}</tbody>
+  <thead><tr><th>Position</th><th>Client</th><th>Start</th><th>Last stop</th><th>Active</th><th>Break</th><th>Amount</th></tr></thead>
+  <tbody>${rows || '<tr><td colspan="7" style="color:#aaa">No entries</td></tr>'}</tbody>
 </table>
 <p class="tot">Total: €${total.toFixed(2)}</p>
 </body></html>`);
@@ -255,7 +282,7 @@ renderLog();
 render();
 setInterval(() => {
   document.getElementById('pt').textContent = pTime();
-  if (POS.some(p => ST[p].running)) render();
+  if (POS.some(p => ST[p].running)) tick();
 }, 1000);
 </script>
 </body>
