@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservation atelier — Yaya's Creative Studio</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Dosis',sans-serif;background:#FFFFFF;min-height:100vh;padding:1.5rem 1rem;color:#332847;}
+  h1{font-size:1.4rem;font-weight:700;color:#332847;margin-bottom:2px;}
+  .subtitle{font-size:12px;color:#7B6A9B;margin-bottom:1.25rem;}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;}
+  .paris-time{font-size:14px;font-weight:600;color:#332847;}
+  .mode-tag{font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px;background:#E8E3F0;color:#7B6A9B;}
+  .mode-tag.admin{background:#332847;color:#F5EFE6;}
+
+  /* mode switch: hourly vs full day */
+  .modeswitch{display:flex;gap:8px;margin-bottom:1rem;}
+  .modeswitch button{flex:1;padding:10px 8px;border:1px solid #E8E3F0;border-radius:10px;background:#fff;font-family:'Dosis',sans-serif;font-size:13px;font-weight:600;color:#5a4f6a;cursor:pointer;transition:all .15s;}
+  .modeswitch button.active{background:#332847;color:#F5EFE6;border-color:#332847;}
+  .modeswitch button:active{opacity:.85;}
+  .modeswitch .em{display:block;font-size:16px;margin-bottom:2px;}
+
+  .date-bar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+  .date-btn{background:#FFFFFF;border:1px solid #E8E3F0;border-radius:8px;padding:6px 12px;font-family:'Dosis',sans-serif;font-size:13px;font-weight:600;color:#5a4f6a;cursor:pointer;}
+  .date-btn:active{opacity:.8;}
+  .date-input{border:1px solid #E8E3F0;border-radius:8px;padding:6px 10px;font-family:'Dosis',sans-serif;font-size:13px;color:#332847;background:#F5EFE6;}
+  .summary{font-size:12px;color:#7B6A9B;margin-left:auto;font-weight:600;}
+
+  .status-msg{font-size:12px;color:#c47a9a;font-weight:600;margin-bottom:10px;min-height:16px;}
+
+  .board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:1rem;}
+  table.board{border-collapse:separate;border-spacing:6px;margin:0 auto;min-width:340px;}
+  table.board th{font-size:12px;font-weight:700;color:#7B6A9B;padding:4px 6px;text-align:center;}
+  table.board th.corner{color:#b8a8d4;}
+  .time-label{font-size:12px;font-weight:600;color:#5a4f6a;text-align:right;padding-right:8px;white-space:nowrap;}
+  .cell{border-radius:10px;text-align:center;padding:12px 6px;min-width:66px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .12s;user-select:none;}
+  .cell:active{transform:scale(.96);}
+  .cell-free{background:#e1f5ee;color:#0a6b4e;border-color:#b6e3d5;}
+  .cell-free:hover{box-shadow:0 0 0 2px rgba(77,184,160,.25);}
+  .cell-booked{background:#f3f0f9;color:#5a4f6a;border-color:#ddd2e6;cursor:default;}
+  .cell-live{background:#332847;color:#F5EFE6;border-color:#332847;cursor:default;}
+  .cell-pending{background:#fbeef4;color:#c47a9a;border-color:#f0d4e2;}
+  .cell .sub{display:block;font-size:9px;font-weight:600;opacity:.8;margin-top:2px;}
+
+  /* full-day poste chooser */
+  .day-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem;}
+  .day-poste{border:1px solid #E8E3F0;border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:transform .12s,box-shadow .12s;background:#fff;}
+  .day-poste:active{transform:scale(.97);}
+  .day-poste.free{background:#e1f5ee;border-color:#b6e3d5;}
+  .day-poste.free:hover{box-shadow:0 0 0 2px rgba(77,184,160,.25);}
+  .day-poste.taken{background:#f3f0f9;border-color:#ddd2e6;cursor:default;opacity:.85;}
+  .day-poste .pn{font-size:1.1rem;font-weight:700;color:#332847;}
+  .day-poste .ps{font-size:11px;font-weight:600;margin-top:4px;}
+  .day-poste.free .ps{color:#0a6b4e;}
+  .day-poste.taken .ps{color:#7B6A9B;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;font-size:11px;color:#5a4f6a;margin-bottom:1.25rem;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .sw{width:14px;height:14px;border-radius:4px;display:inline-block;}
+
+  .card{background:#fff;border:1px solid #E8E3F0;border-radius:14px;padding:1rem;margin-bottom:1rem;}
+  .card h2{font-size:14px;font-weight:700;color:#332847;margin-bottom:10px;}
+  .live-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  .live-item{border:1px solid #E8E3F0;border-radius:10px;padding:8px 10px;font-size:12px;}
+  .live-item.busy{border-color:#4db8a0;background:#f4fbf8;}
+  .live-item .p{font-weight:700;color:#332847;}
+  .live-item .st{font-size:11px;color:#7B6A9B;}
+  .live-item.busy .st{color:#0a6b4e;font-weight:600;}
+
+  .admin-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .abtn{background:#FFFFFF;border:1px solid #E8E3F0;border-radius:8px;padding:6px 12px;font-family:'Dosis',sans-serif;font-size:12px;font-weight:600;color:#5a4f6a;cursor:pointer;}
+  .abtn.primary{background:#332847;color:#F5EFE6;border-color:#332847;}
+  .abtn.teal{background:#4db8a0;color:#fff;border-color:#4db8a0;}
+  .abtn:active{opacity:.8;}
+
+  .hint{font-size:11px;color:#b8a8d4;margin-top:6px;line-height:1.6;}
+
+  .overlay{position:fixed;inset:0;background:rgba(51,40,71,.4);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:16px;padding:1.25rem;max-width:340px;width:100%;}
+  .modal h3{font-size:15px;font-weight:700;color:#332847;margin-bottom:4px;}
+  .modal p{font-size:12px;color:#5a4f6a;margin-bottom:12px;line-height:1.6;}
+  .modal input,.modal select{width:100%;padding:8px 10px;border:1px solid #E8E3F0;border-radius:8px;font-family:'Dosis',sans-serif;font-size:13px;color:#332847;background:#F5EFE6;margin-bottom:10px;}
+  .modal-row{display:flex;gap:8px;}
+  .modal-row .abtn{flex:1;text-align:center;}
+
+  @media(max-width:420px){
+    .cell{min-width:56px;padding:10px 4px;font-size:11px;}
+    .live-grid{grid-template-columns:1fr;}
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Réservation atelier</h1>
+    <p class="subtitle">Yaya's Creative Studio · 拼豆工作台预约</p>
+  </div>
+  <div style="text-align:right;">
+    <div class="paris-time" id="pt">--:--:--</div>
+    <div class="mode-tag" id="modeTag">Vue client · 客户视图</div>
+  </div>
+</div>
+
+<!-- Hourly vs Full-day switch -->
+<div class="modeswitch">
+  <button id="tabHourly" class="active" onclick="setBookMode('hourly')">
+    <span class="em">🕐</span>À l'heure · 按小时
+  </button>
+  <button id="tabDay" onclick="setBookMode('day')">
+    <span class="em">☀️</span>Journée · 一整天
+  </button>
+</div>
+
+<div class="date-bar">
+  <button class="date-btn" onclick="shiftDay(-1)">←</button>
+  <input class="date-input" type="date" id="datePick" onchange="onDateChange()">
+  <button class="date-btn" onclick="shiftDay(1)">→</button>
+  <span class="summary" id="summary"></span>
+</div>
+
+<div class="status-msg" id="statusMsg"></div>
+
+<div id="closedBanner" style="display:none;background:#fbeef4;border:1px solid #f0d4e2;border-radius:12px;padding:14px 16px;margin-bottom:1rem;text-align:center;">
+  <div style="font-size:14px;font-weight:700;color:#c47a9a;">Atelier fermé · 工作室关店</div>
+  <div style="font-size:12px;color:#5a4f6a;margin-top:4px;">Nous sommes fermés le lundi et le mardi. Choisissez un autre jour. · 周一、周二关店，请选择其他日期。</div>
+</div>
+
+<!-- Hourly view -->
+<div id="hourlyView">
+  <div class="board-wrap">
+    <table class="board">
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="boardBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Full-day view -->
+<div id="dayView" style="display:none;">
+  <div class="day-grid" id="dayGrid"></div>
+</div>
+
+<div class="legend">
+  <span><i class="sw" style="background:#e1f5ee;border:1px solid #b6e3d5;"></i>Libre · 可约</span>
+  <span><i class="sw" style="background:#f3f0f9;border:1px solid #ddd2e6;"></i>Réservé · 已订</span>
+  <span><i class="sw" style="background:#332847;"></i>En cours · 进行中</span>
+  <span><i class="sw" style="background:#fbeef4;border:1px solid #f0d4e2;"></i>À confirmer · 待确认</span>
+</div>
+
+<!-- ADMIN-ONLY: live status panel -->
+<div class="card" id="livePanel" style="display:none;">
+  <h2>État en direct · 实时占用（来自 Timer）</h2>
+  <div class="live-grid" id="liveGrid"></div>
+  <div class="hint">这些状态由 Session Timer 自动更新：在 Timer 上 Start 一个工位，这里就会亮起「进行中」。</div>
+  <div class="admin-actions">
+    <a class="abtn teal" href="../timer/" target="_blank">Ouvrir le Timer · 打开 Timer →</a>
+    <button class="abtn" onclick="loadAll()">Rafraîchir · 刷新</button>
+  </div>
+</div>
+
+<!-- Booking modal (viewer) -->
+<div class="overlay" id="bookOverlay">
+  <div class="modal">
+    <h3 id="bookTitle">Réserver ce créneau · 预约</h3>
+    <p id="bookDesc"></p>
+    <p style="color:#7B6A9B;font-weight:600;">Acompte de réservation : 8,90 € · 预约金 8,90 €<br>Le reste se règle sur place. · 余款到店支付。</p>
+    <div class="modal-row">
+      <button class="abtn" onclick="closeBook()">Annuler · 取消</button>
+      <button class="abtn primary" onclick="goPay()">Payer l'acompte · 支付预约金 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin confirm modal -->
+<div class="overlay" id="adminOverlay">
+  <div class="modal">
+    <h3 id="adminTitle">Confirmer une réservation · 确认预约</h3>
+    <p id="adminDesc"></p>
+    <input type="text" id="adminClient" placeholder="Nom du client · 客户名">
+    <select id="adminType">
+      <option value="hourly">À l'heure · 按小时 (1h + 30min tampon)</option>
+      <option value="journee">Journée entière · 全天 (11h–19h)</option>
+    </select>
+    <div class="modal-row">
+      <button class="abtn" onclick="closeAdmin()">Annuler · 取消</button>
+      <button class="abtn primary" onclick="saveReservation()">Enregistrer · 保存</button>
+    </div>
+    <div id="adminExisting" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ===== CONFIG =====
+const SUPABASE_URL = 'https://rfhvvendmvfcfclsxjxb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5Oi8G_cclnJY-B6eBbhEbA__wayUDzk';
+const ADMIN_PASSWORD = 'Yaya2026!!';
+const PAY_URL = 'https://yayascreativestudio.com/products/reservation-atelier-perles-feutrage';
+
+const POS = ['A','B','C','D'];
+const OPEN = 11, CLOSE = 19;
+const HOURS = [];
+for (let h = OPEN; h < CLOSE; h++) HOURS.push(h);
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const params = new URLSearchParams(location.search);
+const IS_ADMIN = params.get('admin') === ADMIN_PASSWORD;
+
+let currentDate = todayStr();
+let reservations = [];
+let liveStatus = {};
+let pending = null;        // {poste, hour, type}
+let bookMode = 'hourly';   // 'hourly' | 'day'
+
+function todayStr(){
+  const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+  return d.toISOString().slice(0,10);
+}
+function isClosedDay(dateStr){
+  // getDay(): 0=Sun 1=Mon 2=Tue ... closed Mon & Tue
+  const d=new Date(dateStr+'T12:00:00');
+  const wd=d.getDay();
+  return wd===1 || wd===2;
+}
+function pTime(){
+  return new Date().toLocaleString('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function setStatus(msg,ok){const el=document.getElementById('statusMsg');el.textContent=msg||'';el.style.color=ok?'#0a6b4e':'#c47a9a';}
+
+// ===== DATA =====
+async function loadAll(){
+  await Promise.all([loadReservations(), loadLive()]);
+  render();
+}
+async function loadReservations(){
+  const {data,error} = await sb.from('reservations').select('*').eq('date',currentDate);
+  if(error){setStatus('Erreur de chargement · 加载失败');console.error(error);return;}
+  reservations = data||[];
+}
+async function loadLive(){
+  const {data,error} = await sb.from('live_status').select('*');
+  if(error){console.error(error);return;}
+  liveStatus = {};
+  (data||[]).forEach(r=>liveStatus[r.poste]=r);
+}
+
+// a full-day reservation exists on this poste?
+function dayResOn(poste){
+  return reservations.find(r=>r.poste===poste && r.type==='journee');
+}
+function resAt(poste,hour){
+  return reservations.find(r=>{
+    if(r.poste!==poste) return false;
+    if(r.type==='journee') return true;
+    return r.start_hour===hour;
+  });
+}
+function isBufferAt(poste,hour){
+  return reservations.some(r=>r.poste===poste && r.type==='hourly' && r.start_hour===hour-1);
+}
+
+// ===== MODE SWITCH =====
+function setBookMode(m){
+  bookMode=m;
+  document.getElementById('tabHourly').classList.toggle('active',m==='hourly');
+  document.getElementById('tabDay').classList.toggle('active',m==='day');
+  render();
+}
+
+// ===== RENDER =====
+function render(){
+  const closed = isClosedDay(currentDate);
+  document.getElementById('closedBanner').style.display = closed?'block':'none';
+  document.getElementById('hourlyView').style.display = (!closed && bookMode==='hourly')?'block':'none';
+  document.getElementById('dayView').style.display = (!closed && bookMode==='day')?'block':'none';
+  if(closed){
+    document.getElementById('summary').textContent='';
+    if(IS_ADMIN){
+      document.getElementById('livePanel').style.display='block';
+      document.getElementById('liveGrid').innerHTML = POS.map(p=>{
+        const l=liveStatus[p]||{};const busy=l.busy;
+        return `<div class="live-item ${busy?'busy':''}"><div class="p">Poste ${p} · 工作台${p}</div><div class="st">${busy?('● En cours'+(l.client_name?' · '+esc(l.client_name):'')):'○ Libre'}</div></div>`;
+      }).join('');
+    }
+    return;
+  }
+  if(bookMode==='hourly') renderHourly(); else renderDay();
+  const free = countFree();
+  document.getElementById('summary').textContent = bookMode==='hourly'
+    ? `${free} créneaux libres · 个可约`
+    : `${POS.filter(p=>!dayResOn(p)).length} postes libres · 个工位可约`;
+  if(IS_ADMIN){
+    document.getElementById('livePanel').style.display='block';
+    document.getElementById('liveGrid').innerHTML = POS.map(p=>{
+      const l = liveStatus[p]||{};
+      const busy = l.busy;
+      return `<div class="live-item ${busy?'busy':''}">
+        <div class="p">Poste ${p} · 工作台${p}</div>
+        <div class="st">${busy?('● En cours'+(l.client_name?' · '+esc(l.client_name):'')):'○ Libre'}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function renderHourly(){
+  document.getElementById('headRow').innerHTML =
+    '<th class="corner"></th>' + POS.map(p=>`<th>Poste ${p}<br><span style="font-size:10px;font-weight:600;color:#b8a8d4;">工作台${p}</span></th>`).join('');
+  document.getElementById('boardBody').innerHTML = HOURS.map(h=>{
+    const cells = POS.map(p=>cellHtml(p,h)).join('');
+    return `<tr><td class="time-label">${h}h</td>${cells}</tr>`;
+  }).join('');
+}
+
+function cellHtml(p,h){
+  const live = liveStatus[p];
+  const todayIsShown = currentDate===todayStr();
+  if(todayIsShown && live && live.busy){
+    const nowH = new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'})).getHours();
+    if(h===nowH){
+      return `<td><div class="cell cell-live">En cours · 进行中<span class="sub">${live.client_name?esc(live.client_name):'occupé'}</span></div></td>`;
+    }
+  }
+  const r = resAt(p,h);
+  if(r){
+    const cls = r.status==='pending'?'cell-pending':'cell-booked';
+    const label = r.status==='pending'?'À confirmer · 待确认':(r.type==='journee'?'Journée · 全天':'Réservé · 已订');
+    const sub = IS_ADMIN && r.client_name ? esc(r.client_name) : (r.type==='journee'?'journée':'');
+    const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : '';
+    return `<td><div class="cell ${cls}" ${click}>${label}${sub?`<span class="sub">${sub}</span>`:''}</div></td>`;
+  }
+  if(isBufferAt(p,h)){
+    const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : '';
+    return `<td><div class="cell cell-pending" ${click} style="opacity:.7;">Tampon · 缓冲<span class="sub">30 min</span></div></td>`;
+  }
+  const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : `onclick="openBook('${p}',${h},'hourly')"`;
+  return `<td><div class="cell cell-free" ${click}>Libre · 可约</div></td>`;
+}
+
+function renderDay(){
+  document.getElementById('dayGrid').innerHTML = POS.map(p=>{
+    const taken = dayResOn(p);
+    // a poste is unavailable for full-day if ANY reservation exists that day
+    const anyRes = reservations.some(r=>r.poste===p);
+    const busyLive = currentDate===todayStr() && liveStatus[p] && liveStatus[p].busy;
+    const blocked = anyRes || busyLive;
+    if(blocked){
+      const who = taken && IS_ADMIN && taken.client_name ? ' · '+esc(taken.client_name) : '';
+      const click = IS_ADMIN ? `onclick="adminEditDay('${p}')"` : '';
+      return `<div class="day-poste taken" ${click}>
+        <div class="pn">Poste ${p} · 工作台${p}</div>
+        <div class="ps">${taken?'Journée réservée · 全天已订':'Occupé ce jour · 当天已占'}${who}</div>
+      </div>`;
+    }
+    const click = IS_ADMIN ? `onclick="adminEditDay('${p}')"` : `onclick="openBook('${p}',${OPEN},'journee')"`;
+    return `<div class="day-poste free" ${click}>
+      <div class="pn">Poste ${p} · 工作台${p}</div>
+      <div class="ps">Libre toute la journée · 全天可约</div>
+    </div>`;
+  }).join('');
+}
+
+function countFree(){
+  let n=0;
+  HOURS.forEach(h=>POS.forEach(p=>{
+    if(!resAt(p,h) && !isBufferAt(p,h)) n++;
+  }));
+  return n;
+}
+
+// ===== VIEWER: book =====
+function openBook(p,h,type){
+  pending={poste:p,hour:h,type:type};
+  if(type==='journee'){
+    document.getElementById('bookTitle').textContent=`Poste ${p} · 工作台${p} · Journée entière · 全天`;
+    document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, de 11h à 19h. · ${frDate(currentDate)}，11h 至 19h。`;
+  } else {
+    document.getElementById('bookTitle').textContent=`Poste ${p} · 工作台${p} · ${h}h`;
+    document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, à partir de ${h}h. · ${frDate(currentDate)}，${h}h 起。`;
+  }
+  document.getElementById('bookOverlay').classList.add('open');
+}
+function closeBook(){document.getElementById('bookOverlay').classList.remove('open');}
+function goPay(){ window.open(PAY_URL,'_blank'); closeBook();
+  setStatus('Après le paiement, votre créneau sera confirmé par Yaya. · 付款后由 Yaya 确认',true);
+}
+
+// ===== ADMIN =====
+function adminEditCell(p,h){
+  pending={poste:p,hour:h,type:'hourly'};
+  const existing = resAt(p,h);
+  document.getElementById('adminTitle').textContent=`Poste ${p} · 工作台${p} · ${h}h · ${frDate(currentDate)}`;
+  document.getElementById('adminDesc').textContent = existing?'Modifier ou libérer ce créneau. · 修改或释放此时段。':'Ajouter une réservation confirmée. · 添加已确认预约。';
+  document.getElementById('adminClient').value = existing?existing.client_name||'':'';
+  document.getElementById('adminType').value = existing?existing.type:'hourly';
+  const ex=document.getElementById('adminExisting');
+  ex.innerHTML = existing?`<button class="abtn" style="width:100%;color:#c47a9a;border-color:#f0d4e2;" onclick="deleteReservation(${existing.id})">Libérer ce créneau · 释放此时段</button>`:'';
+  document.getElementById('adminOverlay').classList.add('open');
+}
+function adminEditDay(p){
+  pending={poste:p,hour:OPEN,type:'journee'};
+  const existing = dayResOn(p) || reservations.find(r=>r.poste===p);
+  document.getElementById('adminTitle').textContent=`Poste ${p} · 工作台${p} · Journée · 全天 · ${frDate(currentDate)}`;
+  document.getElementById('adminDesc').textContent = existing?'Modifier ou libérer. · 修改或释放。':'Ajouter une réservation journée. · 添加全天预约。';
+  document.getElementById('adminClient').value = existing?existing.client_name||'':'';
+  document.getElementById('adminType').value = 'journee';
+  const ex=document.getElementById('adminExisting');
+  ex.innerHTML = existing?`<button class="abtn" style="width:100%;color:#c47a9a;border-color:#f0d4e2;" onclick="deleteReservation(${existing.id})">Libérer · 释放</button>`:'';
+  document.getElementById('adminOverlay').classList.add('open');
+}
+function closeAdmin(){document.getElementById('adminOverlay').classList.remove('open');}
+
+async function saveReservation(){
+  const client=document.getElementById('adminClient').value.trim();
+  const type=document.getElementById('adminType').value;
+  const existing = type==='journee' ? (dayResOn(pending.poste)||reservations.find(r=>r.poste===pending.poste)) : resAt(pending.poste,pending.hour);
+  setStatus('Enregistrement… · 保存中');
+  let error;
+  if(existing){
+    ({error}=await sb.from('reservations').update({client_name:client,type,status:'confirmed',start_hour:type==='journee'?OPEN:pending.hour}).eq('id',existing.id));
+  } else {
+    ({error}=await sb.from('reservations').insert({
+      date:currentDate,poste:pending.poste,start_hour:type==='journee'?OPEN:pending.hour,
+      type,status:'confirmed',client_name:client
+    }));
+  }
+  if(error){setStatus('Échec · 保存失败');console.error(error);return;}
+  closeAdmin(); setStatus('Enregistré · 已保存',true); await loadAll();
+}
+async function deleteReservation(id){
+  if(!confirm('Libérer ce créneau ? · 确定释放此时段？')) return;
+  const {error}=await sb.from('reservations').delete().eq('id',id);
+  if(error){setStatus('Échec · 释放失败');return;}
+  closeAdmin(); setStatus('Créneau libéré · 已释放',true); await loadAll();
+}
+
+// ===== date helpers =====
+function frDate(s){const[y,m,d]=s.split('-');return `${d}/${m}/${y}`;}
+function shiftDay(n){
+  const d=new Date(currentDate+'T12:00:00');d.setDate(d.getDate()+n);
+  const next=d.toISOString().slice(0,10);
+  if(!IS_ADMIN && next<todayStr()){ setStatus('Impossible de réserver dans le passé · 不能预约过去的日期'); return; }
+  currentDate=next;
+  document.getElementById('datePick').value=currentDate;
+  loadAll();
+}
+function onDateChange(){
+  const picked=document.getElementById('datePick').value||todayStr();
+  if(!IS_ADMIN && picked<todayStr()){
+    setStatus('Impossible de réserver dans le passé · 不能预约过去的日期');
+    document.getElementById('datePick').value=currentDate;
+    return;
+  }
+  currentDate=picked;
+  loadAll();
+}
+
+// ===== init =====
+if(IS_ADMIN){
+  document.getElementById('modeTag').textContent='Admin';
+  document.getElementById('modeTag').classList.add('admin');
+}
+if(!IS_ADMIN){ document.getElementById('datePick').min = todayStr(); }
+document.getElementById('datePick').value=currentDate;
+loadAll();
+setInterval(()=>{document.getElementById('pt').textContent=pTime();},1000);
+setInterval(()=>{ if(IS_ADMIN) loadLive().then(render); },20000);
+</script>
+</body>
+</html>

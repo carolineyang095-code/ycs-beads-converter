@@ -56,6 +56,7 @@
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -97,6 +98,18 @@
 </div>
 
 <script>
+const SUPABASE_URL = 'https://rfhvvendmvfcfclsxjxb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5Oi8G_cclnJY-B6eBbhEbA__wayUDzk';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function broadcastLive(poste, busy, clientName){
+  try{
+    await _sb.from('live_status').update({
+      busy: busy,
+      client_name: busy ? (clientName || null) : null,
+      started_at: busy ? new Date().toISOString() : null
+    }).eq('poste', poste);
+  }catch(e){ console.error('live_status update failed', e); }
+}
 const POS = ['A','B','C','D'];
 const ST = {};
 POS.forEach(p => {
@@ -190,6 +203,7 @@ function tog(p) {
   if (s.running) {
     s.elapsed += Date.now() - s.startMs;
     s.running = false;
+    broadcastLive(p, false);
     s.lastEnd = pTime();
     s.lastEndMs = Date.now();
     s.startMs = null;
@@ -212,6 +226,7 @@ function tog(p) {
     }
     s.startMs = Date.now();
     s.running = true;
+    broadcastLive(p, true, s.clientName);
   }
   render();
 }
