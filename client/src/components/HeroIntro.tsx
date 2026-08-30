@@ -588,6 +588,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
 
         {/* ══ SESSION TIMER TOOL ══ */}
         <section className="section" style={{ paddingBottom: '32px' }}>
+          {/* Entry card hidden from visitors — admin-only tool, still reachable directly via /timer/.
           <a href="/timer/" style={{ textDecoration: 'none' }}>
             <div className="feature-card" style={{ maxWidth: '480px', margin: '0 auto', cursor: 'pointer' }}>
               <div className="feature-icon-box">⏱</div>
@@ -597,6 +598,7 @@ export default function HeroIntro({ onUploadClick, shopUrl, fileInputId, onOpenP
               </div>
             </div>
           </a>
+          */}
           <a href="/needlefelting-pet-portrait/" style={{ textDecoration: 'none', marginTop: '10px', display: 'block' }}>
             <div className="feature-card" style={{ maxWidth: '480px', margin: '0 auto', cursor: 'pointer' }}>
               <div className="feature-icon-box">🐾</div>
