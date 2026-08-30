@@ -91,6 +91,20 @@
     .cell{min-width:56px;padding:10px 4px;font-size:11px;}
     .live-grid{grid-template-columns:1fr;}
   }
+
+  .studio-footer{margin-top:2rem;padding-top:1.5rem;border-top:1px solid #E8E3F0;}
+  .footer-blocks{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  .footer-block{flex:1 1 260px;background:#F5EFE6;border:1px solid #E8E3F0;border-radius:14px;padding:1rem 1.1rem;}
+  .footer-title{font-size:12px;font-weight:700;letter-spacing:.03em;color:#7B6A9B;text-transform:uppercase;margin-bottom:10px;}
+  .footer-block p{font-size:13px;color:#332847;line-height:1.6;margin-bottom:10px;}
+  .footer-block p:last-child{margin-bottom:0;}
+  .footer-block a{color:#4db8a0;text-decoration:underline;font-weight:600;}
+  .footer-zh{color:#5a4f6a;font-size:12px;}
+  .footer-note{margin-top:1.25rem;text-align:center;font-size:11px;color:#b8a8d4;}
+
+  @media(max-width:640px){
+    .footer-blocks{flex-direction:column;}
+  }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -194,6 +208,44 @@
     </div>
     <div id="adminExisting" style="margin-top:10px;"></div>
   </div>
+</div>
+
+<div class="studio-footer">
+  <div class="footer-blocks">
+    <div class="footer-block">
+      <div class="footer-title">NOUS RENDRE VISITE · 来工作室</div>
+      <p>
+        <strong>📍 Adresse · 地址</strong><br>
+        <a href="https://www.google.com/maps/search/?api=1&query=10+Rue+Francisco+Ferrer+93170+Bagnolet" target="_blank" rel="noopener">10 Rue Francisco Ferrer, 93170 Bagnolet</a>
+      </p>
+      <p>
+        <strong>🚇 Métro · 地铁</strong><br>
+        <a href="https://www.google.com/maps/search/?api=1&query=Gallieni+M%C3%A9tro+Bagnolet" target="_blank" rel="noopener">Gallieni (ligne 3) · 10 min à pied · 步行 10 分钟</a>
+      </p>
+      <p>
+        <strong>🕐 Horaires · 营业时间</strong><br>
+        Du jeudi au dimanche · 11h – 19h · 周四至周日
+      </p>
+    </div>
+
+    <div class="footer-block">
+      <div class="footer-title">TARIFS · 收费方式</div>
+      <p>
+        <strong>☀️ Pass Journée · 一整天 — 35 €</strong><br>
+        Perles à repasser, journée sans limite de temps ni de plaques. Matériel inclus.<br>
+        <span class="footer-zh">拼豆全天不限时长、不限拼豆板，材料全含。</span>
+      </p>
+      <p>
+        <strong>🕐 À l'heure · 按小时 — 8,90 €</strong><br>
+        1<sup>ʳᵉ</sup> heure 8,90 €, puis 5 € / 30 min.<br>
+        <span class="footer-zh">第 1 小时 8,90 €，之后每半小时 +5 €。</span>
+      </p>
+    </div>
+  </div>
+
+  <p class="footer-note">
+    Accessoires et thermocollage spécial en supplément (1<sup>ᵉʳ</sup> motif offert) · 配件及特殊烫另计，第一个图案免费
+  </p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
