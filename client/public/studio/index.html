@@ -38,6 +38,8 @@
   .cell:active{transform:scale(.96);}
   .cell-free{background:#e1f5ee;color:#0a6b4e;border-color:#b6e3d5;}
   .cell-free:hover{box-shadow:0 0 0 2px rgba(77,184,160,.25);}
+  .cell-free.past{opacity:.45;cursor:not-allowed;}
+  .cell-free.past:hover{box-shadow:none;}
   .cell-booked{background:#f3f0f9;color:#5a4f6a;border-color:#ddd2e6;cursor:default;}
   .cell-live{background:#332847;color:#F5EFE6;border-color:#332847;cursor:default;}
   .cell-pending{background:#fbeef4;color:#c47a9a;border-color:#f0d4e2;}
@@ -275,6 +277,27 @@ function isBufferAt(poste,hour){
   return false;
 }
 
+// a slot is "past" once its start hour has begun, based on Paris wall-clock time
+// (Intl.DateTimeFormat with timeZone:'Europe/Paris' handles DST automatically —
+// never derive this from new Date() / browser-local time, since the viewer's
+// browser may be in a different timezone)
+function parisNowParts(){
+  const fmt = new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Europe/Paris',
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',hourCycle:'h23'
+  });
+  const parts={};
+  fmt.formatToParts(new Date()).forEach(p=>{ if(p.type!=='literal') parts[p.type]=p.value; });
+  return { dateStr:`${parts.year}-${parts.month}-${parts.day}`, hour:parseInt(parts.hour,10) };
+}
+function isPastSlot(dateStr,hour){
+  const now = parisNowParts();
+  if(dateStr < now.dateStr) return true;
+  if(dateStr > now.dateStr) return false;
+  return hour <= now.hour;
+}
+
 // ===== MODE SWITCH =====
 function setBookMode(m){
   bookMode=m;
@@ -347,6 +370,9 @@ function cellHtml(p,h){
   if(isBufferAt(p,h)){
     const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : '';
     return `<td><div class="cell cell-booked" ${click}>Tampon · 缓冲<span class="sub">1h</span></div></td>`;
+  }
+  if(!IS_ADMIN && isPastSlot(currentDate,h)){
+    return `<td><div class="cell cell-free past">Libre · 可约</div></td>`;
   }
   const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : `onclick="openBook('${p}',${h},'hourly')"`;
   return `<td><div class="cell cell-free" ${click}>Libre · 可约</div></td>`;
