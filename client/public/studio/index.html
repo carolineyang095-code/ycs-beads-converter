@@ -183,7 +183,7 @@
     <p id="adminDesc"></p>
     <input type="text" id="adminClient" placeholder="Nom du client · 客户名">
     <select id="adminType">
-      <option value="hourly">À l'heure · 按小时 (1h + 30min tampon)</option>
+      <option value="hourly">À l'heure · 按小时 (1h + 1h tampon)</option>
       <option value="journee">Journée entière · 全天 (11h–19h)</option>
     </select>
     <div class="modal-row">
@@ -264,7 +264,15 @@ function resAt(poste,hour){
   });
 }
 function isBufferAt(poste,hour){
-  return reservations.some(r=>r.poste===poste && r.type==='hourly' && r.start_hour===hour-1);
+  const resBuffer = reservations.some(r=>r.poste===poste && r.type==='hourly' && r.start_hour===hour-1);
+  if(resBuffer) return true;
+  const todayIsShown = currentDate===todayStr();
+  const live = liveStatus[poste];
+  if(todayIsShown && live && live.busy){
+    const nowH = new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'})).getHours();
+    if(nowH===hour-1) return true;
+  }
+  return false;
 }
 
 // ===== MODE SWITCH =====
@@ -338,7 +346,7 @@ function cellHtml(p,h){
   }
   if(isBufferAt(p,h)){
     const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : '';
-    return `<td><div class="cell cell-pending" ${click} style="opacity:.7;">Tampon · 缓冲<span class="sub">30 min</span></div></td>`;
+    return `<td><div class="cell cell-booked" ${click}>Tampon · 缓冲<span class="sub">1h</span></div></td>`;
   }
   const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : `onclick="openBook('${p}',${h},'hourly')"`;
   return `<td><div class="cell cell-free" ${click}>Libre · 可约</div></td>`;
