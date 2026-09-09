@@ -171,5 +171,29 @@
     "beadBreakdown": "Répartition des perles par couleur",
     "colorBreakdown": "Détail des couleurs",
     "buyBeads": "Acheter les perles"
+  },
+  "import": {
+    "pageTitle": "Importer un modèle existant",
+    "subtitle": "Importez un modèle déjà réalisé et récupérez la liste des couleurs MARD.",
+    "step1Title": "Importez votre modèle",
+    "step2Title": "Définissez la grille",
+    "step3Title": "Vérifiez les couleurs",
+    "step4Title": "Résultat",
+    "dropzone": "Cliquez ou déposez une image ici (PNG ou JPG)",
+    "columns": "Colonnes",
+    "rows": "Lignes",
+    "gridHint": "Déplacez le cadre pour qu'il couvre uniquement la grille, sans les numéros de lignes ni la légende.",
+    "threshold": "Tolérance de regroupement des couleurs",
+    "analyze": "Analyser la grille",
+    "detectedColors": "Couleurs détectées",
+    "matchedTo": "Correspondance",
+    "cells": "Cases",
+    "markBackground": "Traiter comme vide",
+    "totalBeads": "Total de perles",
+    "totalColors": "Couleurs utilisées",
+    "confirm": "Valider et continuer",
+    "back": "Retour",
+    "qualityWarning": "Trop de couleurs détectées. Vérifiez le cadre de la grille ainsi que le nombre de lignes et de colonnes.",
+    "tip": "Les captures d'écran et les fichiers PNG d'origine donnent les meilleurs résultats. Un JPG très compressé peut brouiller les nuances proches."
   }
 }

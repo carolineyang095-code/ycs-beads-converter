@@ -171,5 +171,29 @@
     "beadBreakdown": "Bead Breakdown by Color",
     "colorBreakdown": "Color Breakdown",
     "buyBeads": "Buy Beads"
+  },
+  "import": {
+    "pageTitle": "Import an existing pattern",
+    "subtitle": "Upload a finished pattern chart and get the MARD colour list back.",
+    "step1Title": "Upload your pattern",
+    "step2Title": "Set the grid",
+    "step3Title": "Check the colours",
+    "step4Title": "Result",
+    "dropzone": "Click or drop an image here (PNG or JPG)",
+    "columns": "Columns",
+    "rows": "Rows",
+    "gridHint": "Move the frame so it covers only the grid, without the row numbers or the legend.",
+    "threshold": "Colour merge tolerance",
+    "analyze": "Analyse the grid",
+    "detectedColors": "Detected colours",
+    "matchedTo": "Matched to",
+    "cells": "Cells",
+    "markBackground": "Treat as empty",
+    "totalBeads": "Total beads",
+    "totalColors": "Colours used",
+    "confirm": "Confirm and continue",
+    "back": "Back",
+    "qualityWarning": "Too many colours detected. Check the grid frame and the number of rows and columns.",
+    "tip": "Screenshots and original PNG files give the best results. A heavily compressed JPG can confuse close shades."
   }
 }
