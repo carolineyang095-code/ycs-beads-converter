@@ -172,6 +172,11 @@
     "colorBreakdown": "Détail des couleurs",
     "buyBeads": "Acheter les perles"
   },
+  "uploadChoice": {
+    "title": "Comment souhaitez-vous commencer ?",
+    "photoOption": "Depuis une photo",
+    "patternOption": "Importer un modèle existant"
+  },
   "import": {
     "pageTitle": "Importer un modèle existant",
     "subtitle": "Importez un modèle déjà réalisé et récupérez la liste des couleurs MARD.",

@@ -19,6 +19,7 @@ import ImageUploadSection from '@/components/ImageUploadSection';
 import ShopifyIntegration from '@/components/ShopifyIntegration';
 import NoiseColorRemoval from '@/components/NoiseColorRemoval';
 import CropModal from '@/components/CropModal';
+import ImportPatternModal from '@/components/ImportPatternModal';
 import {
  loadImage, resizeImageToGrid, processImageToGrid, drawPixelGrid,
   exportGridAsPNG, exportStatsAsCSV, calculateGridDimensions,
@@ -86,6 +87,10 @@ const SHOW_REMOVE_BACKGROUND = false;
   // Crop state
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
+
+  // Pattern-import state (选「现成图纸」入口)
+  const [uploadChoiceOpen, setUploadChoiceOpen] = useState(false);
+  const [importPatternSrc, setImportPatternSrc] = useState<string | null>(null);
 
   // Track last uploaded file name for ImageUploadSection display
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
@@ -234,6 +239,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   const colorIndexRef = useRef<Map<string, ColorData>>(new Map());
   const processingTimeoutRef = useRef<number | null>(null);
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
   const paletteRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -337,9 +343,36 @@ const SHOW_REMOVE_BACKGROUND = false;
     }
   };
 
-  const handleCropCancel = () => { 
+  const handleCropCancel = () => {
     setCropImageSrc(null); setPendingCropFile(null);
     if (isMobile) setIsSidebarOpen(false);
+  };
+
+  const handleImportPatternFileSelect = (file: File) => {
+    setUploadedFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => setImportPatternSrc(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleImportConfirm = (result: ProcessedImage) => {
+    setImportPatternSrc(null);
+    if (isMobile) setIsSidebarOpen(false);
+
+    setProcessed(result);
+    setBaseProcessed(result);
+    setDims({ width: result.gridWidth, height: result.gridHeight });
+    setSourceImage(null);
+    setCanvasSource('manual');
+
+    setHistoryStack([]);
+    setExcludedCodes(new Set());
+    setHighlightCode(null);
+    setRemovedColors(new Map());
+
+    setGridSize(result.gridWidth);
+    setHasUnsavedChanges(true);
+    setError(null);
   };
 
   const handleRegenerateFromImage = () => {
@@ -409,6 +442,7 @@ const SHOW_REMOVE_BACKGROUND = false;
   };
 
   const handleExcludeColor = (code: string) => {
+    if (!sourceImage) return;
     const newExcluded = new Set(excludedCodes);
     if (newExcluded.has(code)) newExcluded.delete(code); else newExcluded.add(code);
     setExcludedCodes(newExcluded);
@@ -720,7 +754,59 @@ const SHOW_REMOVE_BACKGROUND = false;
           e.target.value = '';
         }}
       />
+      <input
+        ref={importFileInputRef}
+        type="file"
+        accept="image/png,image/jpeg"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleImportPatternFileSelect(file);
+          e.target.value = '';
+        }}
+      />
       {cropImageSrc && <CropModal imageSrc={cropImageSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
+      {importPatternSrc && (
+        <ImportPatternModal
+          imageSrc={importPatternSrc}
+          palette={palette}
+          onConfirm={handleImportConfirm}
+          onCancel={() => setImportPatternSrc(null)}
+        />
+      )}
+
+      {uploadChoiceOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setUploadChoiceOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[90vw] max-w-[440px] overflow-hidden">
+            <div className="px-6 pt-6 pb-4 text-center border-b border-gray-100">
+              <h3 className="text-lg font-bold text-[#452F60]">{t('uploadChoice.title')}</h3>
+            </div>
+            <div className="px-6 py-5 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  setUploadChoiceOpen(false);
+                  if (!processed) { setPaletteModalOpen(true); } else { hiddenFileInputRef.current?.click(); }
+                }}
+                className="flex-1 flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-[#7B6A9B]/50 text-center transition-all"
+              >
+                <span className="text-2xl">📸</span>
+                <span className="text-sm font-bold text-[#452F60]">{t('uploadChoice.photoOption')}</span>
+              </button>
+              <button
+                onClick={() => {
+                  setUploadChoiceOpen(false);
+                  importFileInputRef.current?.click();
+                }}
+                className="flex-1 flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-[#7B6A9B]/50 text-center transition-all"
+              >
+                <span className="text-2xl">🧩</span>
+                <span className="text-sm font-bold text-[#452F60]">{t('uploadChoice.patternOption')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isSidebarOpen && isMobile && (
         <div className="fixed inset-0 bg-black/20 z-40 lg:hidden transition-opacity duration-300" onClick={() => setIsSidebarOpen(false)} />
@@ -926,7 +1012,7 @@ const SHOW_REMOVE_BACKGROUND = false;
               />
             ) : (
               <HeroIntro
-                onUploadClick={() => setPaletteModalOpen(true)}
+                onUploadClick={() => setUploadChoiceOpen(true)}
                 shopUrl="https://yayascreativestudio.com/"
                 fileInputId={undefined}
                 onOpenProjects={() => {
@@ -965,13 +1051,7 @@ const SHOW_REMOVE_BACKGROUND = false;
             <div className="p-4 border-b border-border" data-upload-panel="1">
               <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> {t('sidebar.canvasSource')}</h3>
               <div className="space-y-2">
-                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => {
-                      if (!processed) {
-                        setPaletteModalOpen(true);
-                      } else {
-                        hiddenFileInputRef.current?.click();
-                      }
-                    }} fileName={uploadedFileName} />
+                <ImageUploadSection onImageUpload={handleImageUpload} isProcessing={isProcessing} onTrigger={() => setUploadChoiceOpen(true)} fileName={uploadedFileName} />
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={handleCreateCanvas} variant="outline" className="w-full text-[10px] h-8 gap-1.5 border-dashed" disabled={isProcessing}><Sparkles className="w-3 h-3" /> {t('sidebar.newCanvas')}</Button>
                   <Button onClick={handleRegenerateFromImage} variant="outline" className="w-full text-[10px] h-8 gap-1.5" disabled={isProcessing || !sourceImage}><RotateCcw className="w-3 h-3" /> {t('sidebar.resetToImage')}</Button>
