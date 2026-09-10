@@ -200,7 +200,7 @@
     <input type="text" id="adminClient" placeholder="Nom du client · 客户名">
     <select id="adminType">
       <option value="hourly">À l'heure · 按小时 (1h + 1h tampon)</option>
-      <option value="journee">Journée entière · 全天 (11h–19h)</option>
+      <option value="journee">Journée entière · 全天 (12h30–19h30)</option>
     </select>
     <div class="modal-row">
       <button class="abtn" onclick="closeAdmin()">Annuler · 取消</button>
@@ -224,7 +224,7 @@
       </p>
       <p>
         <strong>🕐 Horaires · 营业时间</strong><br>
-        Du mercredi au dimanche · 11h – 19h · 周三至周日
+        Du mercredi au dimanche · 12h30 – 19h30 · 周三至周日
       </p>
     </div>
 
@@ -244,7 +244,7 @@
   </div>
 
   <p class="footer-note">
-    Accessoires et thermocollage spécial en supplément (1<sup>ᵉʳ</sup> motif offert) · 配件及特殊烫另计，第一个图案免费
+    Thermocollage offert pour toutes vos créations. Accessoires en supplément. · 所有作品烫画免费，配件另计。
   </p>
 </div>
 
@@ -258,9 +258,13 @@ const SHOP_DOMAIN = 'https://yayascreativestudio.com';
 const ACOMPTE_VARIANT_ID = '58376070627702';  // 预约金 8,90€ 商品变体 ID
 
 const POS = ['A','B','C','D'];
-const OPEN = 11, CLOSE = 19;
+// Créneaux à la demi-heure : le créneau noté h commence à h heures 30 et dure 1 h.
+// OPEN = 12 -> premier créneau 12h30 ; CLOSE = 19 -> dernier créneau 18h30–19h30.
+// start_hour reste un entier en base (12 = 12h30, 13 = 13h30, ...).
+const OPEN = 12, CLOSE = 19;
 const HOURS = [];
 for (let h = OPEN; h < CLOSE; h++) HOURS.push(h);
+function slotLabel(h){ return h + 'h30'; }
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -323,7 +327,7 @@ function isBufferAt(poste,hour){
   const todayIsShown = currentDate===todayStr();
   const live = liveStatus[poste];
   if(todayIsShown && live && live.busy){
-    const nowH = new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'})).getHours();
+    const nowH = currentSlotHour();
     if(nowH===hour-1) return true;
   }
   return false;
@@ -337,17 +341,27 @@ function parisNowParts(){
   const fmt = new Intl.DateTimeFormat('en-CA',{
     timeZone:'Europe/Paris',
     year:'numeric',month:'2-digit',day:'2-digit',
-    hour:'2-digit',hourCycle:'h23'
+    hour:'2-digit',minute:'2-digit',hourCycle:'h23'
   });
   const parts={};
   fmt.formatToParts(new Date()).forEach(p=>{ if(p.type!=='literal') parts[p.type]=p.value; });
-  return { dateStr:`${parts.year}-${parts.month}-${parts.day}`, hour:parseInt(parts.hour,10) };
+  return {
+    dateStr:`${parts.year}-${parts.month}-${parts.day}`,
+    hour:parseInt(parts.hour,10),
+    minute:parseInt(parts.minute,10)
+  };
+}
+// créneau en cours à Paris (12 = 12h30–13h30) ; hors ouverture la valeur
+// tombe simplement en dehors de HOURS, donc aucune case ne correspond.
+function currentSlotHour(){
+  const now = parisNowParts();
+  return Math.floor((now.hour*60 + now.minute - 30)/60);
 }
 function isPastSlot(dateStr,hour){
   const now = parisNowParts();
   if(dateStr < now.dateStr) return true;
   if(dateStr > now.dateStr) return false;
-  return hour <= now.hour;
+  return (hour*60 + 30) <= (now.hour*60 + now.minute);
 }
 
 // ===== MODE SWITCH =====
@@ -398,7 +412,7 @@ function renderHourly(){
     '<th class="corner"></th>' + POS.map(p=>`<th>Poste ${p}<br><span style="font-size:10px;font-weight:600;color:#b8a8d4;">工作台${p}</span></th>`).join('');
   document.getElementById('boardBody').innerHTML = HOURS.map(h=>{
     const cells = POS.map(p=>cellHtml(p,h)).join('');
-    return `<tr><td class="time-label">${h}h</td>${cells}</tr>`;
+    return `<tr><td class="time-label">${slotLabel(h)}</td>${cells}</tr>`;
   }).join('');
 }
 
@@ -406,7 +420,7 @@ function cellHtml(p,h){
   const live = liveStatus[p];
   const todayIsShown = currentDate===todayStr();
   if(todayIsShown && live && live.busy){
-    const nowH = new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'})).getHours();
+    const nowH = currentSlotHour();
     if(h===nowH){
       return `<td><div class="cell cell-live">En cours · 进行中<span class="sub">${live.client_name?esc(live.client_name):'occupé'}</span></div></td>`;
     }
@@ -466,10 +480,10 @@ function openBook(p,h,type){
   pending={poste:p,hour:h,type:type};
   if(type==='journee'){
     document.getElementById('bookTitle').textContent=`Poste ${p} · 工作台${p} · Journée entière · 全天`;
-    document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, de 11h à 19h. · ${frDate(currentDate)}，11h 至 19h。`;
+    document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, de 12h30 à 19h30. · ${frDate(currentDate)}，12h30 至 19h30。`;
   } else {
-    document.getElementById('bookTitle').textContent=`Poste ${p} · 工作台${p} · ${h}h`;
-    document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, à partir de ${h}h. · ${frDate(currentDate)}，${h}h 起。`;
+    document.getElementById('bookTitle').textContent=`Poste ${p} · 工作台${p} · ${slotLabel(h)}`;
+    document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, à partir de ${slotLabel(h)}. · ${frDate(currentDate)}，${slotLabel(h)} 起。`;
   }
   document.getElementById('bookOverlay').classList.add('open');
 }
@@ -478,7 +492,7 @@ function goPay(){
   if(!pending){ closeBook(); return; }
   const p = pending.poste;
   const typeLabel = pending.type==='journee' ? 'Journée · 全天' : 'À l\'heure · 按小时';
-  const heure = pending.type==='journee' ? '11h–19h' : (pending.hour + 'h');
+  const heure = pending.type==='journee' ? '12h30–19h30' : slotLabel(pending.hour);
   const url = SHOP_DOMAIN + '/cart/add'
     + '?id=' + ACOMPTE_VARIANT_ID
     + '&properties[Poste]=' + encodeURIComponent(p)
@@ -493,7 +507,7 @@ function goPay(){
 function adminEditCell(p,h){
   pending={poste:p,hour:h,type:'hourly'};
   const existing = resAt(p,h);
-  document.getElementById('adminTitle').textContent=`Poste ${p} · 工作台${p} · ${h}h · ${frDate(currentDate)}`;
+  document.getElementById('adminTitle').textContent=`Poste ${p} · 工作台${p} · ${slotLabel(h)} · ${frDate(currentDate)}`;
   document.getElementById('adminDesc').textContent = existing?'Modifier ou libérer ce créneau. · 修改或释放此时段。':'Ajouter une réservation confirmée. · 添加已确认预约。';
   document.getElementById('adminClient').value = existing?existing.client_name||'':'';
   document.getElementById('adminType').value = existing?existing.type:'hourly';
