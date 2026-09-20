@@ -185,6 +185,20 @@
     <h3 id="bookTitle">Réserver ce créneau · 预约</h3>
     <p id="bookDesc"></p>
     <p style="color:#7B6A9B;font-weight:600;">Acompte de réservation : 8,90 € · 预约金 8,90 €<br>Le reste se règle sur place. · 余款到店支付。</p>
+    <p style="margin:14px 0 6px;color:#332847;font-weight:600;">
+      Que venez-vous faire ? · 今天来做什么？
+    </p>
+    <div class="modeswitch" style="margin-bottom:6px;">
+      <button id="actBeads" onclick="setActivite('beads')">
+        <span class="em">🔵</span>Perles · 拼豆
+      </button>
+      <button id="actFelt" onclick="setActivite('felting')">
+        <span class="em">🟢</span>Laine · 羊毛毡
+      </button>
+    </div>
+    <p id="actError" style="display:none;margin:8px 0 0;color:#c47a9a;font-weight:600;font-size:14px;">
+      Choisissez une activité · 请先选择手工类型
+    </p>
     <div class="modal-row">
       <button class="abtn" onclick="closeBook()">Annuler · 取消</button>
       <button class="abtn primary" onclick="goPay()">Payer l'acompte · 支付预约金 →</button>
@@ -477,7 +491,10 @@ function countFree(){
 
 // ===== VIEWER: book =====
 function openBook(p,h,type){
-  pending={poste:p,hour:h,type:type};
+  pending={poste:p,hour:h,type:type,activite:null};
+  document.getElementById('actBeads').classList.remove('active');
+  document.getElementById('actFelt').classList.remove('active');
+  document.getElementById('actError').style.display = 'none';
   if(type==='journee'){
     document.getElementById('bookTitle').textContent=`Poste ${p} · 工作台${p} · Journée entière · 全天`;
     document.getElementById('bookDesc').textContent=`Le ${frDate(currentDate)}, de 12h30 à 19h30. · ${frDate(currentDate)}，12h30 至 19h30。`;
@@ -487,18 +504,33 @@ function openBook(p,h,type){
   }
   document.getElementById('bookOverlay').classList.add('open');
 }
+function setActivite(v){
+  if(!pending) return;
+  pending.activite = v;
+  document.getElementById('actBeads').classList.toggle('active', v==='beads');
+  document.getElementById('actFelt').classList.toggle('active', v==='felting');
+  document.getElementById('actError').style.display = 'none';
+}
 function closeBook(){document.getElementById('bookOverlay').classList.remove('open');}
 function goPay(){
   if(!pending){ closeBook(); return; }
+  if(!pending.activite){
+    document.getElementById('actError').style.display = 'block';
+    return;
+  }
   const p = pending.poste;
   const typeLabel = pending.type==='journee' ? 'Journée · 全天' : 'À l\'heure · 按小时';
   const heure = pending.type==='journee' ? '12h30–19h30' : slotLabel(pending.hour);
+  const activiteLabel = pending.activite==='felting'
+    ? 'Feutrage à l\'aiguille · 羊毛毡'
+    : 'Perles à repasser · 拼豆';
   const url = SHOP_DOMAIN + '/cart/add'
     + '?id=' + ACOMPTE_VARIANT_ID
     + '&properties[Poste]=' + encodeURIComponent(p)
     + '&properties[Date]=' + encodeURIComponent(currentDate)
     + '&properties[Heure]=' + encodeURIComponent(heure)
-    + '&properties[Type]=' + encodeURIComponent(typeLabel);
+    + '&properties[Type]=' + encodeURIComponent(typeLabel)
+    + '&properties[' + encodeURIComponent('Activité') + ']=' + encodeURIComponent(activiteLabel);
   window.open(url,'_blank'); closeBook();
   setStatus('Après le paiement, votre créneau sera confirmé par Yaya. · 付款后由 Yaya 确认',true);
 }
