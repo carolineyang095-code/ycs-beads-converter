@@ -172,6 +172,11 @@
     "colorBreakdown": "Color Breakdown",
     "buyBeads": "Buy Beads"
   },
+  "uploadChoice": {
+    "title": "How would you like to start?",
+    "photoOption": "From a Photo",
+    "patternOption": "Import an Existing Pattern"
+  },
   "import": {
     "pageTitle": "Import an existing pattern",
     "subtitle": "Upload a finished pattern chart and get the MARD colour list back.",
