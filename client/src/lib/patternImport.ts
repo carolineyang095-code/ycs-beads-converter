@@ -365,6 +365,12 @@ export function analyzeGrid(
 /**
  * Turn the (user-reviewed) groups into a ProcessedImage compatible with the
  * rest of the app's downstream components (export, Shopify, noise cleanup).
+ *
+ * Empty cells are stored exactly like the cells of a new blank canvas
+ * (code '', transparent, isBackground false) and `backgroundIndices` stays
+ * empty. That list is only for photo background removal: export and stats
+ * treat every cell in it as empty even after it is painted, so putting
+ * imported empty cells there made brush edits on them disappear on export.
  */
 export function buildProcessedImage(
   groups: ImportColorGroup[],
@@ -374,20 +380,18 @@ export function buildProcessedImage(
   paletteIndex: Map<string, ColorData>
 ): ProcessedImage {
   const pixels: PixelGridCell[] = new Array(columns * rows);
-  const backgroundIndices = new Set<number>();
 
   groups.forEach((group) => {
     const matched = group.isBackground ? undefined : paletteIndex.get(group.matchedCode);
     group.cellIndices.forEach((idx) => {
       const originalRgb = cellColors[idx] ?? group.rgb;
       if (group.isBackground) {
-        backgroundIndices.add(idx);
         pixels[idx] = {
           code: '',
           hex: 'transparent',
           rgb: { r: 0, g: 0, b: 0 },
           originalRgb,
-          isBackground: true,
+          isBackground: false,
         };
       } else {
         pixels[idx] = {
@@ -402,8 +406,7 @@ export function buildProcessedImage(
   });
 
   const colorStats = new Map<string, number>();
-  pixels.forEach((pixel, idx) => {
-    if (backgroundIndices.has(idx)) return;
+  pixels.forEach((pixel) => {
     if (!pixel.code || pixel.code === 'BG' || pixel.hex === 'transparent') return;
     colorStats.set(pixel.code, (colorStats.get(pixel.code) || 0) + 1);
   });
@@ -414,6 +417,6 @@ export function buildProcessedImage(
     pixels,
     colorStats,
     backgroundCode: null,
-    backgroundIndices,
+    backgroundIndices: new Set<number>(),
   };
 }
