@@ -199,6 +199,11 @@
     "confirm": "Confirm and continue",
     "back": "Back",
     "qualityWarning": "Too many colours detected. Check the grid frame and the number of rows and columns.",
+    "legendLabel": "Legend codes (optional)",
+    "legendPlaceholder": "e.g. A5 F5 F6 G6 H2 H7",
+    "legendHint": "Type the MARD codes from the pattern's legend. The analysis will only use these colours, which makes it much more reliable. Cells without a code are treated as empty.",
+    "legendRecognized": "Recognised codes",
+    "legendUnknown": "Codes not found in the current palette (switch to the MARD view)",
     "tip": "Screenshots and original PNG files give the best results. A heavily compressed JPG can confuse close shades."
   }
 }

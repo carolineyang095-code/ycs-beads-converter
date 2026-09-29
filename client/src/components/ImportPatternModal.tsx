@@ -12,6 +12,7 @@ import {
   GridAnalysisResult,
   analyzeGrid,
   buildProcessedImage,
+  parseLegendCodes,
 } from '@/lib/patternImport';
 
 interface ImportPatternModalProps {
@@ -50,11 +51,13 @@ export default function ImportPatternModal({ imageSrc, palette, onConfirm, onCan
   const [frame, setFrame] = useState<GridFrame | null>(null);
   const [columns, setColumns] = useState(30);
   const [rows, setRows] = useState(30);
-  const [mergeThreshold, setMergeThreshold] = useState(12);
+  const [mergeThreshold, setMergeThreshold] = useState(35);
+  const [legendInput, setLegendInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<GridAnalysisResult | null>(null);
 
   const paletteIndex = useMemo(() => createColorIndex(palette), [palette]);
+  const legend = useMemo(() => parseLegendCodes(legendInput, palette), [legendInput, palette]);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +83,7 @@ export default function ImportPatternModal({ imageSrc, palette, onConfirm, onCan
     if (!sourceCanvas || !frame || palette.length === 0) return;
     setIsAnalyzing(true);
     try {
-      const result = analyzeGrid(sourceCanvas, frame, columns, rows, palette, mergeThreshold);
+      const result = analyzeGrid(sourceCanvas, frame, columns, rows, palette, mergeThreshold, legend.codes);
       setAnalysis(result);
       setStep('review');
     } catch (err) {
@@ -124,11 +127,35 @@ export default function ImportPatternModal({ imageSrc, palette, onConfirm, onCan
                 onColumnsChange={setColumns}
                 onRowsChange={setRows}
               />
+              <div className="space-y-1.5">
+                <label htmlFor="import-legend" className="text-xs font-medium text-[#332847]">
+                  {t('import.legendLabel')}
+                </label>
+                <input
+                  id="import-legend"
+                  type="text"
+                  value={legendInput}
+                  onChange={(e) => setLegendInput(e.target.value)}
+                  placeholder={t('import.legendPlaceholder')}
+                  className="w-full text-sm border border-[#E8E3F0] rounded-md px-3 py-2 bg-white text-[#332847] focus:outline-none focus:ring-1 focus:ring-[#4db8a0]"
+                />
+                <p className="text-xs text-[#5a4f6a]">{t('import.legendHint')}</p>
+                {legend.codes.length > 0 && (
+                  <p className="text-xs text-[#332847]">
+                    {t('import.legendRecognized')}: <span className="font-mono">{legend.codes.join(' ')}</span>
+                  </p>
+                )}
+                {legend.unknown.length > 0 && (
+                  <p className="text-xs text-red-700">
+                    {t('import.legendUnknown')}: <span className="font-mono">{legend.unknown.join(' ')}</span>
+                  </p>
+                )}
+              </div>
               <div className="space-y-1.5 max-w-sm">
                 <label className="text-xs font-medium text-[#332847]">
                   {t('import.threshold')}: {mergeThreshold}
                 </label>
-                <Slider value={[mergeThreshold]} onValueChange={(v) => setMergeThreshold(v[0])} min={6} max={30} step={1} />
+                <Slider value={[mergeThreshold]} onValueChange={(v) => setMergeThreshold(v[0])} min={15} max={60} step={1} />
               </div>
             </>
           )}
