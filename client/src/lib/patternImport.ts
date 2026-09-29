@@ -42,30 +42,46 @@ export interface GridAnalysisResult {
   cellColors: RGB[];
 }
 
+/** What one grid cell looks like: its fill colour and how much printed text sits on top of it. */
+export interface CellSample {
+  /** Fill colour of the cell (the most common colour, so printed text does not skew it). */
+  rgb: RGB;
+  /** Share of the cell's pixels that clearly differ from the fill colour (0-1). Printed codes give ~5-20%. */
+  inkRatio: number;
+}
+
+/** Share of the cell trimmed on each side so grid lines are never sampled. */
+const CELL_INSET = 0.12;
+/** A pixel counts as "ink" (printed code) when it is this far from the cell's fill colour. */
+const INK_DISTANCE = 110;
+/** A cell counts as "has a code printed in it" above this ink ratio. Empty cells with light watermarks stay near 0. */
+const TEXT_INK_RATIO = 0.03;
+
 /**
- * Sample the dominant colour of one grid cell.
- * Only the center 50% of the cell is sampled, to avoid grid lines and any
- * color-code text printed inside the cell.
+ * Sample one grid cell.
+ * The whole cell is used (minus a small margin for grid lines), so the
+ * fill colour wins the vote even when a code like "A5" covers the centre.
  * Uses an 8-step RGB quantization bucket vote (robust to JPEG noise), then
  * averages the real pixel values that fall in the winning bucket.
  */
-export function getCellDominantColor(
+export function sampleCell(
   ctx: CanvasRenderingContext2D,
   cellX: number,
   cellY: number,
   cellWidth: number,
   cellHeight: number
-): RGB {
-  const sampleSize = Math.max(1, Math.floor(Math.min(cellWidth, cellHeight) * 0.5));
-  const rawX = Math.round(cellX + (cellWidth - sampleSize) / 2);
-  const rawY = Math.round(cellY + (cellHeight - sampleSize) / 2);
+): CellSample {
+  const rawX = Math.round(cellX + cellWidth * CELL_INSET);
+  const rawY = Math.round(cellY + cellHeight * CELL_INSET);
+  const rawW = Math.max(1, Math.round(cellWidth * (1 - 2 * CELL_INSET)));
+  const rawH = Math.max(1, Math.round(cellHeight * (1 - 2 * CELL_INSET)));
 
   const canvasWidth = ctx.canvas.width;
   const canvasHeight = ctx.canvas.height;
   const sx = Math.max(0, Math.min(rawX, canvasWidth - 1));
   const sy = Math.max(0, Math.min(rawY, canvasHeight - 1));
-  const sw = Math.max(1, Math.min(sampleSize, canvasWidth - sx));
-  const sh = Math.max(1, Math.min(sampleSize, canvasHeight - sy));
+  const sw = Math.max(1, Math.min(rawW, canvasWidth - sx));
+  const sh = Math.max(1, Math.min(rawH, canvasHeight - sy));
 
   const { data } = ctx.getImageData(sx, sy, sw, sh);
 
@@ -96,103 +112,160 @@ export function getCellDominantColor(
     if (!winner || bucketList[i].count > winner.count) winner = bucketList[i];
   }
 
-  if (!winner) return { r: 255, g: 255, b: 255 };
-  return {
+  if (!winner) return { rgb: { r: 255, g: 255, b: 255 }, inkRatio: 0 };
+  const rgb = {
     r: Math.round(winner.sumR / winner.count),
     g: Math.round(winner.sumG / winner.count),
     b: Math.round(winner.sumB / winner.count),
   };
+
+  let inkPixels = 0;
+  let totalPixels = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 10) continue;
+    totalPixels += 1;
+    const dr = data[i] - rgb.r;
+    const dg = data[i + 1] - rgb.g;
+    const db = data[i + 2] - rgb.b;
+    if (dr * dr + dg * dg + db * db > INK_DISTANCE * INK_DISTANCE) inkPixels += 1;
+  }
+
+  return { rgb, inkRatio: totalPixels > 0 ? inkPixels / totalPixels : 0 };
 }
 
-function sampleGridColors(
+function sampleGrid(
   canvas: HTMLCanvasElement,
   frame: GridFrame,
   columns: number,
   rows: number
-): RGB[] {
-  const ctx = canvas.getContext('2d');
+): CellSample[] {
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('Failed to get canvas context');
 
   const cellWidth = frame.width / columns;
   const cellHeight = frame.height / rows;
-  const colors: RGB[] = new Array(columns * rows);
+  const samples: CellSample[] = new Array(columns * rows);
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < columns; col++) {
       const cellX = frame.x + col * cellWidth;
       const cellY = frame.y + row * cellHeight;
-      colors[row * columns + col] = getCellDominantColor(ctx, cellX, cellY, cellWidth, cellHeight);
+      samples[row * columns + col] = sampleCell(ctx, cellX, cellY, cellWidth, cellHeight);
     }
   }
 
-  return colors;
+  return samples;
 }
 
 /**
- * Union-find clustering: any two cells whose colours are closer than
- * `threshold` (Euclidean distance, via colorMapping.euclideanDistance) end
- * up in the same group. Group representative = average of member colours.
+ * Centroid clustering of the given cells' colours.
+ * Step 1: a cell starts a new group when it is at least `threshold` away from
+ * every existing group centre. Step 2: a few rounds of "move every cell to its
+ * nearest centre, recompute centres". Unlike chain merging, two different
+ * colours can no longer be glued together through a trail of in-between
+ * JPEG shades.
  */
 function clusterCellColors(
   colors: RGB[],
+  cellIndices: number[],
   threshold: number
 ): { groupRgb: RGB[]; groupMembers: number[][] } {
-  const n = colors.length;
-  const parent = new Array<number>(n);
-  for (let i = 0; i < n; i++) parent[i] = i;
+  if (cellIndices.length === 0) return { groupRgb: [], groupMembers: [] };
 
-  const find = (x: number): number => {
-    while (parent[x] !== x) {
-      parent[x] = parent[parent[x]];
-      x = parent[x];
-    }
-    return x;
-  };
-
-  const union = (a: number, b: number) => {
-    const ra = find(a);
-    const rb = find(b);
-    if (ra !== rb) parent[ra] = rb;
-  };
-
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      if (find(i) === find(j)) continue;
-      if (euclideanDistance(colors[i], colors[j]) < threshold) union(i, j);
-    }
-  }
-
-  const rootToGroupId = new Map<number, number>();
-  const groupMembers: number[][] = [];
-
-  for (let i = 0; i < n; i++) {
-    const root = find(i);
-    let groupId = rootToGroupId.get(root);
-    if (groupId === undefined) {
-      groupId = groupMembers.length;
-      rootToGroupId.set(root, groupId);
-      groupMembers.push([]);
-    }
-    groupMembers[groupId].push(i);
-  }
-
-  const groupRgb: RGB[] = groupMembers.map((members) => {
-    let sumR = 0;
-    let sumG = 0;
-    let sumB = 0;
-    members.forEach((idx) => {
-      sumR += colors[idx].r;
-      sumG += colors[idx].g;
-      sumB += colors[idx].b;
-    });
-    return {
-      r: Math.round(sumR / members.length),
-      g: Math.round(sumG / members.length),
-      b: Math.round(sumB / members.length),
-    };
+  let centres: RGB[] = [];
+  cellIndices.forEach((idx) => {
+    const c = colors[idx];
+    const isNew = centres.every((centre) => euclideanDistance(c, centre) >= threshold);
+    if (isNew) centres.push({ ...c });
   });
 
-  return { groupRgb, groupMembers };
+  let assignment = new Array<number>(cellIndices.length).fill(0);
+  for (let round = 0; round < 10; round++) {
+    assignment = cellIndices.map((idx) => {
+      let best = 0;
+      let bestDistance = Infinity;
+      for (let k = 0; k < centres.length; k++) {
+        const d = euclideanDistance(colors[idx], centres[k]);
+        if (d < bestDistance) {
+          bestDistance = d;
+          best = k;
+        }
+      }
+      return best;
+    });
+
+    centres = centres.map((centre, k) => {
+      let sumR = 0;
+      let sumG = 0;
+      let sumB = 0;
+      let count = 0;
+      assignment.forEach((groupId, pos) => {
+        if (groupId !== k) return;
+        const c = colors[cellIndices[pos]];
+        sumR += c.r;
+        sumG += c.g;
+        sumB += c.b;
+        count += 1;
+      });
+      if (count === 0) return centre;
+      return { r: Math.round(sumR / count), g: Math.round(sumG / count), b: Math.round(sumB / count) };
+    });
+  }
+
+  const groupMembers: number[][] = centres.map(() => []);
+  assignment.forEach((groupId, pos) => groupMembers[groupId].push(cellIndices[pos]));
+
+  const groupRgb: RGB[] = [];
+  const nonEmptyMembers: number[][] = [];
+  groupMembers.forEach((members, k) => {
+    if (members.length === 0) return;
+    nonEmptyMembers.push(members);
+    groupRgb.push(centres[k]);
+  });
+
+  return { groupRgb, groupMembers: nonEmptyMembers };
+}
+
+/** Average colour of a set of cells. */
+function averageColor(colors: RGB[], cellIndices: number[]): RGB {
+  let sumR = 0;
+  let sumG = 0;
+  let sumB = 0;
+  cellIndices.forEach((idx) => {
+    sumR += colors[idx].r;
+    sumG += colors[idx].g;
+    sumB += colors[idx].b;
+  });
+  const n = Math.max(1, cellIndices.length);
+  return { r: Math.round(sumR / n), g: Math.round(sumG / n), b: Math.round(sumB / n) };
+}
+
+/**
+ * Normalise what the user typed from the pattern's legend into MARD codes.
+ * "H1", "h01", "H01" all become "H01"; "ZG01" becomes "ZG1".
+ * Counts like "x313" are ignored. Codes not in the current palette are
+ * returned in `unknown` so the modal can show them.
+ */
+export function parseLegendCodes(
+  input: string,
+  palette: ColorData[]
+): { codes: string[]; unknown: string[] } {
+  const known = new Set(palette.map((c) => c.code));
+  const codes: string[] = [];
+  const unknown: string[] = [];
+
+  const tokens = input.toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+  tokens.forEach((token) => {
+    const match = token.match(/^(ZG|[A-Z])0*(\d{1,2})$/);
+    if (!match) return;
+    const [, letters, digits] = match;
+    const code = letters === 'ZG' ? `ZG${Number(digits)}` : `${letters}${digits.padStart(2, '0')}`;
+    if (codes.includes(code) || unknown.includes(code)) return;
+    if (known.has(code)) codes.push(code);
+    else unknown.push(code);
+  });
+
+  return { codes, unknown };
 }
 
 function isOuterRing(cellIndex: number, columns: number, rows: number): boolean {
@@ -203,9 +276,14 @@ function isOuterRing(cellIndex: number, columns: number, rows: number): boolean 
 
 /**
  * Full pipeline for one "Analyse the grid" click:
- * sample every cell -> cluster similar colours -> match each cluster to the
- * closest palette (MARD) colour -> suggest one near-white outer-ring group
- * as the default "treat as empty" background.
+ * 1. sample every cell (fill colour + how much printed text it has)
+ * 2. cells with a printed code are beads; cells without one are empty.
+ *    (If no cell in the whole grid has text, fall back to colour only:
+ *    every cell is a bead and the near-white outer-ring group is suggested
+ *    as the empty background, like before.)
+ * 3. group the bead cells by colour, match each group to the closest MARD
+ *    colour (only among the legend codes when the user entered them), and
+ *    merge groups that end up on the same code.
  */
 export function analyzeGrid(
   canvas: HTMLCanvasElement,
@@ -213,37 +291,70 @@ export function analyzeGrid(
   columns: number,
   rows: number,
   palette: ColorData[],
-  mergeThreshold: number
+  mergeThreshold: number,
+  legendCodes: string[] = []
 ): GridAnalysisResult {
-  const cellColors = sampleGridColors(canvas, frame, columns, rows);
-  const { groupRgb, groupMembers } = clusterCellColors(cellColors, mergeThreshold);
+  const samples = sampleGrid(canvas, frame, columns, rows);
+  const cellColors = samples.map((s) => s.rgb);
+  const allIndices = cellColors.map((_, idx) => idx);
 
-  let groups: ImportColorGroup[] = groupMembers.map((members, id) => {
-    const rgb = groupRgb[id];
-    const matched = findClosestColor(rgb, palette);
-    return {
-      id,
-      rgb,
-      cellCount: members.length,
-      cellIndices: members,
-      matchedCode: matched.code,
-      isBackground: false,
-    };
+  const textIndices = allIndices.filter((idx) => samples[idx].inkRatio > TEXT_INK_RATIO);
+  const useText = textIndices.length > 0;
+  const beadIndices = useText ? textIndices : allIndices;
+  const emptyIndices = useText ? allIndices.filter((idx) => samples[idx].inkRatio <= TEXT_INK_RATIO) : [];
+
+  const legendSet = new Set(legendCodes);
+  const legendPalette = palette.filter((c) => legendSet.has(c.code));
+  const candidates = legendPalette.length > 0 ? legendPalette : palette;
+
+  const { groupRgb, groupMembers } = clusterCellColors(cellColors, beadIndices, mergeThreshold);
+
+  // Match each colour group to a code, then merge groups sharing the same code.
+  const byCode = new Map<string, number[]>();
+  groupMembers.forEach((members, k) => {
+    const code = findClosestColor(groupRgb[k], candidates).code;
+    const existing = byCode.get(code);
+    if (existing) existing.push(...members);
+    else byCode.set(code, [...members]);
   });
 
-  let bestBgGroupId: number | null = null;
-  let bestBgEdgeCount = 0;
-  groups.forEach((group) => {
-    const isNearWhite = group.rgb.r > 240 && group.rgb.g > 240 && group.rgb.b > 240;
-    if (!isNearWhite) return;
-    const edgeCount = group.cellIndices.filter((idx) => isOuterRing(idx, columns, rows)).length;
-    if (edgeCount > bestBgEdgeCount) {
-      bestBgEdgeCount = edgeCount;
-      bestBgGroupId = group.id;
+  let nextId = 0;
+  let groups: ImportColorGroup[] = Array.from(byCode.entries()).map(([code, members]) => ({
+    id: nextId++,
+    rgb: averageColor(cellColors, members),
+    cellCount: members.length,
+    cellIndices: members,
+    matchedCode: code,
+    isBackground: false,
+  }));
+
+  if (useText) {
+    if (emptyIndices.length > 0) {
+      const rgb = averageColor(cellColors, emptyIndices);
+      groups.push({
+        id: nextId++,
+        rgb,
+        cellCount: emptyIndices.length,
+        cellIndices: emptyIndices,
+        matchedCode: findClosestColor(rgb, palette).code,
+        isBackground: true,
+      });
     }
-  });
-  if (bestBgGroupId !== null) {
-    groups = groups.map((g) => (g.id === bestBgGroupId ? { ...g, isBackground: true } : g));
+  } else {
+    let bestBgGroupId: number | null = null;
+    let bestBgEdgeCount = 0;
+    groups.forEach((group) => {
+      const isNearWhite = group.rgb.r > 240 && group.rgb.g > 240 && group.rgb.b > 240;
+      if (!isNearWhite) return;
+      const edgeCount = group.cellIndices.filter((idx) => isOuterRing(idx, columns, rows)).length;
+      if (edgeCount > bestBgEdgeCount) {
+        bestBgEdgeCount = edgeCount;
+        bestBgGroupId = group.id;
+      }
+    });
+    if (bestBgGroupId !== null) {
+      groups = groups.map((g) => (g.id === bestBgGroupId ? { ...g, isBackground: true } : g));
+    }
   }
 
   groups.sort((a, b) => b.cellCount - a.cellCount);

@@ -199,6 +199,11 @@
     "confirm": "Valider et continuer",
     "back": "Retour",
     "qualityWarning": "Trop de couleurs détectées. Vérifiez le cadre de la grille ainsi que le nombre de lignes et de colonnes.",
+    "legendLabel": "Codes de la légende (facultatif)",
+    "legendPlaceholder": "Ex. : A5 F5 F6 G6 H2 H7",
+    "legendHint": "Recopiez les codes MARD de la légende du modèle. L'analyse se limitera à ces couleurs, ce qui la rend bien plus fiable. Les cases sans code sont considérées comme vides.",
+    "legendRecognized": "Codes reconnus",
+    "legendUnknown": "Codes introuvables dans la palette actuelle (passez en affichage MARD)",
     "tip": "Les captures d'écran et les fichiers PNG d'origine donnent les meilleurs résultats. Un JPG très compressé peut brouiller les nuances proches."
   }
 }
