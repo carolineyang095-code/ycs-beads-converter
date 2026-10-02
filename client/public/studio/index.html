@@ -267,7 +267,6 @@
 // ===== CONFIG =====
 const SUPABASE_URL = 'https://rfhvvendmvfcfclsxjxb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_5Oi8G_cclnJY-B6eBbhEbA__wayUDzk';
-const ADMIN_PASSWORD = 'Yaya2026!!';
 const SHOP_DOMAIN = 'https://yayascreativestudio.com';
 const ACOMPTE_VARIANT_ID = '58376070627702';  // 预约金 8,90€ 商品变体 ID
 
@@ -283,7 +282,13 @@ function slotLabel(h){ return h + 'h30'; }
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const params = new URLSearchParams(location.search);
-const IS_ADMIN = params.get('admin') === ADMIN_PASSWORD;
+// ?admin dans l'URL demande le mode admin ; le mot de passe est vérifié par
+// la fonction studio-admin et gardé seulement dans sessionStorage.
+const WANTS_ADMIN = params.has('admin');
+const ADMIN_PW_KEY = 'ycsAdminPw';
+let IS_ADMIN = false;
+let adminPw = null;
+if(WANTS_ADMIN && params.get('admin')){ history.replaceState(null,'',location.pathname+'?admin'); }
 
 let currentDate = todayStr();
 let reservations = [];
@@ -307,13 +312,49 @@ function pTime(){
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function setStatus(msg,ok){const el=document.getElementById('statusMsg');el.textContent=msg||'';el.style.color=ok?'#0a6b4e':'#c47a9a';}
 
+// ===== ADMIN API (Edge Function studio-admin) =====
+async function adminApi(action,payload){
+  const {data,error} = await sb.functions.invoke('studio-admin',{
+    body:{action,...payload},
+    headers:{'x-admin-password':adminPw||''}
+  });
+  if(error){
+    const unauthorized = !!(error.context && error.context.status===401);
+    return {data:null,error,unauthorized};
+  }
+  return {data,error:null,unauthorized:false};
+}
+async function initAdmin(){
+  if(!WANTS_ADMIN) return;
+  let pw=null;
+  try{ pw=sessionStorage.getItem(ADMIN_PW_KEY); }catch(e){}
+  if(!pw) pw=prompt('Mot de passe admin · 管理员密码');
+  if(!pw) return;
+  adminPw=pw;
+  const {error,unauthorized} = await adminApi('list',{date:currentDate});
+  if(error){
+    adminPw=null;
+    try{ sessionStorage.removeItem(ADMIN_PW_KEY); }catch(e){}
+    alert(unauthorized?'Mot de passe incorrect · 密码错误':'Erreur de connexion · 连接失败');
+    return;
+  }
+  try{ sessionStorage.setItem(ADMIN_PW_KEY,pw); }catch(e){}
+  IS_ADMIN=true;
+}
+
 // ===== DATA =====
 async function loadAll(){
   await Promise.all([loadReservations(), loadLive()]);
   render();
 }
 async function loadReservations(){
-  const {data,error} = await sb.from('reservations').select('*').eq('date',currentDate);
+  let data,error;
+  if(IS_ADMIN){
+    const res = await adminApi('list',{date:currentDate});
+    error = res.error; data = res.data && res.data.data;
+  } else {
+    ({data,error} = await sb.from('reservations_public').select('*').eq('date',currentDate));
+  }
   if(error){setStatus('Erreur de chargement · 加载失败');console.error(error);return;}
   reservations = data||[];
 }
@@ -436,7 +477,7 @@ function cellHtml(p,h){
   if(todayIsShown && live && live.busy){
     const nowH = currentSlotHour();
     if(h===nowH){
-      return `<td><div class="cell cell-live">En cours · 进行中<span class="sub">${live.client_name?esc(live.client_name):'occupé'}</span></div></td>`;
+      return `<td><div class="cell cell-live">En cours · 进行中<span class="sub">${IS_ADMIN?(live.client_name?esc(live.client_name):'occupé'):'Occupé · 使用中'}</span></div></td>`;
     }
   }
   const r = resAt(p,h);
@@ -567,19 +608,19 @@ async function saveReservation(){
   setStatus('Enregistrement… · 保存中');
   let error;
   if(existing){
-    ({error}=await sb.from('reservations').update({client_name:client,type,status:'confirmed',start_hour:type==='journee'?OPEN:pending.hour}).eq('id',existing.id));
+    ({error}=await adminApi('update',{id:existing.id,fields:{client_name:client,type,start_hour:type==='journee'?OPEN:pending.hour}}));
   } else {
-    ({error}=await sb.from('reservations').insert({
+    ({error}=await adminApi('insert',{row:{
       date:currentDate,poste:pending.poste,start_hour:type==='journee'?OPEN:pending.hour,
-      type,status:'confirmed',client_name:client
-    }));
+      type,client_name:client
+    }}));
   }
   if(error){setStatus('Échec · 保存失败');console.error(error);return;}
   closeAdmin(); setStatus('Enregistré · 已保存',true); await loadAll();
 }
 async function deleteReservation(id){
   if(!confirm('Libérer ce créneau ? · 确定释放此时段？')) return;
-  const {error}=await sb.from('reservations').delete().eq('id',id);
+  const {error}=await adminApi('delete',{id});
   if(error){setStatus('Échec · 释放失败');return;}
   closeAdmin(); setStatus('Créneau libéré · 已释放',true); await loadAll();
 }
@@ -606,13 +647,16 @@ function onDateChange(){
 }
 
 // ===== init =====
-if(IS_ADMIN){
-  document.getElementById('modeTag').textContent='Admin';
-  document.getElementById('modeTag').classList.add('admin');
-}
-if(!IS_ADMIN){ document.getElementById('datePick').min = todayStr(); }
-document.getElementById('datePick').value=currentDate;
-loadAll();
+(async function init(){
+  await initAdmin();
+  if(IS_ADMIN){
+    document.getElementById('modeTag').textContent='Admin';
+    document.getElementById('modeTag').classList.add('admin');
+  }
+  if(!IS_ADMIN){ document.getElementById('datePick').min = todayStr(); }
+  document.getElementById('datePick').value=currentDate;
+  loadAll();
+})();
 setInterval(()=>{document.getElementById('pt').textContent=pTime();},1000);
 setInterval(()=>{ if(IS_ADMIN) loadLive().then(render); },20000);
 </script>
