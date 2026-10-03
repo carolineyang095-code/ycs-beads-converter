@@ -12,6 +12,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
+const SHOPIFY_WEBHOOK_SECRET = Deno.env.get("SHOPIFY_WEBHOOK_SECRET") ?? "";
+
+// false = observe mode (log the Shopify signature check, still process every order)
+// true  = reject mode (invalid or missing signature -> 401, order not processed)
+const HMAC_ENFORCE = false;
 
 const FROM_EMAIL = "reservation@yayascreativestudio.com";
 const FROM_NAME = "Yaya's Creative Studio";
@@ -68,7 +73,7 @@ function buildICS(opts: {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   const startH = journee ? DAY_START_HOUR : startHour;
-  const startMin = journee ? DAY_START_MIN : 0;
+  const startMin = journee ? DAY_START_MIN : 30;
   const endH = journee ? DAY_END_HOUR : startHour + 1;
   const endMin = journee ? DAY_END_MIN : 30;
 
@@ -202,10 +207,41 @@ async function sendEmail(payload: any) {
   return data;
 }
 
+// Shopify signs every webhook: base64(HMAC-SHA256(raw body, secret)) in X-Shopify-Hmac-Sha256.
+async function shopifyHmacOk(rawBody: Uint8Array, header: string | null): Promise<boolean> {
+  if (!SHOPIFY_WEBHOOK_SECRET || !header) return false;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(SHOPIFY_WEBHOOK_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, rawBody));
+  const expected = btoa(String.fromCharCode(...sig));
+  if (expected.length !== header.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ header.charCodeAt(i);
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   try {
-    const order = await req.json();
+    const rawBody = new Uint8Array(await req.arrayBuffer());
+    const hmacOk = await shopifyHmacOk(rawBody, req.headers.get("X-Shopify-Hmac-Sha256"));
+    if (!hmacOk) {
+      console.error(`HMAC check failed (${HMAC_ENFORCE ? "rejected" : "observe mode"})`);
+      if (HMAC_ENFORCE) {
+        return new Response(JSON.stringify({ error: "unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    const order = JSON.parse(new TextDecoder().decode(rawBody));
     const orderId = String(order?.id ?? order?.order_number ?? "");
+    if (hmacOk) console.log(`HMAC OK (order ${orderId})`);
     const lineItems = order?.line_items || [];
 
     const reservationItems: any[] = [];
