@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Réservation atelier — Yaya's Creative Studio</title>
+<title>Réservation atelier · Yaya's Creative Studio</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Dosis',sans-serif;background:#FFFFFF;min-height:100vh;padding:1.5rem 1rem;color:#332847;}
@@ -30,9 +30,9 @@
   .status-msg{font-size:12px;color:#c47a9a;font-weight:600;margin-bottom:10px;min-height:16px;}
 
   .board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:1rem;}
-  table.board{border-collapse:separate;border-spacing:6px;margin:0 auto;min-width:340px;}
+  table.board{border-collapse:separate;border-spacing:6px;margin:0 auto;min-width:340px;table-layout:fixed;width:100%;max-width:640px;}
   table.board th{font-size:12px;font-weight:700;color:#7B6A9B;padding:4px 6px;text-align:center;}
-  table.board th.corner{color:#b8a8d4;}
+  table.board th.corner{color:#b8a8d4;width:56px;}
   .time-label{font-size:12px;font-weight:600;color:#5a4f6a;text-align:right;padding-right:8px;white-space:nowrap;}
   .cell{border-radius:10px;text-align:center;padding:12px 6px;min-width:66px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .12s;user-select:none;}
   .cell:active{transform:scale(.96);}
@@ -43,6 +43,7 @@
   .cell-booked{background:#f3f0f9;color:#5a4f6a;border-color:#ddd2e6;cursor:default;}
   .cell-live{background:#332847;color:#F5EFE6;border-color:#332847;cursor:default;}
   .cell-pending{background:#fbeef4;color:#c47a9a;border-color:#f0d4e2;}
+  .cell{word-break:keep-all;}  /* les mots chinois ne sont jamais coupés */
   .cell .sub{display:block;font-size:9px;font-weight:600;opacity:.8;margin-top:2px;}
 
   /* full-day poste chooser */
@@ -87,23 +88,63 @@
   .modal-row{display:flex;gap:8px;}
   .modal-row .abtn{flex:1;text-align:center;}
 
+  /* parent-enfant */
+  .modeswitch .em svg{display:block;margin:0 auto;}
+  .lb-zh,.fn-zh{white-space:nowrap;}
+  .cell-family{background:#f3f0f9;color:#332847;border-color:#ddd2e6;border-left:3px solid #c47a9a;cursor:default;}
+  .cell-family.admin{cursor:pointer;}
+  .fam-ico{display:block;margin:0 auto 2px;}
+  .fam-notice{display:none;align-items:center;gap:8px;background:#F5EFE6;border:1px solid #E8E3F0;border-left:4px solid #c47a9a;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;color:#332847;margin-bottom:10px;line-height:1.5;}
+  .fam-notice .fam-ico{margin:0;flex:none;}
+  .fam-intro{font-size:12px;color:#5a4f6a;line-height:1.6;}
+  .fam-step{font-size:13px;font-weight:700;color:#332847;margin:16px 0 8px;}
+  .opt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+  .opt{border:1px solid #b6e3d5;background:#e1f5ee;color:#0a6b4e;border-radius:10px;padding:10px 6px;font-family:'Dosis',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:center;line-height:1.3;}
+  .opt .sub{display:block;font-size:10px;font-weight:600;opacity:.8;margin-top:2px;}
+  .opt.active{background:#332847;color:#F5EFE6;border-color:#332847;}
+  .opt:disabled{background:#f3f0f9;color:#b8a8d4;border-color:#E8E3F0;cursor:not-allowed;}
+  .fam-chip{display:inline-flex;align-items:center;gap:8px;background:#e1f5ee;border:1px solid #b6e3d5;color:#0a6b4e;border-radius:99px;padding:6px 12px;font-size:13px;font-weight:600;}
+  .fam-price{border-left:4px solid #7B6A9B;background:#f3f0f9;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;color:#332847;}
+  .zh{color:#7B6A9B;}
+  .fam-total{margin-top:12px;background:#F5EFE6;border-left:4px solid #4db8a0;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;}
+  .fam-hint{font-size:12px;color:#c47a9a;font-weight:600;margin-top:8px;}
+  .fam-go{width:100%;margin-top:14px;padding:12px;font-size:14px;}
+  .fam-go:disabled{opacity:.45;cursor:not-allowed;}
+  .fam-member{display:flex;justify-content:space-between;border:1px solid #E8E3F0;border-radius:8px;padding:6px 10px;font-size:12px;margin-bottom:6px;}
+
   @media(max-width:420px){
-    .cell{min-width:56px;padding:10px 4px;font-size:11px;}
+    .cell{min-width:0;padding:10px 2px;font-size:11px;}
+    .cell-free{white-space:nowrap;}
+    table.board{border-spacing:4px;}
+    table.board th.corner{width:44px;}
+    .time-label{padding-right:4px;}
     .live-grid{grid-template-columns:1fr;}
+    .modeswitch{gap:6px;}
+    .modeswitch button{font-size:12px;padding:8px 4px;}
+    .lb-sep,.fn-sep{display:none;}
+    .fn-fr,.fn-zh{display:block;}
+    .lb-fr,.lb-zh{display:block;white-space:nowrap;}
+    .opt{font-size:12px;padding:9px 4px;}
   }
 
-  .studio-footer{margin-top:2rem;padding-top:1.5rem;border-top:1px solid #E8E3F0;}
-  .footer-blocks{display:flex;gap:1.5rem;flex-wrap:wrap;}
-  .footer-block{flex:1 1 260px;background:#F5EFE6;border:1px solid #E8E3F0;border-radius:14px;padding:1rem 1.1rem;}
-  .footer-title{font-size:12px;font-weight:700;letter-spacing:.03em;color:#7B6A9B;text-transform:uppercase;margin-bottom:10px;}
-  .footer-block p{font-size:13px;color:#332847;line-height:1.6;margin-bottom:10px;}
-  .footer-block p:last-child{margin-bottom:0;}
-  .footer-block a{color:#4db8a0;text-decoration:underline;font-weight:600;}
-  .footer-zh{color:#5a4f6a;font-size:12px;}
-  .footer-note{margin-top:1.25rem;text-align:center;font-size:11px;color:#b8a8d4;}
+  /* infos pratiques + tarifs, en haut de page */
+  .studio-info{background:#F5EFE6;border:1px solid #E8E3F0;border-radius:14px;padding:10px 12px;margin-bottom:1rem;}
+  .info-title{font-size:11px;font-weight:700;letter-spacing:.03em;color:#7B6A9B;text-transform:uppercase;margin-bottom:4px;}
+  .info-line{font-size:12px;color:#332847;line-height:1.5;margin-bottom:2px;}
+  .info-line a{color:#4db8a0;text-decoration:underline;font-weight:600;}
+  .info-sep{color:#b8a8d4;margin:0 4px;}
+  .price-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+  .price-card{background:#fff;border:1px solid #E8E3F0;border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.45;color:#332847;}
+  .price-mini{display:none;margin:4px 0 0;padding:0;list-style:none;}
+  .price-mini li{font-size:12px;line-height:1.6;color:#332847;}
+  .price-card strong{display:block;font-size:12.5px;margin-bottom:2px;}
+  .footer-zh{color:#5a4f6a;font-size:11px;}
+  .footer-note{margin-top:6px;text-align:center;font-size:11px;color:#7B6A9B;}
 
   @media(max-width:640px){
-    .footer-blocks{flex-direction:column;}
+    .price-cards{display:none;}
+    .price-mini{display:block;}
   }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -122,13 +163,50 @@
   </div>
 </div>
 
+<div class="studio-info">
+  <div class="info-title">NOUS RENDRE VISITE · 来工作室</div>
+  <div class="info-line">
+    <strong>📍 Adresse · 地址</strong> <a href="https://www.google.com/maps/search/?api=1&query=10+Rue+Francisco+Ferrer+93170+Bagnolet" target="_blank" rel="noopener">10 Rue Francisco Ferrer, 93170 Bagnolet</a><span class="info-sep">·</span><strong>🚇 Métro · 地铁</strong> <a href="https://www.google.com/maps/search/?api=1&query=Gallieni+M%C3%A9tro+Bagnolet" target="_blank" rel="noopener">Gallieni (ligne 3) · 10 min à pied · 步行 10 分钟</a>
+  </div>
+  <div class="info-line"><strong>🕐 Horaires · 营业时间</strong> Du mercredi au dimanche · 12h30 – 19h30 · 周三至周日</div>
+  <div class="info-title" style="margin-top:8px;">TARIFS · 收费方式</div>
+  <ul class="price-mini">
+    <li>☀️ <strong>Pass Journée · 一整天 : 35 €</strong></li>
+    <li>🕐 <strong>À l'heure · 按小时 : 8,90 €</strong> la 1ʳᵉ heure, puis 5 € / 30 min</li>
+    <li><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px;"><circle cx="8.5" cy="6.5" r="3" fill="#332847"/><path d="M3.5 20v-3.5a5 5 0 0 1 10 0V20z" fill="#332847"/><circle cx="17" cy="10.5" r="2.3" fill="#4db8a0"/><path d="M13.6 20v-2.2a3.4 3.4 0 0 1 6.8 0V20z" fill="#4db8a0"/><rect x="2.5" y="20.6" width="19" height="1.6" rx=".8" fill="#c47a9a"/></svg> <strong>Parent-enfant · 亲子 : 15 €</strong> par enfant (2 h)</li>
+  </ul>
+  <div class="price-cards">
+    <div class="price-card">
+      <strong>☀️ Pass Journée · 一整天 : 35 €</strong>
+      Perles à repasser, journée sans limite de temps ni de plaques. Matériel inclus.<br>
+      <span class="footer-zh">拼豆全天不限时长、不限拼豆板，材料全含。</span>
+    </div>
+    <div class="price-card">
+      <strong>🕐 À l'heure · 按小时 : 8,90 €</strong>
+      1<sup>ʳᵉ</sup> heure 8,90 €, puis 5 € / 30 min.<br>
+      <span class="footer-zh">第 1 小时 8,90 €，之后每半小时 +5 €。</span>
+    </div>
+    <div class="price-card">
+      <strong><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px;"><circle cx="8.5" cy="6.5" r="3" fill="#332847"/><path d="M3.5 20v-3.5a5 5 0 0 1 10 0V20z" fill="#332847"/><circle cx="17" cy="10.5" r="2.3" fill="#4db8a0"/><path d="M13.6 20v-2.2a3.4 3.4 0 0 1 6.8 0V20z" fill="#4db8a0"/><rect x="2.5" y="20.6" width="19" height="1.6" rx=".8" fill="#c47a9a"/></svg> Atelier parent-enfant · 亲子时段 : 15 € par enfant</strong>
+      2 h de perles à repasser. Le parent accompagne gratuitement. Dépassement : 7,50 € par heure et par enfant.<br>
+      <span class="footer-zh">拼豆 2 小时，每个孩子 15 €，家长陪同免费。超时每个孩子每小时 7,50 €。</span>
+    </div>
+  </div>
+  <p class="footer-note">
+    Thermocollage offert pour toutes vos créations. Accessoires en supplément. · 所有作品烫画免费，配件另计。
+  </p>
+</div>
+
 <!-- Hourly vs Full-day switch -->
 <div class="modeswitch">
   <button id="tabHourly" class="active" onclick="setBookMode('hourly')">
-    <span class="em">🕐</span>À l'heure · 按小时
+    <span class="em">🕐</span><span class="lb-fr">À l'heure</span><span class="lb-sep"> · </span><span class="lb-zh">按小时</span>
   </button>
   <button id="tabDay" onclick="setBookMode('day')">
-    <span class="em">☀️</span>Journée · 一整天
+    <span class="em">☀️</span><span class="lb-fr">Journée</span><span class="lb-sep"> · </span><span class="lb-zh">一整天</span>
+  </button>
+  <button id="tabFamily" onclick="setBookMode('family')">
+    <span class="em" id="tabFamilyIcon"></span><span class="lb-fr">Parent-enfant</span><span class="lb-sep"> · </span><span class="lb-zh">亲子</span>
   </button>
 </div>
 
@@ -140,6 +218,7 @@
 </div>
 
 <div class="status-msg" id="statusMsg"></div>
+<div class="fam-notice" id="famNotice"></div>
 
 <div id="closedBanner" style="display:none;background:#fbeef4;border:1px solid #f0d4e2;border-radius:12px;padding:14px 16px;margin-bottom:1rem;text-align:center;">
   <div style="font-size:14px;font-weight:700;color:#c47a9a;">Atelier fermé · 工作室关店</div>
@@ -161,11 +240,39 @@
   <div class="day-grid" id="dayGrid"></div>
 </div>
 
+<!-- Parent-enfant view -->
+<div id="familyView" style="display:none;">
+  <div class="card">
+    <h2>Atelier parent-enfant · 亲子时段</h2>
+    <p class="fam-intro">1 adulte et 1, 2 ou 3 enfants, 2 heures de perles à repasser. Chaque personne a son propre poste, attribué automatiquement.<br>
+    <span class="zh">1 位家长 + 1 到 3 个孩子，拼豆 2 小时。每人一个工位，系统自动安排。</span></p>
+
+    <div class="fam-step">1. Combien d'enfants ? · 几个孩子？</div>
+    <div class="opt-grid" id="famKids"></div>
+
+    <div class="fam-step">2. Heure de début · 开始时间</div>
+    <div class="time-grid" id="famTimes"></div>
+    <div class="fam-hint" id="famHint"></div>
+
+    <div class="fam-step">3. Activité · 手工类型</div>
+    <span class="fam-chip"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="7" stroke="currentColor" stroke-width="4.5" fill="currentColor"/><circle cx="32" cy="14" r="7" stroke="currentColor" stroke-width="4.5"/><circle cx="50" cy="14" r="7" stroke="currentColor" stroke-width="4.5"/><circle cx="14" cy="32" r="7" stroke="currentColor" stroke-width="4.5"/><circle cx="32" cy="32" r="7" stroke="currentColor" stroke-width="4.5" fill="currentColor"/><circle cx="50" cy="32" r="7" stroke="currentColor" stroke-width="4.5"/><circle cx="14" cy="50" r="7" stroke="currentColor" stroke-width="4.5"/><circle cx="32" cy="50" r="7" stroke="currentColor" stroke-width="4.5"/><circle cx="50" cy="50" r="7" stroke="currentColor" stroke-width="4.5" fill="currentColor"/></svg>Perles à repasser · 拼豆</span>
+
+    <div class="fam-step">Tarif · 收费</div>
+    <div class="fam-price">15 € par enfant pour 2 h. Dépassement : +7,50 € par heure et par enfant, ou +3,75 € par demi-heure. Le parent accompagne gratuitement ; s'il crée aussi, tarif adulte 10 € / h sur place.<br>
+    <span class="zh">每个孩子 2 小时 15 €。超时每个孩子每小时 +7,50 €，每半小时 +3,75 €。家长陪同免费；家长也一起做的话，现场按成人 10 €/小时收费。</span></div>
+
+    <div class="fam-total" id="famTotal" style="display:none;"></div>
+    <input type="text" id="famClient" placeholder="Nom du client · 客户名" style="display:none;width:100%;margin-top:12px;padding:8px 10px;border:1px solid #E8E3F0;border-radius:8px;font-family:'Dosis',sans-serif;font-size:13px;color:#332847;background:#F5EFE6;">
+    <button class="abtn primary fam-go" id="famGo" onclick="famGo()" disabled>Payer l'acompte 8,90 € · 支付预约金 →</button>
+  </div>
+</div>
+
 <div class="legend">
   <span><i class="sw" style="background:#e1f5ee;border:1px solid #b6e3d5;"></i>Libre · 可约</span>
   <span><i class="sw" style="background:#f3f0f9;border:1px solid #ddd2e6;"></i>Réservé · 已订</span>
   <span><i class="sw" style="background:#332847;"></i>En cours · 进行中</span>
   <span><i class="sw" style="background:#fbeef4;border:1px solid #f0d4e2;"></i>À confirmer · 待确认</span>
+  <span id="legendFamily"></span>
 </div>
 
 <!-- ADMIN-ONLY: live status panel -->
@@ -224,42 +331,17 @@
   </div>
 </div>
 
-<div class="studio-footer">
-  <div class="footer-blocks">
-    <div class="footer-block">
-      <div class="footer-title">NOUS RENDRE VISITE · 来工作室</div>
-      <p>
-        <strong>📍 Adresse · 地址</strong><br>
-        <a href="https://www.google.com/maps/search/?api=1&query=10+Rue+Francisco+Ferrer+93170+Bagnolet" target="_blank" rel="noopener">10 Rue Francisco Ferrer, 93170 Bagnolet</a>
-      </p>
-      <p>
-        <strong>🚇 Métro · 地铁</strong><br>
-        <a href="https://www.google.com/maps/search/?api=1&query=Gallieni+M%C3%A9tro+Bagnolet" target="_blank" rel="noopener">Gallieni (ligne 3) · 10 min à pied · 步行 10 分钟</a>
-      </p>
-      <p>
-        <strong>🕐 Horaires · 营业时间</strong><br>
-        Du mercredi au dimanche · 12h30 – 19h30 · 周三至周日
-      </p>
+<!-- Admin family modal -->
+<div class="overlay" id="famOverlay">
+  <div class="modal">
+    <h3 id="famTitle">Parent-enfant · 亲子</h3>
+    <p id="famDesc"></p>
+    <div id="famMembers"></div>
+    <div class="modal-row" style="margin-top:10px;">
+      <button class="abtn" onclick="closeFam()">Fermer · 关闭</button>
     </div>
-
-    <div class="footer-block">
-      <div class="footer-title">TARIFS · 收费方式</div>
-      <p>
-        <strong>☀️ Pass Journée · 一整天 — 35 €</strong><br>
-        Perles à repasser, journée sans limite de temps ni de plaques. Matériel inclus.<br>
-        <span class="footer-zh">拼豆全天不限时长、不限拼豆板，材料全含。</span>
-      </p>
-      <p>
-        <strong>🕐 À l'heure · 按小时 — 8,90 €</strong><br>
-        1<sup>ʳᵉ</sup> heure 8,90 €, puis 5 € / 30 min.<br>
-        <span class="footer-zh">第 1 小时 8,90 €，之后每半小时 +5 €。</span>
-      </p>
-    </div>
+    <button class="abtn" style="width:100%;margin-top:10px;color:#c47a9a;border-color:#f0d4e2;" onclick="releaseFamily()">Libérer toute la famille · 整组释放</button>
   </div>
-
-  <p class="footer-note">
-    Thermocollage offert pour toutes vos créations. Accessoires en supplément. · 所有作品烫画免费，配件另计。
-  </p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -294,7 +376,22 @@ let currentDate = todayStr();
 let reservations = [];
 let liveStatus = {};
 let pending = null;        // {poste, hour, type}
-let bookMode = 'hourly';   // 'hourly' | 'day'
+let bookMode = 'hourly';   // 'hourly' | 'day' | 'family'
+
+// ===== Parent-enfant =====
+// Une famille qui commence au créneau h occupe h et h+1 sur chacun de ses postes,
+// tampon à h+2. Départs possibles 12h30 à 16h30 (start_hour 12..16).
+const FAMILY_STARTS = [12,13,14,15,16];
+const FAMILY_REMAINING = {1:'6,10 €',2:'21,10 €',3:'36,10 €'};
+let famKids = null;   // 1 | 2 | 3
+let famStart = null;  // start_hour choisi
+let pendingFamily = null; // group_id ouvert dans la fenêtre admin
+function famIcon(size, adult){
+  const a = adult || '#332847';
+  return `<svg class="fam-ico" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><circle cx="8.5" cy="6.5" r="3" fill="${a}"/><path d="M3.5 20v-3.5a5 5 0 0 1 10 0V20z" fill="${a}"/><circle cx="17" cy="10.5" r="2.3" fill="#4db8a0"/><path d="M13.6 20v-2.2a3.4 3.4 0 0 1 6.8 0V20z" fill="#4db8a0"/><rect x="2.5" y="20.6" width="19" height="1.6" rx=".8" fill="#c47a9a"/></svg>`;
+}
+function familyPeopleFR(n){ return `1 adulte + ${n} enfant${n>1?'s':''}`; }
+function familyRange(h){ return `${slotLabel(h)} à ${slotLabel(h+2)}`; }
 
 function todayStr(){
   const d = new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Paris'}));
@@ -373,11 +470,14 @@ function resAt(poste,hour){
   return reservations.find(r=>{
     if(r.poste!==poste) return false;
     if(r.type==='journee') return true;
+    if(r.type==='family') return hour===r.start_hour || hour===r.start_hour+1;
     return r.start_hour===hour;
   });
 }
 function isBufferAt(poste,hour){
-  const resBuffer = reservations.some(r=>r.poste===poste && r.type==='hourly' && r.start_hour===hour-1);
+  const resBuffer = reservations.some(r=>r.poste===poste && (
+    (r.type==='hourly' && r.start_hour===hour-1) ||
+    (r.type==='family' && r.start_hour===hour-2)));
   if(resBuffer) return true;
   const todayIsShown = currentDate===todayStr();
   const live = liveStatus[poste];
@@ -387,6 +487,41 @@ function isBufferAt(poste,hour){
   }
   return false;
 }
+
+// Même règle que la fonction book_family côté serveur (sinon : payé puis conflit).
+// Un poste peut accueillir une famille à h si : pas de journée ce jour-là ;
+// aucune famille qui commence entre h-2 et h+2 ; aucune autre réservation qui
+// commence entre h-1 et h+2 ; et, aujourd'hui seulement, le poste n'est pas
+// occupé dans le Timer.
+function familyPosteFree(poste,h){
+  const conflict = reservations.some(r=>{
+    if(r.poste!==poste) return false;
+    if(r.type==='journee') return true;
+    if(r.type==='family') return r.start_hour>=h-2 && r.start_hour<=h+2;
+    return r.start_hour>=h-1 && r.start_hour<=h+2;
+  });
+  if(conflict) return false;
+  if(currentDate===todayStr() && liveStatus[poste] && liveStatus[poste].busy===true) return false;
+  return true;
+}
+// Client : l'heure juste avant une famille n'est pas réservable (son tampon tomberait sur la famille).
+function familyStartsAt(poste,h){ return reservations.some(r=>r.poste===poste && r.type==='family' && r.start_hour===h); }
+function familyFreePostes(h){ return POS.filter(p=>familyPosteFree(p,h)); }
+function familyStartOk(h,kids){
+  if(!IS_ADMIN && isPastSlot(currentDate,h)) return false;
+  return familyFreePostes(h).length >= kids+1;
+}
+// familles du jour, dans l'ordre de l'heure de début (admin : groupées par group_id)
+function familyGroups(){
+  const m = new Map();
+  reservations.filter(r=>r.type==='family').forEach(r=>{
+    const k = r.group_id || ('h'+r.start_hour);
+    if(!m.has(k)) m.set(k,{id:r.group_id,start:r.start_hour,rows:[]});
+    m.get(k).rows.push(r);
+  });
+  return [...m.values()].sort((a,b)=>a.start-b.start || String(a.id).localeCompare(String(b.id)));
+}
+function famLabel(gid){ return 'Famille ' + (familyGroups().findIndex(g=>g.id===gid)+1); }
 
 // a slot is "past" once its start hour has begun, based on Paris wall-clock time
 // (Intl.DateTimeFormat with timeZone:'Europe/Paris' handles DST automatically —
@@ -424,6 +559,7 @@ function setBookMode(m){
   bookMode=m;
   document.getElementById('tabHourly').classList.toggle('active',m==='hourly');
   document.getElementById('tabDay').classList.toggle('active',m==='day');
+  document.getElementById('tabFamily').classList.toggle('active',m==='family');
   render();
 }
 
@@ -433,6 +569,8 @@ function render(){
   document.getElementById('closedBanner').style.display = closed?'block':'none';
   document.getElementById('hourlyView').style.display = (!closed && bookMode==='hourly')?'block':'none';
   document.getElementById('dayView').style.display = (!closed && bookMode==='day')?'block':'none';
+  document.getElementById('familyView').style.display = (!closed && bookMode==='family')?'block':'none';
+  renderFamNotice(closed);
   if(closed){
     document.getElementById('summary').textContent='';
     if(IS_ADMIN){
@@ -444,11 +582,13 @@ function render(){
     }
     return;
   }
-  if(bookMode==='hourly') renderHourly(); else renderDay();
+  if(bookMode==='hourly') renderHourly(); else if(bookMode==='day') renderDay(); else renderFamily();
   const free = countFree();
   document.getElementById('summary').textContent = bookMode==='hourly'
     ? `${free} créneaux libres · 个可约`
-    : `${POS.filter(p=>!dayResOn(p)).length} postes libres · 个工位可约`;
+    : bookMode==='day'
+    ? `${POS.filter(p=>!dayResOn(p)).length} postes libres · 个工位可约`
+    : `${FAMILY_STARTS.filter(h=>familyStartOk(h,1)).length} horaires possibles · 个可选时段`;
   if(IS_ADMIN){
     document.getElementById('livePanel').style.display='block';
     document.getElementById('liveGrid').innerHTML = POS.map(p=>{
@@ -481,6 +621,14 @@ function cellHtml(p,h){
     }
   }
   const r = resAt(p,h);
+  if(r && r.type==='family'){
+    const role = r.party_role==='parent' ? 'Parent · 家长' : (r.party_role==='child' ? 'Enfant · 孩子' : '');
+    const sub = IS_ADMIN
+      ? `${famLabel(r.group_id)}${role?' · '+role:''}${r.client_name?'<br>'+esc(r.client_name):''}`
+      : '亲子';
+    const click = IS_ADMIN ? `onclick="adminEditFamily('${r.group_id}')"` : '';
+    return `<td><div class="cell cell-family${IS_ADMIN?' admin':''}" ${click}>${famIcon(16)}Parent-enfant<span class="sub">${sub}</span></div></td>`;
+  }
   if(r){
     const cls = r.status==='pending'?'cell-pending':'cell-booked';
     const label = r.status==='pending'?'À confirmer · 待确认':(r.type==='journee'?'Journée · 全天':'Réservé · 已订');
@@ -491,6 +639,9 @@ function cellHtml(p,h){
   if(isBufferAt(p,h)){
     const click = IS_ADMIN ? `onclick="adminEditCell('${p}',${h})"` : '';
     return `<td><div class="cell cell-booked" ${click}>Tampon · 缓冲<span class="sub">1h</span></div></td>`;
+  }
+  if(!IS_ADMIN && familyStartsAt(p,h+1)){
+    return `<td><div class="cell cell-booked">Indisponible · 不可约</div></td>`;
   }
   if(!IS_ADMIN && isPastSlot(currentDate,h)){
     return `<td><div class="cell cell-free past">Libre · 可约</div></td>`;
@@ -522,10 +673,67 @@ function renderDay(){
   }).join('');
 }
 
+function renderFamNotice(closed){
+  const el = document.getElementById('famNotice');
+  const starts = [...new Set(reservations.filter(r=>r.type==='family').map(r=>r.start_hour))].sort((a,b)=>a-b);
+  if(closed || !starts.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display = 'flex';
+  el.innerHTML = famIcon(18) + '<span><span class="fn-fr">' + starts.map(h=>`Créneau parent-enfant ${familyRange(h)}`).join(' ; ') + '</span><span class="fn-sep"> · </span><span class="fn-zh">当天有亲子时段</span></span>';
+}
+
+function renderFamily(){
+  // une option devenue impossible (autre date, nouvelle réservation) est désélectionnée
+  if(famKids && !FAMILY_STARTS.some(h=>familyStartOk(h,famKids))) famKids = null;
+  if(famStart!==null && (!famKids || !familyStartOk(famStart,famKids))) famStart = null;
+  document.getElementById('famKids').innerHTML = [1,2,3].map(n=>{
+    const ok = FAMILY_STARTS.some(h=>familyStartOk(h,n));
+    return `<button class="opt${famKids===n?' active':''}" ${ok?'':'disabled'} onclick="famPickKids(${n})">${familyPeopleFR(n)}<span class="sub">1 位家长 + ${n} 个孩子</span></button>`;
+  }).join('');
+  document.getElementById('famTimes').innerHTML = FAMILY_STARTS.map(h=>{
+    const ok = famKids && familyStartOk(h,famKids);
+    return `<button class="opt${famStart===h?' active':''}" ${ok?'':'disabled'} onclick="famPickStart(${h})">${familyRange(h)}<span class="sub">${slotLabel(h)} 至 ${slotLabel(h+2)}</span></button>`;
+  }).join('');
+  const anyKids = [1,2,3].some(n=>FAMILY_STARTS.some(h=>familyStartOk(h,n)));
+  document.getElementById('famHint').textContent = !anyKids
+    ? 'Plus de créneau parent-enfant ce jour. · 当天没有可约的亲子时段。'
+    : (!famKids ? 'Choisissez d\'abord le nombre d\'enfants. · 请先选择孩子人数。' : '');
+  const total = document.getElementById('famTotal');
+  if(famKids){
+    total.style.display = 'block';
+    total.innerHTML = `<strong>${familyPeopleFR(famKids)}</strong>${famStart!==null?' · '+frDate(currentDate)+', '+familyRange(famStart):''}<br>`
+      + `Acompte de réservation : 8,90 € · 预约金 8,90 €<br>`
+      + `Reste à régler sur place : <strong>${FAMILY_REMAINING[famKids]}</strong> (hors dépassement) · 到店需付 ${FAMILY_REMAINING[famKids]}（不含超时）`;
+  } else {
+    total.style.display = 'none';
+  }
+  document.getElementById('famClient').style.display = IS_ADMIN ? 'block' : 'none';
+  const go = document.getElementById('famGo');
+  go.disabled = !(famKids && famStart!==null);
+  go.textContent = IS_ADMIN ? 'Ajouter la réservation parent-enfant · 添加亲子预约' : 'Payer l\'acompte 8,90 € · 支付预约金 →';
+}
+function famPickKids(n){ famKids = n; if(famStart!==null && !familyStartOk(famStart,n)) famStart = null; render(); }
+function famPickStart(h){ famStart = h; render(); }
+function famGo(){
+  if(!famKids || famStart===null) return;
+  if(!familyStartOk(famStart,famKids)){ setStatus('Ce créneau n\'est plus disponible · 该时段已不可约'); render(); return; }
+  if(IS_ADMIN){ adminAddFamily(); return; }
+  const n = famKids, h = famStart;
+  const url = SHOP_DOMAIN + '/cart/add'
+    + '?id=' + ACOMPTE_VARIANT_ID
+    + '&properties[Type]=' + encodeURIComponent('Parent-enfant · 亲子')
+    + '&properties[Enfants]=' + encodeURIComponent(String(n))
+    + '&properties[Personnes]=' + encodeURIComponent(familyPeopleFR(n))
+    + '&properties[Date]=' + encodeURIComponent(currentDate)
+    + '&properties[Heure]=' + encodeURIComponent(familyRange(h))
+    + '&properties[' + encodeURIComponent('Activité') + ']=' + encodeURIComponent('Perles à repasser · 拼豆');
+  window.open(url,'_blank');
+  setStatus('Après le paiement, votre créneau sera confirmé par Yaya. · 付款后由 Yaya 确认',true);
+}
+
 function countFree(){
   let n=0;
   HOURS.forEach(h=>POS.forEach(p=>{
-    if(!resAt(p,h) && !isBufferAt(p,h)) n++;
+    if(!resAt(p,h) && !isBufferAt(p,h) && (IS_ADMIN || !familyStartsAt(p,h+1))) n++;
   }));
   return n;
 }
@@ -591,6 +799,7 @@ function adminEditCell(p,h){
 function adminEditDay(p){
   pending={poste:p,hour:OPEN,type:'journee'};
   const existing = dayResOn(p) || reservations.find(r=>r.poste===p);
+  if(existing && existing.type==='family'){ adminEditFamily(existing.group_id); return; }
   document.getElementById('adminTitle').textContent=`Poste ${p} · 工作台${p} · Journée · 全天 · ${frDate(currentDate)}`;
   document.getElementById('adminDesc').textContent = existing?'Modifier ou libérer. · 修改或释放。':'Ajouter une réservation journée. · 添加全天预约。';
   document.getElementById('adminClient').value = existing?existing.client_name||'':'';
@@ -601,10 +810,53 @@ function adminEditDay(p){
 }
 function closeAdmin(){document.getElementById('adminOverlay').classList.remove('open');}
 
+// ===== ADMIN: parent-enfant (toujours la famille entière) =====
+function adminEditFamily(gid){
+  const rows = reservations.filter(r=>r.type==='family' && r.group_id===gid).sort((a,b)=>a.poste.localeCompare(b.poste));
+  if(!rows.length) return;
+  pendingFamily = gid;
+  const h = rows[0].start_hour, kids = rows.length-1;
+  document.getElementById('famTitle').textContent = `${famLabel(gid)} · Parent-enfant · 亲子`;
+  document.getElementById('famDesc').innerHTML =
+    `${frDate(currentDate)}, ${familyRange(h)} (tampon jusqu'à ${slotLabel(h+3)}) · ${familyPeopleFR(kids)} · 1 位家长 + ${kids} 个孩子`
+    + (rows[0].client_name ? `<br>Client · 客户 : <strong>${esc(rows[0].client_name)}</strong>` : '')
+    + `<br>Reste sur place · 到店需付 : ${FAMILY_REMAINING[kids]||'?'}`;
+  document.getElementById('famMembers').innerHTML = rows.map(r=>
+    `<div class="fam-member"><span>Poste ${r.poste} · 工作台${r.poste}</span><span>${r.party_role==='parent'?'Parent · 家长':'Enfant · 孩子'}</span></div>`).join('');
+  document.getElementById('famOverlay').classList.add('open');
+}
+function closeFam(){document.getElementById('famOverlay').classList.remove('open');}
+async function releaseFamily(){
+  if(!pendingFamily) return;
+  if(!confirm('Libérer toute la famille ? · 确定整组释放？')) return;
+  const {error} = await adminApi('delete_family',{group_id:pendingFamily});
+  if(error){setStatus('Échec · 释放失败');return;}
+  closeFam(); setStatus('Famille libérée · 已整组释放',true); await loadAll();
+}
+async function adminAddFamily(){
+  const client = document.getElementById('famClient').value.trim();
+  setStatus('Enregistrement… · 保存中');
+  const {data,error} = await adminApi('insert_family',{date:currentDate,start_hour:famStart,children:famKids,client_name:client});
+  if(error){setStatus('Échec · 保存失败');console.error(error);return;}
+  if(!data || !data.ok){
+    const r = (data && data.result) || {};
+    setStatus(r.status==='conflict'
+      ? `Pas assez de postes libres · 工位不够 (libres : ${(r.free_postes||[]).join(', ')||'aucun'} ; il en faut ${r.needed})`
+      : `Refusé · 被拒绝 (${r.reason||r.status||'?'})`);
+    await loadAll();
+    return;
+  }
+  famKids = null; famStart = null;
+  document.getElementById('famClient').value = '';
+  setStatus(`Famille ajoutée · 已添加亲子预约 (postes ${(data.result.postes||[]).join(', ')})`,true);
+  await loadAll();
+}
+
 async function saveReservation(){
   const client=document.getElementById('adminClient').value.trim();
   const type=document.getElementById('adminType').value;
   const existing = type==='journee' ? (dayResOn(pending.poste)||reservations.find(r=>r.poste===pending.poste)) : resAt(pending.poste,pending.hour);
+  if(existing && existing.type==='family'){ setStatus('Réservation parent-enfant : utilisez « Libérer toute la famille » · 亲子预约请整组释放'); return; }
   setStatus('Enregistrement… · 保存中');
   let error;
   if(existing){
@@ -654,6 +906,8 @@ function onDateChange(){
     document.getElementById('modeTag').classList.add('admin');
   }
   if(!IS_ADMIN){ document.getElementById('datePick').min = todayStr(); }
+  document.getElementById('tabFamilyIcon').innerHTML = famIcon(18,'currentColor');
+  document.getElementById('legendFamily').innerHTML = famIcon(14) + 'Parent-enfant · 亲子';
   document.getElementById('datePick').value=currentDate;
   loadAll();
 })();
