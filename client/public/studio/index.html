@@ -43,6 +43,7 @@
   .cell-booked{background:#f3f0f9;color:#5a4f6a;border-color:#ddd2e6;cursor:default;}
   .cell-live{background:#332847;color:#F5EFE6;border-color:#332847;cursor:default;}
   .cell-pending{background:#fbeef4;color:#c47a9a;border-color:#f0d4e2;}
+  .cell{word-break:keep-all;}  /* les mots chinois ne sont jamais coupés */
   .cell .sub{display:block;font-size:9px;font-weight:600;opacity:.8;margin-top:2px;}
 
   /* full-day poste chooser */
@@ -172,7 +173,7 @@
   <ul class="price-mini">
     <li>☀️ <strong>Pass Journée · 一整天 : 35 €</strong></li>
     <li>🕐 <strong>À l'heure · 按小时 : 8,90 €</strong> la 1ʳᵉ heure, puis 5 € / 30 min</li>
-    <li>👨‍👧 <strong>Parent-enfant · 亲子 : 15 €</strong> par enfant (2 h)</li>
+    <li><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px;"><circle cx="8.5" cy="6.5" r="3" fill="#332847"/><path d="M3.5 20v-3.5a5 5 0 0 1 10 0V20z" fill="#332847"/><circle cx="17" cy="10.5" r="2.3" fill="#4db8a0"/><path d="M13.6 20v-2.2a3.4 3.4 0 0 1 6.8 0V20z" fill="#4db8a0"/><rect x="2.5" y="20.6" width="19" height="1.6" rx=".8" fill="#c47a9a"/></svg> <strong>Parent-enfant · 亲子 : 15 €</strong> par enfant (2 h)</li>
   </ul>
   <div class="price-cards">
     <div class="price-card">
