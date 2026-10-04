@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Réservation atelier — Yaya's Creative Studio</title>
+<title>Réservation atelier · Yaya's Creative Studio</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Dosis',sans-serif;background:#FFFFFF;min-height:100vh;padding:1.5rem 1rem;color:#332847;}
@@ -30,9 +30,9 @@
   .status-msg{font-size:12px;color:#c47a9a;font-weight:600;margin-bottom:10px;min-height:16px;}
 
   .board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:1rem;}
-  table.board{border-collapse:separate;border-spacing:6px;margin:0 auto;min-width:340px;}
+  table.board{border-collapse:separate;border-spacing:6px;margin:0 auto;min-width:340px;table-layout:fixed;width:100%;max-width:640px;}
   table.board th{font-size:12px;font-weight:700;color:#7B6A9B;padding:4px 6px;text-align:center;}
-  table.board th.corner{color:#b8a8d4;}
+  table.board th.corner{color:#b8a8d4;width:56px;}
   .time-label{font-size:12px;font-weight:600;color:#5a4f6a;text-align:right;padding-right:8px;white-space:nowrap;}
   .cell{border-radius:10px;text-align:center;padding:12px 6px;min-width:66px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .12s;user-select:none;}
   .cell:active{transform:scale(.96);}
@@ -89,6 +89,7 @@
 
   /* parent-enfant */
   .modeswitch .em svg{display:block;margin:0 auto;}
+  .lb-zh,.fn-zh{white-space:nowrap;}
   .cell-family{background:#f3f0f9;color:#332847;border-color:#ddd2e6;border-left:3px solid #c47a9a;cursor:default;}
   .cell-family.admin{cursor:pointer;}
   .fam-ico{display:block;margin:0 auto 2px;}
@@ -112,10 +113,17 @@
   .fam-member{display:flex;justify-content:space-between;border:1px solid #E8E3F0;border-radius:8px;padding:6px 10px;font-size:12px;margin-bottom:6px;}
 
   @media(max-width:420px){
-    .cell{min-width:56px;padding:10px 4px;font-size:11px;}
+    .cell{min-width:0;padding:10px 2px;font-size:11px;}
+    .cell-free{white-space:nowrap;}
+    table.board{border-spacing:4px;}
+    table.board th.corner{width:44px;}
+    .time-label{padding-right:4px;}
     .live-grid{grid-template-columns:1fr;}
     .modeswitch{gap:6px;}
     .modeswitch button{font-size:12px;padding:8px 4px;}
+    .lb-sep,.fn-sep{display:none;}
+    .fn-fr,.fn-zh{display:block;}
+    .lb-fr,.lb-zh{display:block;white-space:nowrap;}
     .opt{font-size:12px;padding:9px 4px;}
   }
 
@@ -127,13 +135,15 @@
   .info-sep{color:#b8a8d4;margin:0 4px;}
   .price-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
   .price-card{background:#fff;border:1px solid #E8E3F0;border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.45;color:#332847;}
+  .price-mini{display:none;margin:4px 0 0;padding:0;list-style:none;}
+  .price-mini li{font-size:12px;line-height:1.6;color:#332847;}
   .price-card strong{display:block;font-size:12.5px;margin-bottom:2px;}
   .footer-zh{color:#5a4f6a;font-size:11px;}
   .footer-note{margin-top:6px;text-align:center;font-size:11px;color:#7B6A9B;}
 
   @media(max-width:640px){
-    .price-cards{display:flex;align-items:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-    .price-card{flex:0 0 90%;scroll-snap-align:start;font-size:11.5px;}
+    .price-cards{display:none;}
+    .price-mini{display:block;}
   }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -159,6 +169,11 @@
   </div>
   <div class="info-line"><strong>🕐 Horaires · 营业时间</strong> Du mercredi au dimanche · 12h30 – 19h30 · 周三至周日</div>
   <div class="info-title" style="margin-top:8px;">TARIFS · 收费方式</div>
+  <ul class="price-mini">
+    <li>☀️ <strong>Pass Journée · 一整天 : 35 €</strong></li>
+    <li>🕐 <strong>À l'heure · 按小时 : 8,90 €</strong> la 1ʳᵉ heure, puis 5 € / 30 min</li>
+    <li>👨‍👧 <strong>Parent-enfant · 亲子 : 15 €</strong> par enfant (2 h)</li>
+  </ul>
   <div class="price-cards">
     <div class="price-card">
       <strong>☀️ Pass Journée · 一整天 : 35 €</strong>
@@ -184,13 +199,13 @@
 <!-- Hourly vs Full-day switch -->
 <div class="modeswitch">
   <button id="tabHourly" class="active" onclick="setBookMode('hourly')">
-    <span class="em">🕐</span>À l'heure · 按小时
+    <span class="em">🕐</span><span class="lb-fr">À l'heure</span><span class="lb-sep"> · </span><span class="lb-zh">按小时</span>
   </button>
   <button id="tabDay" onclick="setBookMode('day')">
-    <span class="em">☀️</span>Journée · 一整天
+    <span class="em">☀️</span><span class="lb-fr">Journée</span><span class="lb-sep"> · </span><span class="lb-zh">一整天</span>
   </button>
   <button id="tabFamily" onclick="setBookMode('family')">
-    <span class="em" id="tabFamilyIcon"></span>Parent-enfant · 亲子
+    <span class="em" id="tabFamilyIcon"></span><span class="lb-fr">Parent-enfant</span><span class="lb-sep"> · </span><span class="lb-zh">亲子</span>
   </button>
 </div>
 
@@ -662,7 +677,7 @@ function renderFamNotice(closed){
   const starts = [...new Set(reservations.filter(r=>r.type==='family').map(r=>r.start_hour))].sort((a,b)=>a-b);
   if(closed || !starts.length){ el.style.display='none'; el.innerHTML=''; return; }
   el.style.display = 'flex';
-  el.innerHTML = famIcon(18) + '<span>' + starts.map(h=>`Créneau parent-enfant ${familyRange(h)}`).join(' ; ') + ' · 当天有亲子时段</span>';
+  el.innerHTML = famIcon(18) + '<span><span class="fn-fr">' + starts.map(h=>`Créneau parent-enfant ${familyRange(h)}`).join(' ; ') + '</span><span class="fn-sep"> · </span><span class="fn-zh">当天有亲子时段</span></span>';
 }
 
 function renderFamily(){
