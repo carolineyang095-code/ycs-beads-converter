@@ -146,7 +146,7 @@ const T = {
       1: "Merci pour votre journée à l'atelier ! Votre premier tampon est sur votre carte de fidélité.",
       3: "Votre troisième tampon est sur votre carte. Encore une journée et la suivante vous est offerte.",
     } as Record<number, string>,
-    second: "Votre deuxième tampon est sur votre carte. Petit cadeau : la plaque intelligente vous est offerte pour votre prochaine journée (valable un an, à signaler à Yaya en arrivant).",
+    second: "Votre deuxième tampon est sur votre carte. Petit cadeau : lors de votre prochaine journée, vous profitez de la plaque intelligente au prix de la plaque classique (35 € au lieu de 38 €). Valable un an, il suffit de le signaler à Yaya en arrivant.",
     full: "Carte complète ! Votre journée offerte vous attend, plaque intelligente comprise.",
     codeLabel: "Votre code",
     howTo: "Réservez une journée comme d'habitude, saisissez ce code au paiement : l'acompte passe à 0 €. Sur place, rien à régler.",
@@ -155,7 +155,7 @@ const T = {
     book: "Réserver une journée",
     resend: "Voici le lien vers votre carte de fidélité. Gardez-le pour suivre vos tampons.",
     resendSubject: "Votre carte de fidélité · Yaya's Creative Studio",
-    rules: "Un tampon par journée perles à repasser (journée complète ou 4 h et plus). Au 2e : plaque intelligente offerte. Au 4e : une journée offerte.",
+    rules: "Un tampon par journée perles à repasser (journée complète ou 4 h et plus). Au 2e : plaque intelligente au prix de la plaque classique. Au 4e : une journée offerte.",
   },
   en: {
     subject: (n: number) => n >= 4 ? "Card complete: your free day · Yaya's Creative Studio" : `Your stamp no. ${n} · Yaya's Creative Studio`,
@@ -164,7 +164,7 @@ const T = {
       1: "Thank you for your day at the studio! Your first stamp is on your loyalty card.",
       3: "Your third stamp is on your card. One more day and the next one is on us.",
     } as Record<number, string>,
-    second: "Your second stamp is on your card. A small gift: the smart pegboard is free on your next day (valid for one year, just tell Yaya when you arrive).",
+    second: "Your second stamp is on your card. A small gift: on your next day, you get the smart pegboard at the classic pegboard price (€35 instead of €38). Valid for one year, just tell Yaya when you arrive.",
     full: "Card complete! Your free day is waiting for you, smart pegboard included.",
     codeLabel: "Your code",
     howTo: "Book a day as usual and enter this code at checkout: the deposit becomes €0. Nothing to pay at the studio.",
@@ -173,7 +173,7 @@ const T = {
     book: "Book a day",
     resend: "Here is the link to your loyalty card. Keep it to follow your stamps.",
     resendSubject: "Your loyalty card · Yaya's Creative Studio",
-    rules: "One stamp per fuse bead day (full day or 4 hours or more). 2nd stamp: free smart pegboard. 4th stamp: a free day.",
+    rules: "One stamp per fuse bead day (full day or 4 hours or more). 2nd stamp: smart pegboard at the classic price. 4th stamp: a free day.",
   },
   zh: {
     subject: (n: number) => n >= 4 ? "印章卡集满：送你一天免费拼豆 · Yaya's Creative Studio" : `你的第 ${n} 个章 · Yaya's Creative Studio`,
@@ -182,7 +182,7 @@ const T = {
       1: "谢谢你来工作室拼豆！第一个章已经盖在你的印章卡上了。",
       3: "第三个章已经盖好。再来一天，下一天就免费。",
     } as Record<number, string>,
-    second: "第二个章已经盖好。送你一个小礼物：下次来免费使用智能拼豆板（一年内有效，到店时告诉 Yaya 即可）。",
+    second: "第二个章已经盖好。送你一个小礼物：下次来可以用智能拼豆板，按普通板价格收费（35 €，不用付 38 €）。一年内有效，到店时告诉 Yaya 即可。",
     full: "印章卡集满啦！送你一天免费拼豆，含智能拼豆板。",
     codeLabel: "你的兑换码",
     howTo: "照常预约全天，付款时输入这个码，预约金变为 0 €。到店不用再付钱。",
@@ -191,7 +191,7 @@ const T = {
     book: "预约一天",
     resend: "这是你的印章卡链接，请保存好，随时查看集章进度。",
     resendSubject: "你的印章卡 · Yaya's Creative Studio",
-    rules: "拼豆全天或满 4 小时盖一个章。第 2 个章：免费用智能拼豆板。第 4 个章：送一天免费拼豆。",
+    rules: "拼豆全天或满 4 小时盖一个章。第 2 个章：智能拼豆板按普通板价格。第 4 个章：送一天免费拼豆。",
   },
 };
 

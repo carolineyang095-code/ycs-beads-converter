@@ -18,7 +18,7 @@ const SHOPIFY_WEBHOOK_SECRET = Deno.env.get("SHOPIFY_WEBHOOK_SECRET") ?? "";
 
 // false = observe mode (log the Shopify signature check, still process every order)
 // true  = reject mode (invalid or missing signature -> 401, order not processed)
-const HMAC_ENFORCE = false;
+const HMAC_ENFORCE = true;
 
 const FROM_EMAIL = "reservation@yayascreativestudio.com";
 const FROM_NAME = "Yaya's Creative Studio";
