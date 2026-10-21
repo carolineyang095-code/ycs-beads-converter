@@ -161,7 +161,6 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Noms des trois chats (affichés sous les tampons) · 三只猫的名字，留空就不显示
 const CAT_NAMES = ['', '', ''];
 const INKS = ['#7B6A9B', '#c47a9a', '#3f9c86', '#332847'];
-const FURS = ['#EEE8F6', '#F8E9EF', '#E2F4EF'];
 const TINTS = ['rgba(123,106,155,.08)', 'rgba(196,122,154,.08)', 'rgba(77,184,160,.10)', 'rgba(184,168,212,.18)'];
 const ROTS = [-8, 6, -4, 5];
 
@@ -288,26 +287,14 @@ function fmt(d) {
   return new Intl.DateTimeFormat(T[lang].locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }).format(new Date(iso));
 }
 
-function catSvg(i) {
-  const ink = INKS[i], fur = FURS[i];
-  return `<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
-    <path d="M13 28 L17 7 L30 19 Z" fill="${fur}" stroke="${ink}" stroke-width="2.6" stroke-linejoin="round"/>
-    <path d="M51 28 L47 7 L34 19 Z" fill="${fur}" stroke="${ink}" stroke-width="2.6" stroke-linejoin="round"/>
-    <ellipse cx="32" cy="36" rx="22" ry="19" fill="${fur}" stroke="${ink}" stroke-width="2.6"/>
-    <ellipse cx="24" cy="34" rx="2.6" ry="3.4" fill="${ink}"/><ellipse cx="40" cy="34" rx="2.6" ry="3.4" fill="${ink}"/>
-    <path d="M30 40.5 L34 40.5 L32 43 Z" fill="${ink}"/>
-    <path d="M32 43 Q29.5 46.5 26.5 44.8 M32 43 Q34.5 46.5 37.5 44.8" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M7 37 L18 39 M7 43 L18 42 M57 37 L46 39 M57 43 L46 42" fill="none" stroke="${ink}" stroke-width="1.4" stroke-linecap="round"/>
-  </svg>`;
-}
-
 function slotHtml(i, filled) {
   const t = T[lang];
   const name = i < 3 ? CAT_NAMES[i] : t.octo;
   const perk = i === 1 ? t.perk2 : i === 3 ? t.perk4 : '';
   let face;
   if (filled) {
-    const inner = i < 3 ? catSvg(i) : '<img src="pieuvre.png" alt="">';
+    // Images des tampons : chat-1.png, chat-2.png, chat-3.png, pieuvre.png (remplacer le fichier du même nom pour changer l'image)
+    const inner = `<img src="${i < 3 ? 'chat-' + (i + 1) : 'pieuvre'}.png" alt="">`;
     face = `<div class="stamp" style="border-color:${INKS[i]};background:${TINTS[i]};transform:rotate(${ROTS[i]}deg)">
       <div class="ring" style="border-color:${INKS[i]}">${inner}</div></div>`;
   } else {
