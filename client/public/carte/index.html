@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Ma carte de fidélité · Yaya's Creative Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dosis:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Dosis","LXGW WenKai","PingFang SC","Microsoft YaHei",sans-serif;font-weight:500;background:#F5EFE6;color:#332847;min-height:100vh;}
+  a{color:#332847;}
+  .wrap{max-width:480px;margin:0 auto;padding-bottom:32px;}
+
+  .hero{position:relative;overflow:hidden;background:#332847;color:#F5EFE6;padding:20px 22px 40px;}
+  .dot{position:absolute;border-radius:50%;}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative;}
+  .brand{font-size:15px;font-weight:600;letter-spacing:.02em;}
+  .langs{display:flex;gap:2px;}
+  .langs button{background:none;border:none;color:#b8a8d4;font-family:inherit;font-size:13px;padding:12px 6px;cursor:pointer;}
+  .langs button.on{color:#F5EFE6;font-weight:700;}
+  .eyebrow{margin-top:14px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8a8d4;position:relative;}
+  .hero h1{font-size:30px;font-weight:600;line-height:1.15;margin-top:6px;position:relative;}
+  .hello{font-size:16px;color:#E8E3F0;margin-top:6px;position:relative;}
+
+  .body{padding:0 18px;margin-top:-20px;display:flex;flex-direction:column;gap:20px;position:relative;}
+  .panel{background:#fff;border:1px solid #E8E3F0;border-radius:20px;padding:22px 18px;box-shadow:0 6px 24px rgba(51,40,71,.10);}
+  .row{display:flex;justify-content:space-between;align-items:baseline;}
+  .label{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#5a4f6a;}
+  .count{font-size:30px;font-weight:700;}
+  .count small{font-size:18px;color:#5a4f6a;font-weight:600;}
+  .slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 12px;margin-top:20px;}
+  .slot{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .stamp{width:106px;height:106px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;}
+  .stamp .ring{width:92px;height:92px;border-radius:50%;border:1.5px dashed;display:flex;align-items:center;justify-content:center;}
+  .stamp img{width:70px;height:70px;object-fit:contain;}
+  .empty{width:106px;height:106px;border-radius:50%;border:2px dashed #b8a8d4;background:#FBF8F3;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:#7B6A9B;}
+  .slotname{font-size:13px;color:#5a4f6a;text-align:center;min-height:1em;}
+  .perk{font-size:12px;font-weight:600;background:#E8E3F0;border-radius:999px;padding:3px 10px;text-align:center;}
+  .msg{margin-top:20px;background:#F5EFE6;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.45;text-align:center;}
+
+  .reward{background:#332847;color:#F5EFE6;border-radius:20px;padding:22px 18px;display:flex;flex-direction:column;gap:14px;}
+  .reward .label{color:#b8a8d4;}
+  .codebox{background:#F5EFE6;color:#332847;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .code{font-size:22px;font-weight:700;letter-spacing:.08em;word-break:break-all;}
+  .btn-out{min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid #332847;background:#fff;color:#332847;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .small{font-size:13px;color:#E8E3F0;}
+
+  h2{font-size:18px;font-weight:600;margin-bottom:10px;}
+  .list{background:#fff;border:1px solid #E8E3F0;border-radius:16px;overflow:hidden;}
+  .li{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #E8E3F0;}
+  .li:last-child{border-bottom:none;}
+  .li .bead{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .li .t{font-size:15px;font-weight:600;}
+  .li .s{font-size:13px;color:#5a4f6a;}
+  .li .grow{flex:1;display:flex;flex-direction:column;gap:2px;}
+  .tag{font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;white-space:nowrap;}
+  .tag.go{background:#E2F4EF;color:#24715f;}
+  .tag.done{background:#E8E3F0;color:#5a4f6a;}
+  .steps{background:#fff;border:1px solid #E8E3F0;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px;font-size:14px;line-height:1.5;}
+  .step{display:flex;gap:12px;}
+  .num{width:26px;height:26px;border-radius:50%;background:#E8E3F0;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .cta{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:999px;background:#332847;color:#fff;text-decoration:none;font-size:16px;font-weight:600;}
+  .foot{text-align:center;padding:8px 0;display:flex;flex-direction:column;gap:6px;}
+  .foot .tagline{font-size:15px;color:#7B6A9B;font-weight:600;}
+  .foot .note{font-size:12px;color:#5a4f6a;}
+  .state{padding:40px 22px;text-align:center;font-size:16px;line-height:1.6;}
+  [hidden]{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="dot" style="right:26px;top:70px;width:12px;height:12px;background:#c47a9a"></div>
+    <div class="dot" style="right:50px;top:98px;width:9px;height:9px;background:#4db8a0"></div>
+    <div class="dot" style="right:18px;top:114px;width:14px;height:14px;background:#b8a8d4"></div>
+    <div class="dot" style="right:70px;top:134px;width:8px;height:8px;background:#F5EFE6;opacity:.6"></div>
+    <div class="dot" style="right:40px;top:152px;width:10px;height:10px;background:#c47a9a;opacity:.8"></div>
+    <div class="top">
+      <div class="brand">Yaya's Creative Studio</div>
+      <div class="langs" id="langs">
+        <button type="button" data-l="fr">FR</button>
+        <button type="button" data-l="en">EN</button>
+        <button type="button" data-l="zh">中文</button>
+      </div>
+    </div>
+    <div class="eyebrow">Open Studio · Bagnolet</div>
+    <h1 id="title"></h1>
+    <div class="hello" id="hello"></div>
+  </div>
+
+  <div class="state" id="state"></div>
+
+  <div class="body" id="main" hidden>
+    <div class="reward" id="reward" hidden>
+      <div class="label" id="rwLabel"></div>
+      <div id="rwDesc" style="font-size:17px;line-height:1.45;"></div>
+      <div class="codebox">
+        <div>
+          <div style="font-size:12px;color:#5a4f6a;" id="rwCodeLabel"></div>
+          <div class="code" id="rwCode"></div>
+        </div>
+        <button type="button" class="btn-out" id="copyBtn"></button>
+      </div>
+      <div class="small" id="rwValid"></div>
+    </div>
+
+    <div id="howBlock" hidden>
+      <h2 id="howTitle"></h2>
+      <div class="steps" id="howSteps"></div>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <div class="label" id="stampsLabel"></div>
+        <div class="count"><span id="count">0</span><small> / 4</small></div>
+      </div>
+      <div class="slots" id="slots"></div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div id="giftBlock" hidden>
+      <h2 id="giftTitle"></h2>
+      <div class="list">
+        <div class="li">
+          <div class="grow">
+            <div class="t" id="upName"></div>
+            <div class="s" id="upDesc"></div>
+          </div>
+          <div class="tag" id="upTag"></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 id="histTitle"></h2>
+      <div class="list" id="hist"></div>
+    </div>
+
+    <div>
+      <h2 id="rulesTitle"></h2>
+      <div class="steps" id="rules"></div>
+    </div>
+
+    <a class="cta" id="bookBtn" href="/studio/"></a>
+
+    <div class="foot">
+      <div class="tagline">Je crée donc je suis</div>
+      <div class="note" id="privacy"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://rfhvvendmvfcfclsxjxb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5Oi8G_cclnJY-B6eBbhEbA__wayUDzk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Noms des trois chats (affichés sous les tampons) · 三只猫的名字，留空就不显示
+const CAT_NAMES = ['', '', ''];
+const INKS = ['#7B6A9B', '#c47a9a', '#3f9c86', '#332847'];
+const FURS = ['#EEE8F6', '#F8E9EF', '#E2F4EF'];
+const TINTS = ['rgba(123,106,155,.08)', 'rgba(196,122,154,.08)', 'rgba(77,184,160,.10)', 'rgba(184,168,212,.18)'];
+const ROTS = [-8, 6, -4, 5];
+
+const T = {
+  fr: {
+    title: 'Ma carte de fidélité',
+    hello: n => n ? `Bonjour ${n}, voici vos tampons.` : 'Bonjour, voici vos tampons.',
+    stamps: 'Vos tampons',
+    msg: ['Quatre journées perles à repasser, et la cinquième vous est offerte.',
+          'Encore une journée et un petit cadeau vous attend.',
+          'Encore deux journées et la suivante vous est offerte.',
+          'Encore une journée et la suivante vous est offerte.',
+          'Carte complète !'],
+    perk2: 'Petit cadeau', perk4: 'Journée offerte', octo: 'La pieuvre',
+    rwLabel: 'Votre journée offerte',
+    rwDesc: 'Une journée perles à repasser avec plaque intelligente, rien à régler.',
+    codeLabel: 'Votre code', copy: 'Copier', copied: 'Copié',
+    valid: d => `Valable jusqu'au ${d} · code personnel, non cessible`,
+    howTitle: "Comment l'utiliser",
+    how: ["Réservez une journée perles à repasser comme d'habitude, le jour de votre choix.",
+          "Au paiement, saisissez votre code : l'acompte passe à 0 €.",
+          'Sur place, rien à payer.'],
+    giftTitle: 'Votre cadeau', upName: 'Plaque intelligente offerte',
+    upDesc: 'Pour votre prochaine journée, au prix de la plaque classique',
+    toUse: 'À utiliser', used: 'Utilisée',
+    histTitle: 'Historique',
+    reason: { journee: 'Journée perles à repasser', hourly_4h: 'Séance de 4 h et plus', manual: 'Tampon ajouté par Yaya' },
+    noHist: 'Votre premier tampon apparaîtra ici après votre première journée.',
+    rulesTitle: 'Comment ça marche',
+    rules: ['Un tampon par journée perles à repasser (journée complète ou séance de 4 h et plus), un seul par jour. Les ateliers parent-enfant ne comptent pas.',
+            'Au 2e tampon : la plaque intelligente vous est offerte pour votre journée suivante.',
+            'Au 4e tampon : une journée offerte, plaque intelligente comprise.',
+            'Tampons et code valables un an. La journée offerte est personnelle et ne peut pas être cédée.'],
+    book: 'Réserver ma prochaine journée', bookFree: 'Réserver ma journée offerte',
+    privacy: 'Lien personnel · ne le partagez pas',
+    loading: 'Chargement…',
+    invalid: "Ce lien ne fonctionne pas. Demandez à Yaya de vous renvoyer votre carte.",
+    error: 'Un souci de chargement. Réessayez dans un instant.',
+    locale: 'fr-FR'
+  },
+  en: {
+    title: 'My loyalty card',
+    hello: n => n ? `Hello ${n}, here are your stamps.` : 'Hello, here are your stamps.',
+    stamps: 'Your stamps',
+    msg: ['Four fuse bead days, and the fifth one is on us.',
+          'One more day and a small gift is waiting for you.',
+          'Two more days and the next one is on us.',
+          'One more day and the next one is on us.',
+          'Card complete!'],
+    perk2: 'Small gift', perk4: 'Free day', octo: 'The octopus',
+    rwLabel: 'Your free day',
+    rwDesc: 'A fuse bead day with the smart pegboard, nothing to pay.',
+    codeLabel: 'Your code', copy: 'Copy', copied: 'Copied',
+    valid: d => `Valid until ${d} · personal code, not transferable`,
+    howTitle: 'How to use it',
+    how: ['Book a fuse bead day as usual, any day you like.',
+          'Enter your code at checkout: the deposit becomes €0.',
+          'Nothing to pay at the studio.'],
+    giftTitle: 'Your gift', upName: 'Free smart pegboard',
+    upDesc: 'For your next day, at the classic pegboard price',
+    toUse: 'To use', used: 'Used',
+    histTitle: 'History',
+    reason: { journee: 'Fuse bead day', hourly_4h: 'Session of 4 hours or more', manual: 'Stamp added by Yaya' },
+    noHist: 'Your first stamp will appear here after your first day.',
+    rulesTitle: 'How it works',
+    rules: ['One stamp per fuse bead day (full day or a session of 4 hours or more), one per day. Parent-child sessions do not count.',
+            '2nd stamp: the smart pegboard is free on your next day.',
+            '4th stamp: a free day, smart pegboard included.',
+            'Stamps and code are valid for one year. The free day is personal and cannot be transferred.'],
+    book: 'Book my next day', bookFree: 'Book my free day',
+    privacy: 'Personal link · please do not share it',
+    loading: 'Loading…',
+    invalid: 'This link does not work. Ask Yaya to send you your card again.',
+    error: 'Something went wrong. Please try again in a moment.',
+    locale: 'en-GB'
+  },
+  zh: {
+    title: '我的印章卡',
+    hello: n => n ? `${n}，你好！这是你的印章。` : '你好！这是你的印章。',
+    stamps: '你的印章',
+    msg: ['拼豆全天集满 4 个章，第 5 天免费。',
+          '再来一天，就有小礼物。',
+          '再来两天，下一天就免费。',
+          '再来一天，下一天就免费。',
+          '集满啦！'],
+    perk2: '小礼物', perk4: '免费一天', octo: '章鱼',
+    rwLabel: '你的免费日',
+    rwDesc: '一天拼豆，含智能拼豆板，到店不用付钱。',
+    codeLabel: '你的兑换码', copy: '复制', copied: '已复制',
+    valid: d => `有效期至 ${d} · 仅限本人使用，不可转让`,
+    howTitle: '怎么使用',
+    how: ['照常预约拼豆全天，哪天都可以。',
+          '付款时输入兑换码，预约金变为 0 €。',
+          '到店不用再付钱。'],
+    giftTitle: '你的礼物', upName: '免费使用智能拼豆板',
+    upDesc: '下一次来时使用，按普通拼豆板的价格',
+    toUse: '待使用', used: '已使用',
+    histTitle: '集章记录',
+    reason: { journee: '拼豆全天', hourly_4h: '满 4 小时', manual: 'Yaya 补章' },
+    noHist: '第一次来拼豆后，第一个章会出现在这里。',
+    rulesTitle: '规则',
+    rules: ['拼豆全天，或单次满 4 小时，盖一个章，一天最多一个。亲子场不计。',
+            '第 2 个章：下一次免费使用智能拼豆板。',
+            '第 4 个章：送一天免费拼豆，含智能拼豆板。',
+            '印章和兑换码一年内有效。免费日仅限本人，不可转让。'],
+    book: '预约下一次', bookFree: '预约我的免费日',
+    privacy: '这是你的私人链接，请不要分享',
+    loading: '加载中…',
+    invalid: '这个链接无法打开。请联系 Yaya 重新发送你的印章卡。',
+    error: '加载出错，请稍后再试。',
+    locale: 'zh-CN'
+  }
+};
+
+const params = new URLSearchParams(location.search);
+const token = params.get('t') || '';
+let lang = ['fr', 'en', 'zh'].includes(params.get('lng')) ? params.get('lng') : null;
+let data = null;
+
+function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function $(id) { return document.getElementById(id); }
+function fmt(d) {
+  const iso = d.length === 10 ? d + 'T12:00:00Z' : d;
+  return new Intl.DateTimeFormat(T[lang].locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }).format(new Date(iso));
+}
+
+function catSvg(i) {
+  const ink = INKS[i], fur = FURS[i];
+  return `<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+    <path d="M13 28 L17 7 L30 19 Z" fill="${fur}" stroke="${ink}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M51 28 L47 7 L34 19 Z" fill="${fur}" stroke="${ink}" stroke-width="2.6" stroke-linejoin="round"/>
+    <ellipse cx="32" cy="36" rx="22" ry="19" fill="${fur}" stroke="${ink}" stroke-width="2.6"/>
+    <ellipse cx="24" cy="34" rx="2.6" ry="3.4" fill="${ink}"/><ellipse cx="40" cy="34" rx="2.6" ry="3.4" fill="${ink}"/>
+    <path d="M30 40.5 L34 40.5 L32 43 Z" fill="${ink}"/>
+    <path d="M32 43 Q29.5 46.5 26.5 44.8 M32 43 Q34.5 46.5 37.5 44.8" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M7 37 L18 39 M7 43 L18 42 M57 37 L46 39 M57 43 L46 42" fill="none" stroke="${ink}" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function slotHtml(i, filled) {
+  const t = T[lang];
+  const name = i < 3 ? CAT_NAMES[i] : t.octo;
+  const perk = i === 1 ? t.perk2 : i === 3 ? t.perk4 : '';
+  let face;
+  if (filled) {
+    const inner = i < 3 ? catSvg(i) : '<img src="pieuvre.png" alt="">';
+    face = `<div class="stamp" style="border-color:${INKS[i]};background:${TINTS[i]};transform:rotate(${ROTS[i]}deg)">
+      <div class="ring" style="border-color:${INKS[i]}">${inner}</div></div>`;
+  } else {
+    face = `<div class="empty">${i + 1}</div>`;
+  }
+  return `<div class="slot">${face}<div class="slotname">${esc(name)}</div>${perk ? `<div class="perk">${perk}</div>` : ''}</div>`;
+}
+
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+  document.querySelectorAll('#langs button').forEach(b => b.classList.toggle('on', b.dataset.l === lang));
+  $('title').textContent = t.title;
+  if (!data) return;
+
+  $('hello').textContent = t.hello(data.name);
+  $('stampsLabel').textContent = t.stamps;
+  const n = Math.min(data.stamps.length, 4);
+  $('count').textContent = n;
+  $('slots').innerHTML = [0, 1, 2, 3].map(i => slotHtml(i, i < n)).join('');
+  $('msg').textContent = t.msg[n];
+
+  const fd = data.free_day;
+  $('reward').hidden = !fd;
+  $('howBlock').hidden = !fd;
+  if (fd) {
+    $('rwLabel').textContent = t.rwLabel;
+    $('rwDesc').textContent = t.rwDesc;
+    $('rwCodeLabel').textContent = t.codeLabel;
+    $('rwCode').textContent = fd.code || '';
+    $('copyBtn').textContent = t.copy;
+    $('rwValid').textContent = t.valid(fmt(fd.expires_at));
+    $('howTitle').textContent = t.howTitle;
+    $('howSteps').innerHTML = t.how.map((s, i) => `<div class="step"><div class="num">${i + 1}</div><div>${esc(s)}</div></div>`).join('');
+  }
+
+  const up = data.upgrade;
+  $('giftBlock').hidden = !up;
+  if (up) {
+    $('giftTitle').textContent = t.giftTitle;
+    $('upName').textContent = t.upName;
+    $('upDesc').textContent = t.upDesc;
+    $('upTag').textContent = up.used ? t.used : t.toUse;
+    $('upTag').className = 'tag ' + (up.used ? 'done' : 'go');
+  }
+
+  $('histTitle').textContent = t.histTitle;
+  $('hist').innerHTML = data.history.length
+    ? data.history.map(h => `<div class="li"><div class="bead" style="background:#b8a8d4"></div>
+        <div class="grow"><div class="t">${esc(fmt(h.date))}</div><div class="s">${esc(t.reason[h.reason] || '')}</div></div></div>`).join('')
+    : `<div class="li"><div class="s">${esc(t.noHist)}</div></div>`;
+
+  $('rulesTitle').textContent = t.rulesTitle;
+  $('rules').innerHTML = t.rules.map((s, i) => `<div class="step"><div class="num">${i + 1}</div><div>${esc(s)}</div></div>`).join('');
+  $('bookBtn').textContent = fd ? t.bookFree : t.book;
+  $('privacy').textContent = t.privacy;
+}
+
+function showState(key) {
+  $('main').hidden = true;
+  $('state').hidden = false;
+  $('state').textContent = T[lang][key];
+}
+
+document.querySelectorAll('#langs button').forEach(b => b.addEventListener('click', () => {
+  lang = b.dataset.l;
+  try { const u = new URL(location.href); u.searchParams.set('lng', lang); history.replaceState(null, '', u); } catch (e) {}
+  if (data) render(); else { render(); showState($('state').dataset.key || 'loading'); }
+}));
+
+$('copyBtn').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText($('rwCode').textContent);
+    $('copyBtn').textContent = T[lang].copied;
+    setTimeout(() => { $('copyBtn').textContent = T[lang].copy; }, 2000);
+  } catch (e) {}
+});
+
+(async function init() {
+  if (!lang) lang = 'fr';
+  render();
+  if (!token) { $('state').dataset.key = 'invalid'; showState('invalid'); return; }
+  $('state').dataset.key = 'loading';
+  showState('loading');
+  const { data: res, error } = await sb.functions.invoke('loyalty-card', { body: { token } });
+  if (error) {
+    const status = error.context && error.context.status;
+    $('state').dataset.key = status === 404 ? 'invalid' : 'error';
+    showState($('state').dataset.key);
+    return;
+  }
+  data = res;
+  if (!params.get('lng') && ['fr', 'en', 'zh'].includes(res.lang)) lang = res.lang;
+  $('state').hidden = true;
+  $('main').hidden = false;
+  render();
+})();
+</script>
+</body>
+</html>

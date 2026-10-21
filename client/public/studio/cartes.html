@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>印章卡后台 · Yaya's Creative Studio</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Dosis','LXGW WenKai','PingFang SC','Microsoft YaHei',sans-serif;font-weight:500;background:#F5EFE6;color:#332847;min-height:100vh;}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:14px;}
+  .eyebrow{font-size:13px;color:#5a4f6a;letter-spacing:.06em;}
+  h1{font-size:26px;font-weight:600;}
+  h2{font-size:17px;font-weight:600;margin-bottom:8px;}
+  .tabs{display:flex;gap:6px;background:#E8E3F0;border-radius:999px;padding:4px;}
+  .tabs button{flex:1;min-height:40px;border:none;border-radius:999px;background:transparent;color:#5a4f6a;font-family:inherit;font-size:15px;cursor:pointer;}
+  .tabs button.on{background:#fff;color:#332847;font-weight:600;}
+  .bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .btn{min-height:44px;padding:8px 16px;line-height:1.3;border-radius:999px;border:1.5px solid #332847;background:#fff;color:#332847;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;}
+  .btn.solid{background:#332847;color:#fff;}
+  .btn.small{min-height:36px;padding:0 12px;font-size:13px;border-width:1px;}
+  .btn.ghost{border-color:#b8a8d4;color:#5a4f6a;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.full{width:100%;}
+  input[type=email],input[type=text],input[type=search],input[type=date]{min-height:44px;border-radius:12px;border:1px solid #b8a8d4;padding:0 12px;font-family:inherit;font-size:15px;color:#332847;background:#fff;width:100%;}
+  label{font-size:13px;color:#5a4f6a;display:block;margin-bottom:4px;}
+  .card{background:#fff;border:1px solid #E8E3F0;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 10px rgba(51,40,71,.05);}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .name{font-size:17px;font-weight:600;}
+  .meta{font-size:13px;color:#5a4f6a;}
+  .pill{font-size:13px;background:#F5EFE6;border-radius:999px;padding:4px 10px;white-space:nowrap;}
+  .note{font-size:13px;font-weight:600;border-radius:10px;padding:8px 12px;}
+  .note.green{background:#E2F4EF;color:#24715f;}
+  .note.pink{background:#F8E9EF;color:#8a3c5e;}
+  .note.grey{background:#E8E3F0;color:#5a4f6a;}
+  .blocked{min-height:44px;border-radius:999px;background:#E8E3F0;color:#5a4f6a;font-size:14px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 12px;}
+  .done{min-height:44px;border-radius:999px;border:1.5px solid #3f9c86;color:#24715f;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;}
+  .row2{display:flex;gap:8px;align-items:center;}
+  .row2 > *{flex:1;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #b8a8d4;background:#fff;color:#332847;font-family:inherit;font-size:14px;cursor:pointer;}
+  .chip.on{background:#332847;color:#fff;border-color:#332847;font-weight:600;}
+  .list{background:#fff;border:1px solid #E8E3F0;border-radius:16px;overflow:hidden;}
+  .item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #E8E3F0;cursor:pointer;background:#fff;width:100%;text-align:left;font-family:inherit;color:#332847;border-left:none;border-right:none;border-top:none;}
+  .item:last-child{border-bottom:none;}
+  .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+  .ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dots{display:flex;gap:4px;}
+  .dots i{width:12px;height:12px;border-radius:50%;display:block;}
+  .mini{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+  .mini div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#5a4f6a;text-align:center;}
+  .mini b{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;}
+  .msg{position:sticky;top:8px;z-index:5;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;display:none;}
+  .msg.ok{display:block;background:#E2F4EF;color:#24715f;}
+  .msg.err{display:block;background:#F8E9EF;color:#8a3c5e;}
+  .hint{font-size:13px;color:#5a4f6a;line-height:1.55;}
+  .back{align-self:flex-start;min-height:44px;background:none;border:none;font-family:inherit;font-size:15px;color:#332847;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  [hidden]{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow">YCS 后台 · Open Studio · <a href="./?admin" style="color:#5a4f6a;">返回预约表</a></div>
+    <h1>印章卡</h1>
+  </div>
+  <div class="tabs">
+    <button type="button" id="tabToday" class="on">今日盖章</button>
+    <button type="button" id="tabMembers">客人列表</button>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div id="view"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://rfhvvendmvfcfclsxjxb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5Oi8G_cclnJY-B6eBbhEbA__wayUDzk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const ADMIN_PW_KEY = 'ycsAdminPw';   // 和预约表后台共用同一个密码
+const INKS = ['#7B6A9B', '#c47a9a', '#3f9c86', '#332847'];
+const REASON = { journee: '拼豆全天', hourly_4h: '按小时，满 4 小时', manual: '手动补章' };
+
+let adminPw = null;
+let state = { view: 'today', date: parisToday(), q: '', filter: 'all', email: null };
+let cache = {};
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function parisToday() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date()); }
+function zhDate(d) {
+  const dt = new Date((d.length === 10 ? d + 'T12:00:00Z' : d));
+  return new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'short', timeZone: 'Europe/Paris' }).format(dt);
+}
+function zhDateY(d) {
+  const dt = new Date((d.length === 10 ? d + 'T12:00:00Z' : d));
+  return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Paris' }).format(dt);
+}
+function say(text, ok) {
+  const m = $('msg');
+  m.textContent = text;
+  m.className = 'msg ' + (ok ? 'ok' : 'err');
+  clearTimeout(say.t);
+  say.t = setTimeout(() => { m.className = 'msg'; }, 6000);
+}
+
+async function api(action, payload) {
+  const { data, error } = await sb.functions.invoke('loyalty-admin', {
+    body: { action, ...(payload || {}) },
+    headers: { 'x-admin-password': adminPw || '' }
+  });
+  if (error) {
+    const status = error.context && error.context.status;
+    let body = null;
+    try { body = await error.context.json(); } catch (e) {}
+    return { error, status, body };
+  }
+  return { data };
+}
+
+async function login() {
+  let pw = null;
+  try { pw = sessionStorage.getItem(ADMIN_PW_KEY); } catch (e) {}
+  if (!pw) pw = prompt('Mot de passe admin · 管理员密码');
+  if (!pw) return false;
+  adminPw = pw;
+  const r = await api('pool');
+  if (r.status === 401) {
+    try { sessionStorage.removeItem(ADMIN_PW_KEY); } catch (e) {}
+    alert('密码不对 · Mot de passe incorrect');
+    return false;
+  }
+  try { sessionStorage.setItem(ADMIN_PW_KEY, pw); } catch (e) {}
+  cache.pool = r.data;
+  return true;
+}
+
+// ---------- 今日盖章 ----------
+function stampLabel(count) {
+  const n = Math.min(count + 1, 4);
+  if (n === 2) return '盖第 2 个章（送智能板升级券）';
+  if (n === 4) return '盖第 4 个章（集满，发免费日兑换码）';
+  return `盖第 ${n} 个章`;
+}
+
+function liveFor(poste) {
+  const l = (cache.today.live || []).find(x => x.poste === poste);
+  if (!l || !l.busy || !l.started_at) return '';
+  const mins = Math.floor((Date.now() - new Date(l.started_at).getTime()) / 60000);
+  if (mins < 0 || mins > 16 * 60) return '';
+  return `Timer：已坐 ${Math.floor(mins / 60)} 小时 ${mins % 60} 分`;
+}
+
+function rowHtml(r) {
+  const t = cache.today;
+  const email = (r.client_email || '').toLowerCase();
+  const sum = email ? t.summaries[email] : null;
+  const count = sum ? sum.count : 0;
+  const stamped = (t.stamps || []).find(s => s.reservation_id === r.id);
+  const typeTxt = r.type === 'journee' ? '全天 12:30–19:30' : `按小时 · ${r.start_hour}h30 起`;
+  const craftTxt = r.craft_type === 'needle_felting' ? '羊毛毡' : r.craft_type === 'fuse_beads' ? '拼豆' : '手工类型未注明';
+  const live = liveFor(r.poste);
+  let notes = '';
+  if (sum && sum.upgrade) notes += `<div class="note green">持智能板升级券：今天可以按普通板价格用智能板 <button type="button" class="btn small" style="margin-left:6px" onclick="useUpgrade(${sum.upgrade.id})">核销</button></div>`;
+  if (sum && sum.free_day && !r.reward_code) notes += `<div class="note grey">有一张免费日兑换码还没用（${esc(sum.free_day.code)}）</div>`;
+
+  let action;
+  if (r.reward_code) {
+    action = `<div class="blocked">奖励日（兑换码 ${esc(r.reward_code)}）：今天免费，不盖章</div>`;
+  } else if (stamped) {
+    action = `<div class="done">今天已盖章 · 第 ${stamped.position} 个 <button type="button" class="btn small ghost" onclick="revoke(${stamped.id})">撤销</button></div>`;
+  } else if (r.craft_type === 'needle_felting') {
+    action = `<div class="blocked">羊毛毡不计印章</div>`;
+  } else {
+    const reason = r.type === 'journee' ? 'journee' : 'hourly_4h';
+    const btnTxt = r.type === 'journee' ? stampLabel(count) : '满 4 小时 · ' + stampLabel(count);
+    action = `
+      <div><label for="em${r.id}">客人邮箱（双人预约时，第二位请改成她自己的邮箱）</label>
+      <input type="email" id="em${r.id}" value="${esc(email)}" placeholder="client@exemple.fr"></div>
+      <button type="button" class="btn solid full" onclick="stampRow(${r.id}, '${reason}')">${esc(btnTxt)}</button>`;
+  }
+  return `<div class="card">
+    <div class="head">
+      <div><div class="name">${esc(r.client_name || '客人')}</div>
+      <div class="meta">工位 ${esc(r.poste)} · ${typeTxt} · ${craftTxt}</div>
+      ${live ? `<div class="meta" style="color:#24715f;font-weight:600;">${live}</div>` : ''}</div>
+      <div class="pill">印章 ${count}/4</div>
+    </div>${notes}${action}</div>`;
+}
+
+function renderToday() {
+  const t = cache.today;
+  const res = (t && t.reservations) || [];
+  const families = {};
+  const rows = [];
+  for (const r of res) {
+    if (r.type === 'family') {
+      if (!families[r.group_id]) { families[r.group_id] = true; rows.push({ family: true, r }); }
+    } else rows.push({ family: false, r });
+  }
+  const pool = cache.pool ? `兑换码还剩 ${cache.pool.left} 个` : '';
+  $('view').innerHTML = `
+    <div class="bar" style="margin-bottom:12px;">
+      <button type="button" class="btn small" onclick="shiftDay(-1)">‹</button>
+      <input type="date" id="dayPick" value="${state.date}" style="flex:1" onchange="pickDay(this.value)">
+      <button type="button" class="btn small" onclick="shiftDay(1)">›</button>
+    </div>
+    <div class="hint" style="margin-bottom:12px;">${zhDate(state.date)} · ${rows.length} 组客人 ${pool ? '· ' + pool : ''}</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      ${rows.length ? rows.map(x => x.family
+        ? `<div class="card"><div class="head"><div><div class="name">${esc(x.r.client_name || '亲子')}</div>
+            <div class="meta">亲子场 · ${x.r.start_hour}h30 起</div></div></div><div class="blocked">亲子场不计印章</div></div>`
+        : rowHtml(x.r)).join('') : '<div class="hint">这一天没有预约。</div>'}
+    </div>
+    <div class="hint" style="margin:14px 2px;">盖下第 2 个章：系统自动发邮件，附智能板升级券。<br>盖下第 4 个章：系统自动发免费日兑换码。</div>
+    ${manualForm(null)}`;
+}
+
+function manualForm(email) {
+  return `<div class="card">
+    <h2>${email ? '给这位客人补一个章' : '手动补章（老客人 / 没预约的客人）'}</h2>
+    ${email ? `<input type="hidden" id="mEmail" value="${esc(email)}">` : `
+    <div><label for="mEmail">客人邮箱</label><input type="email" id="mEmail" placeholder="client@exemple.fr"></div>
+    <div><label for="mName">名字（可不填）</label><input type="text" id="mName"></div>`}
+    <div><label for="mDate">到店日期</label><input type="date" id="mDate" value="${parisToday()}" max="${parisToday()}"></div>
+    <button type="button" class="btn full" onclick="stampManual()">补一个章</button>
+  </div>`;
+}
+
+async function loadToday() {
+  $('view').innerHTML = '<div class="hint">加载中…</div>';
+  const r = await api('today', { date: state.date });
+  if (r.error) { say('加载失败，请刷新', false); return; }
+  cache.today = r.data;
+  renderToday();
+}
+function shiftDay(n) {
+  const d = new Date(state.date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n);
+  state.date = d.toISOString().slice(0, 10); loadToday();
+}
+function pickDay(v) { if (v) { state.date = v; loadToday(); } }
+
+function stampResultText(r) {
+  if (r.error) {
+    if (r.body && r.body.error === 'pool_empty') return ['兑换码用完了，这个章没有盖上。请让 Claude 补一批兑换码。', false];
+    if (r.body && r.body.error === 'invalid email') return ['邮箱格式不对', false];
+    return ['盖章失败，请再试一次', false];
+  }
+  const d = r.data;
+  if (!d.ok) {
+    const s = d.result && d.result.status;
+    if (s === 'already_today') return ['这个邮箱这一天已经盖过章了（一天最多一个）', false];
+    if (s === 'too_old') return ['这一天已经超过一年，章不再有效', false];
+    if (s === 'invalid_date') return ['日期不能是将来', false];
+    return ['盖章失败：' + (s || '?'), false];
+  }
+  const pos = d.result.position;
+  let txt = `已盖第 ${pos} 个章`;
+  if (d.result.reward === 'upgrade') txt += '，已送智能板升级券';
+  if (d.result.reward === 'free_day') txt += `，集满！兑换码 ${d.result.code}`;
+  txt += d.mailed ? '。邮件已发给客人。' : '。但邮件没发出去，可以到客人页面点「重发链接」。';
+  return [txt, true];
+}
+
+async function stampRow(id, reason) {
+  const r0 = cache.today.reservations.find(x => x.id === id);
+  const email = ($('em' + id).value || '').trim().toLowerCase();
+  if (!email) { say('请先填客人邮箱', false); return; }
+  if (reason === 'hourly_4h' && !confirm('确认这位客人今天已经满 4 小时了吗？')) return;
+  const sameAsBooker = email === (r0.client_email || '').toLowerCase();
+  const r = await api('stamp', {
+    email, date: state.date, reason, reservation_id: id,
+    name: sameAsBooker ? (r0.client_name || '') : ''
+  });
+  const [txt, ok] = stampResultText(r);
+  say(txt, ok);
+  const p = await api('pool'); if (p.data) cache.pool = p.data;
+  loadToday();
+}
+
+async function stampManual() {
+  const email = ($('mEmail').value || '').trim().toLowerCase();
+  const date = $('mDate').value;
+  const nameEl = $('mName');
+  if (!email || !date) { say('请填邮箱和日期', false); return; }
+  if (!confirm(`给 ${email} 补一个 ${date} 的章？`)) return;
+  const r = await api('stamp', { email, date, reason: 'manual', reservation_id: null, name: nameEl ? nameEl.value : '' });
+  const [txt, ok] = stampResultText(r);
+  say(txt, ok);
+  if (state.view === 'member') openMember(state.email); else loadToday();
+}
+
+async function revoke(stampId) {
+  if (!confirm('撤销这个章？（只有客人最近的一个章可以撤销；已经发出的奖励会一起作废）')) return;
+  const r = await api('revoke', { stamp_id: stampId });
+  if (r.error) { say('撤销失败', false); return; }
+  const s = r.data.result && r.data.result.status;
+  if (!r.data.ok) {
+    say(s === 'not_latest' ? '只能撤销这位客人最近的一个章' : s === 'reward_used' ? '这个章发出的奖励已经用了，不能撤销' : '撤销失败：' + s, false);
+    return;
+  }
+  say('已撤销', true);
+  if (state.view === 'member') openMember(state.email); else loadToday();
+}
+
+async function useUpgrade(rewardId) {
+  if (!confirm('把智能板升级券标记为已用？')) return;
+  const r = await api('use_upgrade', { reward_id: rewardId });
+  say(r.data && r.data.ok ? '升级券已核销' : '核销失败（可能已经用过了）', !!(r.data && r.data.ok));
+  if (state.view === 'member') openMember(state.email); else loadToday();
+}
+
+// ---------- 客人列表 ----------
+async function loadMembers() {
+  $('view').innerHTML = '<div class="hint">加载中…</div>';
+  const r = await api('members', { q: state.q, filter: state.filter });
+  if (r.error) { say('加载失败，请刷新', false); return; }
+  cache.members = r.data;
+  renderMembers();
+}
+
+function dotsHtml(count) {
+  return '<div class="dots">' + [0, 1, 2, 3].map(i => i < count
+    ? `<i style="background:${INKS[i]}"></i>` : '<i style="border:1.5px dashed #b8a8d4"></i>').join('') + '</div>';
+}
+
+function renderMembers() {
+  const d = cache.members;
+  const chip = (key, txt) => `<button type="button" class="chip ${state.filter === key ? 'on' : ''}" onclick="setFilter('${key}')">${txt} · ${d.counts[key]}</button>`;
+  $('view').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label for="q">搜索名字或邮箱</label>
+      <input type="search" id="q" value="${esc(state.q)}" placeholder="例如 camille 或 @gmail" onkeydown="if(event.key==='Enter'){state.q=this.value;loadMembers();}"></div>
+      <div class="chips">${chip('all', '全部')}${chip('near', '差 1 个集满')}${chip('upgrade', '升级券未用')}${chip('code', '兑换码未用')}</div>
+      <div class="list">
+        ${d.members.length ? d.members.map(m => `
+          <button type="button" class="item" data-email="${esc(m.email)}" onclick="openMember(this.dataset.email)">
+            <div class="grow">
+              <div style="font-size:16px;font-weight:600;">${esc(m.name || m.email.split('@')[0])}</div>
+              <div class="meta ellipsis">${esc(m.email)}${m.last_stamp ? ' · 上次 ' + zhDate(m.last_stamp) : ''}</div>
+              ${m.free_day ? '<div class="note grey" style="align-self:flex-start;padding:2px 9px;font-size:12px;">兑换码未用</div>'
+                : m.upgrade ? '<div class="note green" style="align-self:flex-start;padding:2px 9px;font-size:12px;">升级券未用</div>'
+                : m.count === 3 ? '<div class="note pink" style="align-self:flex-start;padding:2px 9px;font-size:12px;">差 1 个集满</div>' : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">${dotsHtml(m.count)}<b>${m.count}/4</b></div>
+          </button>`).join('') : '<div class="item" style="cursor:default">没有找到客人</div>'}
+      </div>
+      <div class="hint">按最近盖章排序 · 点一位客人看详细记录</div>
+    </div>`;
+}
+function setFilter(f) { state.filter = f; const q = $('q'); if (q) state.q = q.value; loadMembers(); }
+
+// ---------- 单个客人 ----------
+async function openMember(email) {
+  state.view = 'member'; state.email = email;
+  $('view').innerHTML = '<div class="hint">加载中…</div>';
+  const r = await api('member', { email });
+  if (r.error) { say('加载失败', false); return; }
+  const d = r.data, s = d.summary;
+  const active = d.stamps.filter(x => !x.revoked_at);
+  const latestId = active.length ? active[0].id : null;
+  const mini = [0, 1, 2, 3].map(i => {
+    const st = s.stamps[i];
+    return st
+      ? `<div><b style="border:2.5px solid ${INKS[i]};color:${INKS[i]};background:#FBF8F3">✓</b>${zhDate(st.date)}</div>`
+      : `<div><b style="border:2px dashed #b8a8d4;color:#7B6A9B;background:#FBF8F3">${i + 1}</b>${i === 3 ? '免费日' : '待盖'}</div>`;
+  }).join('');
+  const now = new Date().toISOString();
+  const rewardRows = d.rewards.filter(x => !x.revoked_at).map(x => {
+    if (x.kind === 'upgrade') {
+      const st = x.used_at ? `已用（${zhDateY(x.used_at)}）` : x.expires_at < now ? '已过期' : '待使用';
+      return `<div class="item" style="cursor:default"><div class="grow"><div style="font-weight:600">智能板升级券</div>
+        <div class="meta">${zhDateY(x.issued_at)} 发放 · ${st}</div></div>
+        ${!x.used_at && x.expires_at > now ? `<button type="button" class="btn small" onclick="useUpgrade(${x.id})">标记已用</button>` : ''}</div>`;
+    }
+    const st = x.used_at ? `已用（${esc(x.used_note || '')}）` : x.expires_at < now ? '已过期' : `未用 · 有效期至 ${zhDateY(x.expires_at)}`;
+    return `<div class="item" style="cursor:default"><div class="grow"><div style="font-weight:600">免费日兑换码 ${esc(x.code || '')}</div>
+      <div class="meta">${zhDateY(x.issued_at)} 发放 · ${st}</div></div></div>`;
+  }).join('');
+  const stampRows = d.stamps.map(x => `
+    <div class="item" style="cursor:default${x.revoked_at ? ';opacity:.5' : ''}">
+      <div class="dots"><i style="background:${x.revoked_at ? '#E8E3F0' : INKS[(x.position - 1) % 4]}"></i></div>
+      <div class="grow"><div style="font-weight:600">${zhDate(x.stamped_on)}</div>
+        <div class="meta">${REASON[x.reason] || x.reason} · 第 ${x.card_no} 张卡第 ${x.position} 个章${x.revoked_at ? ' · 已撤销' : ''}</div></div>
+      ${x.id === latestId ? `<button type="button" class="btn small ghost" onclick="revoke(${x.id})">撤销</button>` : ''}
+    </div>`).join('');
+
+  $('view').innerHTML = `
+    <button type="button" class="back" onclick="showTab('members')">‹ 客人列表</button>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><h1 style="font-size:24px">${esc(d.member.name || d.member.email.split('@')[0])}</h1>
+        <div class="meta">${esc(d.member.email)} · 加入：${zhDateY(d.member.created_at)} · 网上预约 ${d.visits} 次</div></div>
+      <div class="card">
+        <div class="head"><div class="meta">当前这张卡（第 ${s.card_no} 张）</div><div style="font-size:24px;font-weight:700">${s.count}<span style="font-size:15px;color:#5a4f6a"> / 4</span></div></div>
+        <div class="mini">${mini}</div>
+        <div class="meta">已集满的卡：${s.completed} 张</div>
+      </div>
+      <div><h2>奖励</h2><div class="list">${rewardRows || '<div class="item" style="cursor:default"><span class="meta">还没有奖励（第 2 个章送升级券，第 4 个章送兑换码）</span></div>'}</div></div>
+      <div><h2>印章记录</h2><div class="list">${stampRows || '<div class="item" style="cursor:default"><span class="meta">还没有章</span></div>'}</div></div>
+      ${manualForm(d.member.email)}
+      <button type="button" class="btn full" data-email="${esc(d.member.email)}" onclick="resend(this.dataset.email)">重发印章卡链接给客人</button>
+    </div>`;
+}
+
+async function resend(email) {
+  const r = await api('resend', { email });
+  say(r.data && r.data.ok ? '链接已重新发送' : '发送失败', !!(r.data && r.data.ok));
+}
+
+// ---------- 切换 ----------
+function showTab(t) {
+  state.view = t;
+  $('tabToday').classList.toggle('on', t === 'today');
+  $('tabMembers').classList.toggle('on', t !== 'today');
+  if (t === 'today') loadToday(); else loadMembers();
+}
+$('tabToday').addEventListener('click', () => showTab('today'));
+$('tabMembers').addEventListener('click', () => showTab('members'));
+
+(async function init() {
+  if (!(await login())) { $('view').innerHTML = '<div class="hint">需要管理员密码。刷新页面再试一次。</div>'; return; }
+  showTab('today');
+})();
+</script>
+</body>
+</html>
