@@ -336,6 +336,7 @@ function buildEmailHTML(opts: {
   typeLabel: string;
   journee: boolean;
   activiteLabel: string;
+  reward?: boolean;
 }): string {
   const { date, poste, journee, activiteLabel } = opts;
   const [y, mo, d] = date.split("-");
@@ -345,6 +346,12 @@ function buildEmailHTML(opts: {
 
   const activiteBlock = activiteLabel
     ? `<div style="margin-top:6px;"><strong>Activité · 手工类型 :</strong> ${activiteLabel}</div>`
+    : "";
+
+  // Carte de fidélité · 印章卡：这次预约用了免费日兑换码
+  const rewardBlock = opts.reward
+    ? `<div style="margin-top:8px;color:#0a6b4e;font-weight:700;">Journée offerte (carte de fidélité) : rien à régler sur place, plaque intelligente comprise.<br>
+        <span style="font-weight:600;font-size:13px;">印章卡免费日：到店无需付款，含智能拼豆板。</span></div>`
     : "";
 
   return `
@@ -363,6 +370,7 @@ function buildEmailHTML(opts: {
         <span style="color:#7B6A9B;font-size:13px;">${creneauZH}</span></div>
       <div><strong>Poste · 工作台 :</strong> ${poste}</div>
       ${activiteBlock}
+      ${rewardBlock}
     </div>
 
     <p style="margin:14px 0 6px;"><strong>Adresse · 地址</strong></p>
@@ -396,7 +404,7 @@ function toBase64(str: string): string {
   return btoa(unescape(encodeURIComponent(str)));
 }
 
-function buildYayaSummaryHTML(clientName: string, clientEmail: string, rows: {date:string;heure:string;poste:string;journee:boolean;activiteLabel:string}[], families: FamilyRow[] = []): string {
+function buildYayaSummaryHTML(clientName: string, clientEmail: string, rows: {date:string;heure:string;poste:string;journee:boolean;activiteLabel:string}[], families: FamilyRow[] = [], loyaltyNote = ""): string {
   const items = rows.map((r) => {
     const [y, mo, d] = r.date.split("-");
     const frDate = `${d}/${mo}/${y}`;
@@ -424,7 +432,7 @@ function buildYayaSummaryHTML(clientName: string, clientEmail: string, rows: {da
   <div style="background:#fff;border:1px solid #E8E3F0;border-top:none;padding:20px;border-radius:0 0 12px 12px;">
     <p style="margin:0 0 10px;"><strong>Client · 客户 :</strong> ${clientName || "—"} (${clientEmail || "—"})</p>
     ${rows.length > 0 ? `<p style="margin:0 0 6px;"><strong>${rows.length}</strong> créneau(x) réservé(s) · 共 ${rows.length} 个预约 :</p>
-    <ul style="margin:8px 0 0;padding-left:20px;">${items}</ul>` : ""}${familyBlock}
+    <ul style="margin:8px 0 0;padding-left:20px;">${items}</ul>` : ""}${familyBlock}${loyaltyNote}
   </div>
 </div>`;
 }
@@ -504,6 +512,41 @@ Deno.serve(async (req) => {
 
     const yayaRows: {date:string;heure:string;poste:string;journee:boolean;activiteLabel:string}[] = [];
 
+    // ===== Carte de fidélité · 印章卡兑换码 =====
+    // 订单里如果用了印章卡的免费日兑换码：标记为已用，并记在这张订单的第一个预约上。
+    // 用法不对（不是本人、过期、已撤销、重复使用、不是拼豆全天）就提醒 Yaya。
+    const clientLocale = String(order?.customer_locale || "");
+    const loyaltyOrderLabel = String(order?.name || (order?.order_number ? `#${order.order_number}` : orderId));
+    const loyaltyIssues: string[] = [];
+    let loyaltyCode = "";
+    for (const dc of (Array.isArray(order?.discount_codes) ? order.discount_codes : [])) {
+      const code = String(dc?.code || "").trim().toUpperCase();
+      if (!code) continue;
+      const { data: red, error: redErr } = await sb.rpc("loyalty_redeem_code", {
+        p_code: code,
+        p_email: clientEmail,
+        p_order: loyaltyOrderLabel,
+      });
+      if (redErr) {
+        console.error("loyalty_redeem_code error:", redErr);
+        loyaltyIssues.push(`${code} : erreur technique · 技术错误`);
+        continue;
+      }
+      if (red?.status === "not_loyalty") continue;
+      loyaltyCode = code;
+      if (red?.status === "already_used" && red?.used_note !== loyaltyOrderLabel) {
+        loyaltyIssues.push(`${code} : déjà utilisé · 已经用过 (${red?.used_note ?? "?"})`);
+      }
+      if (red?.email_match === false) {
+        loyaltyIssues.push(`${code} : appartient à ${red?.owner}, utilisé par ${clientEmail || "?"} · 不是本人使用`);
+      }
+      if (red?.expired) loyaltyIssues.push(`${code} : expiré · 已过期`);
+      if (red?.revoked) loyaltyIssues.push(`${code} : annulé · 已撤销`);
+    }
+    let rewardCodeLeft = loyaltyCode;
+    let rewardAssigned = false;
+    let rewardOnBeadsDay = false;
+
     for (const li of reservationItems) {
       const props = li?.properties || [];
       const poste = getProp(props, "Poste");
@@ -516,6 +559,7 @@ Deno.serve(async (req) => {
       const startHour = parseHour(heure, journee ? "journee" : "hourly");
 
       const lineItemId = String(li?.id ?? `${orderId}-${poste}-${date}-${startHour}`);
+      const isReward = rewardCodeLeft !== "";
 
       const { error: dbErr } = await sb.from("reservations").insert({
         date,
@@ -526,6 +570,10 @@ Deno.serve(async (req) => {
         client_name: clientName || clientEmail || "Client",
         source_line_item_id: lineItemId,
         craft_type: craftType,
+        client_email: clientEmail ? String(clientEmail).trim().toLowerCase() : null,
+        client_locale: clientLocale || null,
+        shopify_order_id: orderId || null,
+        reward_code: isReward ? rewardCodeLeft : null,
       });
 
       if (dbErr) {
@@ -536,8 +584,14 @@ Deno.serve(async (req) => {
         console.error("DB insert error:", dbErr);
       }
 
+      if (isReward) {
+        rewardCodeLeft = "";
+        rewardAssigned = true;
+        rewardOnBeadsDay = journee && craftType === "fuse_beads";
+      }
+
       const ics = buildICS({ date, startHour, journee, poste, activiteLabel });
-      const html = buildEmailHTML({ date, heure, poste, typeLabel, journee, activiteLabel });
+      const html = buildEmailHTML({ date, heure, poste, typeLabel, journee, activiteLabel, reward: isReward });
       if (clientEmail && clientEmail.includes("@")) {
         await sendEmail({
           from: `${FROM_NAME} <${FROM_EMAIL}>`,
@@ -626,12 +680,35 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ===== Carte de fidélité · 印章卡：给 Yaya 的提示 =====
+    if (rewardAssigned && !rewardOnBeadsDay) {
+      loyaltyIssues.push(`${loyaltyCode} : utilisé pour une réservation qui n'est pas une journée perles · 没有用在拼豆全天上`);
+    }
+    if (loyaltyCode && !rewardAssigned && familyItems.length > 0 && reservationItems.length === 0) {
+      loyaltyIssues.push(`${loyaltyCode} : utilisé sur un atelier parent-enfant · 用在了亲子场`);
+    }
+    const loyaltyNote = loyaltyCode
+      ? `
+    <div style="background:#e1f5ee;border-radius:8px;padding:12px 14px;margin:14px 0 0;font-size:14px;">
+      <strong>Carte de fidélité · 印章卡 :</strong> journée offerte, code ${escHtml(loyaltyCode)}. Rien à encaisser sur place.<br>
+      <span style="color:#7B6A9B;font-size:13px;">免费日兑换码，到店不收费（含智能拼豆板）。</span>
+      ${loyaltyIssues.length > 0 ? `<div style="margin-top:8px;color:#c47a9a;font-weight:700;">À vérifier · 需要核对 :<br>${loyaltyIssues.map(escHtml).join("<br>")}</div>` : ""}
+    </div>`
+      : "";
+
     if (yayaRows.length > 0 || familyRows.length > 0) {
       await sendEmail({
         from: `${FROM_NAME} <${FROM_EMAIL}>`,
         to: [YAYA_EMAIL],
         subject: `Nouvelle réservation (${yayaRows.length + familyRows.length}) · 新预约 — ${clientName || clientEmail}`,
-        html: buildYayaSummaryHTML(clientName, clientEmail, yayaRows, familyRows),
+        html: buildYayaSummaryHTML(clientName, clientEmail, yayaRows, familyRows, loyaltyNote),
+      });
+    } else if (loyaltyIssues.length > 0) {
+      await sendEmail({
+        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        to: [YAYA_EMAIL],
+        subject: `Carte de fidélité à vérifier · 印章卡兑换码需要核对 · Commande ${loyaltyOrderLabel}`,
+        html: buildYayaSummaryHTML(clientName, clientEmail, [], [], loyaltyNote),
       });
     }
 
