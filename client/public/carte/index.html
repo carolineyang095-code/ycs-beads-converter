@@ -36,7 +36,6 @@
   .stamp .ring{width:92px;height:92px;border-radius:50%;border:1.5px dashed;display:flex;align-items:center;justify-content:center;}
   .stamp img{width:70px;height:70px;object-fit:contain;}
   .empty{width:106px;height:106px;border-radius:50%;border:2px dashed #b8a8d4;background:#FBF8F3;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:#7B6A9B;}
-  .slotname{font-size:13px;color:#5a4f6a;text-align:center;min-height:1em;}
   .perk{font-size:12px;font-weight:600;background:#E8E3F0;border-radius:999px;padding:3px 10px;text-align:center;}
   .msg{margin-top:20px;background:#F5EFE6;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.45;text-align:center;}
 
@@ -158,8 +157,6 @@ const SUPABASE_URL = 'https://rfhvvendmvfcfclsxjxb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_5Oi8G_cclnJY-B6eBbhEbA__wayUDzk';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Noms des trois chats (affichés sous les tampons) · 三只猫的名字，留空就不显示
-const CAT_NAMES = ['', '', ''];
 const INKS = ['#7B6A9B', '#c47a9a', '#3f9c86', '#332847'];
 const TINTS = ['rgba(123,106,155,.08)', 'rgba(196,122,154,.08)', 'rgba(77,184,160,.10)', 'rgba(184,168,212,.18)'];
 const ROTS = [-8, 6, -4, 5];
@@ -174,7 +171,7 @@ const T = {
           'Encore deux journées et la suivante vous est offerte.',
           'Encore une journée et la suivante vous est offerte.',
           'Carte complète !'],
-    perk2: 'Petit cadeau', perk4: 'Journée offerte', octo: 'La pieuvre',
+    perk2: 'Petit cadeau', perk4: 'Journée offerte',
     rwLabel: 'Votre journée offerte',
     rwDesc: 'Une journée perles à repasser avec plaque intelligente, rien à régler.',
     codeLabel: 'Votre code', copy: 'Copier', copied: 'Copié',
@@ -210,7 +207,7 @@ const T = {
           'Two more days and the next one is on us.',
           'One more day and the next one is on us.',
           'Card complete!'],
-    perk2: 'Small gift', perk4: 'Free day', octo: 'The octopus',
+    perk2: 'Small gift', perk4: 'Free day',
     rwLabel: 'Your free day',
     rwDesc: 'A fuse bead day with the smart pegboard, nothing to pay.',
     codeLabel: 'Your code', copy: 'Copy', copied: 'Copied',
@@ -246,7 +243,7 @@ const T = {
           '再来两天，下一天就免费。',
           '再来一天，下一天就免费。',
           '集满啦！'],
-    perk2: '小礼物', perk4: '免费一天', octo: '章鱼',
+    perk2: '小礼物', perk4: '免费一天',
     rwLabel: '你的免费日',
     rwDesc: '一天拼豆，含智能拼豆板，到店不用付钱。',
     codeLabel: '你的兑换码', copy: '复制', copied: '已复制',
@@ -289,18 +286,17 @@ function fmt(d) {
 
 function slotHtml(i, filled) {
   const t = T[lang];
-  const name = i < 3 ? CAT_NAMES[i] : t.octo;
   const perk = i === 1 ? t.perk2 : i === 3 ? t.perk4 : '';
   let face;
   if (filled) {
-    // Images des tampons : chat-1.png, chat-2.png, chat-3.png, pieuvre.png (remplacer le fichier du même nom pour changer l'image)
-    const inner = `<img src="${i < 3 ? 'chat-' + (i + 1) : 'pieuvre'}.png" alt="">`;
+    // Images des tampons : tampon-1.png à tampon-4.png (remplacer le fichier du même nom pour changer l'image)
+    const inner = `<img src="tampon-${i + 1}.png" alt="">`;
     face = `<div class="stamp" style="border-color:${INKS[i]};background:${TINTS[i]};transform:rotate(${ROTS[i]}deg)">
       <div class="ring" style="border-color:${INKS[i]}">${inner}</div></div>`;
   } else {
     face = `<div class="empty">${i + 1}</div>`;
   }
-  return `<div class="slot">${face}<div class="slotname">${esc(name)}</div>${perk ? `<div class="perk">${perk}</div>` : ''}</div>`;
+  return `<div class="slot">${face}${perk ? `<div class="perk">${perk}</div>` : ''}</div>`;
 }
 
 function render() {
